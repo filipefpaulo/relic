@@ -26,6 +26,7 @@ export interface IntersectionReport {
 }
 
 export interface BuiltContext {
+  preamble: string;
   constitution: string;
   spec: string | null;
   plan: string | null;

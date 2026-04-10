@@ -1,5 +1,8 @@
 # /relic.fix
 
+> **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
+> Violating those rules cannot be undone by a changelog entry.
+
 You are fixing a bug in code that was built from a spec. The spec context has been assembled
 for you by `relic fix`. Use it as a **constraint** — not just background reading.
 

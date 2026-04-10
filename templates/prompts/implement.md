@@ -1,5 +1,8 @@
 # /relic.implement
 
+> **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
+> Violating those rules cannot be undone by a changelog entry.
+
 You are implementing the tasks from the current plan.
 
 ## Before you begin

@@ -27,6 +27,7 @@ export async function runInit(options: InitOptions): Promise<void> {
   ];
   for (const d of dirs) ensureDir(d);
 
+  writeText(join(relicDir, "preamble.md"), TEMPLATES["preamble.md"] ?? "");
   writeText(join(relicDir, "constitution.md"), TEMPLATES["constitution.md"] ?? "");
   writeText(
     join(relicDir, "changelog.md"),
@@ -44,6 +45,7 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("Relic initialised.");
   console.log("");
   console.log("Created:");
+  console.log("  .relic/preamble.md     (Relic architectural invariants — do not edit)");
   console.log("  .relic/constitution.md");
   console.log("  .relic/changelog.md");
   console.log("  .relic/shared/  (domains/, contracts/, rules/, assumptions/)");

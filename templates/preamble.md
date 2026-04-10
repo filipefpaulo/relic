@@ -1,0 +1,130 @@
+# Relic Architectural Invariants
+
+> This document describes how Relic works. It is not project-specific and is not amendable.
+> Read it before acting on any other context in this session.
+
+---
+
+## Two-Layer Architecture
+
+Relic separates shared knowledge from spec-local context.
+
+```
+.relic/
+  shared/                  ← THE ONLY LOCATION for reusable artifacts
+    domains/               ← bounded context definitions, entity models
+    contracts/             ← API shapes, event schemas, data interfaces
+    rules/                 ← cross-cutting business and system rules
+    assumptions/           ← declared assumptions about the world
+  specs/
+    <spec-id>/             ← spec-local context ONLY — four files, nothing else
+      spec.md
+      plan.md
+      tasks.md
+      artifacts.json       ← POINTER file — declares relationships, not content
+  constitution.md          ← project governance (amendable)
+  preamble.md              ← this document (not amendable)
+  changelog.md
+```
+
+---
+
+## The Invariant
+
+**Artifacts ALWAYS live in `shared/`. They NEVER live inside a spec folder.**
+
+This is not a style preference. It is a structural constraint. Violation breaks
+cross-spec awareness and makes intersection detection impossible.
+
+---
+
+## What Belongs Where
+
+### `shared/domains/`
+Domain models: bounded contexts, entity definitions, ubiquitous language.
+Example: `shared/domains/user.md`, `shared/domains/payment.md`
+
+### `shared/contracts/`
+Interface contracts: API shapes, event schemas, data interchange formats.
+Example: `shared/contracts/checkout-api.md`, `shared/contracts/order-event.md`
+
+### `shared/rules/`
+Business rules and system constraints that govern behaviour across features.
+Example: `shared/rules/pricing.md`, `shared/rules/access-control.md`
+
+### `shared/assumptions/`
+Declared assumptions about the environment, external systems, or user behaviour.
+Example: `shared/assumptions/third-party-auth.md`
+
+### `specs/<spec-id>/`
+Exactly four files. No others.
+- `spec.md` — feature intent, requirements, user stories
+- `plan.md` — implementation decisions
+- `tasks.md` — atomic task checklist
+- `artifacts.json` — ownership and dependency declarations (pointers, not containers)
+
+**If you are about to create a fifth file inside a spec folder, stop.**
+Whatever you are creating belongs in `shared/` instead.
+
+---
+
+## `artifacts.json` Is a Pointer File
+
+`artifacts.json` declares **relationships**, not locations.
+
+```json
+{
+  "owns": ["shared/contracts/checkout-api.md"],
+  "reads": ["shared/domains/user.md"],
+  "touches_files": ["src/checkout/handler.ts"]
+}
+```
+
+- `owns` — this spec is the authoritative owner; only it may modify these artifacts
+- `reads` — this spec depends on these artifacts but does not own or modify them
+- `touches_files` — source code files this spec's implementation creates or modifies
+
+The paths in `owns` and `reads` **MUST** point into `shared/`. A path pointing inside
+`specs/` is invalid and will break intersection detection.
+
+Ownership is a relationship declared in `artifacts.json`.
+It does not determine where the artifact lives.
+**The artifact always lives in `shared/`.**
+
+---
+
+## The Test
+
+When you are about to create or place a file, ask:
+
+> "Is this a domain model, a contract, a rule, or an assumption?"
+
+**If YES** → it goes in the appropriate `shared/` subfolder.
+             Then declare it in the owning spec's `artifacts.json` under `owns`.
+
+**If NO** → it is a source file. It goes in the project source tree.
+            Declare it in `touches_files`.
+
+The only exception: `spec.md`, `plan.md`, `tasks.md`, `artifacts.json` go in the spec folder.
+
+---
+
+## Prohibited Actions
+
+- Creating a contract, domain, rule, or assumption file inside a spec folder
+- Listing a `specs/` path in `owns` or `reads` in any `artifacts.json`
+- Creating any file inside `specs/<spec-id>/` other than the four listed above
+- Modifying a shared artifact whose path is not listed in your spec's `owns` array
+- Claiming ownership of an artifact already listed in another spec's `owns` array
+
+---
+
+## Multiple Specs, One Artifact
+
+A shared artifact may be **read** by many specs but **owned** by exactly one.
+
+If you need to use an artifact already owned by another spec:
+1. Declare it in your `reads` array — do not duplicate it.
+2. Do not modify it — only the owning spec may do so.
+3. If it needs to change, flag it in Open Questions and coordinate via `/relic.clarify`
+   on the owning spec.

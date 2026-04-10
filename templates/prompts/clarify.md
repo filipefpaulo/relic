@@ -1,5 +1,8 @@
 # /relic.clarify
 
+> **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
+> Violating those rules cannot be undone by a changelog entry.
+
 You are appending details, changing contracts, or adding behaviors to an existing spec.
 
 ## Before you begin

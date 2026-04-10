@@ -1,5 +1,8 @@
 # /relic.specify
 
+> **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
+> Violating those rules cannot be undone by a changelog entry.
+
 You are helping create a new spec for this project.
 
 ## Before you begin

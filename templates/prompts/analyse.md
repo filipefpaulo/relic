@@ -1,5 +1,8 @@
 # /relic.analyse
 
+> **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
+> Violating those rules cannot be undone by a changelog entry.
+
 You are performing a non-destructive consistency check. You must NOT modify any files.
 
 ## What to check

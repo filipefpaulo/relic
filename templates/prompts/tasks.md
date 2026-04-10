@@ -1,5 +1,8 @@
 # /relic.tasks
 
+> **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
+> Violating those rules cannot be undone by a changelog entry.
+
 You are generating a task list from the current implementation plan.
 
 ## Before you begin
