@@ -1,10 +1,12 @@
 import { join } from "path";
 import { dirExists, ensureDir, writeText, makeExecutable } from "../utils/fs.ts";
 import { TEMPLATES } from "../generated/templates.ts";
+import { runAddEngine, type Engine } from "./add-engine.ts";
 
 export interface InitOptions {
   dir: string;
   force: boolean;
+  engines: Engine[];
 }
 
 export async function runInit(options: InitOptions): Promise<void> {
@@ -62,6 +64,13 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/specs/");
   console.log("  .relic/prompts/  (AI slash command prompts)");
   console.log("  .relic/scripts/  (bash utilities: check-context, validate-artifacts)");
+  console.log("");
+
+  // Write engine-specific hook files
+  for (const engine of options.engines) {
+    await runAddEngine({ engine, projectDir: options.dir });
+  }
+
   console.log("");
   console.log("Next step: relic specify");
 }
