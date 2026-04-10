@@ -31,6 +31,7 @@ export async function runInit(options: InitOptions): Promise<void> {
   ];
   for (const d of dirs) ensureDir(d);
 
+  writeText(join(relicDir, ".gitignore"), "current-spec\n");
   writeText(join(relicDir, "preamble.md"), TEMPLATES["preamble.md"] ?? "");
   writeText(join(relicDir, "constitution.md"), TEMPLATES["constitution.md"] ?? "");
   writeText(
@@ -69,6 +70,7 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/shared/  (domains/, contracts/, rules/, assumptions/)");
   console.log("  .relic/specs/");
   console.log("  .relic/prompts/  (AI slash command prompts)");
+  console.log("  .relic/.gitignore  (ignores current-spec — personal session state)");
   console.log("  .relic/scripts/  (bash utilities: check-context, scaffold-spec, validate-artifacts)");
   console.log("  .relic/templates/  (spec scaffolding templates for scaffold-spec.sh)");
   console.log("");

@@ -4,6 +4,7 @@ import { join } from "path";
 import {
   runInit,
   runAddEngine,
+  runUse,
   runSpecify,
   runFix,
   runClarify,
@@ -144,6 +145,18 @@ program
       process.exit(1);
     }
     await runImplement({ relicDir });
+  });
+
+program
+  .command("use <spec-id>")
+  .description("Set the active spec for this session")
+  .action(async (specId: string) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runUse({ specId, relicDir });
   });
 
 program.parse(process.argv);

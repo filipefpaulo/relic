@@ -1,6 +1,7 @@
 export { runInit } from "./commands/init.ts";
 export { runAddEngine, SUPPORTED_ENGINES } from "./commands/add-engine.ts";
 export type { Engine } from "./commands/add-engine.ts";
+export { runUse } from "./commands/use.ts";
 export { runSpecify } from "./commands/specify.ts";
 export { runFix } from "./commands/fix.ts";
 export { runClarify } from "./commands/clarify.ts";

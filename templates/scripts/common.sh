@@ -18,29 +18,37 @@ find_relic_dir() {
   return 1
 }
 
-# Resolve spec ID from: explicit arg > RELIC_SPEC env > git branch inference.
+# Resolve spec ID from: explicit arg > RELIC_SPEC env > current-spec file > git branch.
 # Usage: resolve_spec_id "<explicit_or_empty>" "<relic_dir>"
 # Prints the spec ID string or exits non-zero with an error message.
+# Sets SPEC_ID_SOURCE to one of: arg | env | current-spec | git-branch
 resolve_spec_id() {
   local explicit="${1:-}"
   local relic_dir="$2"
   local spec_id=""
+  SPEC_ID_SOURCE=""
 
   if [ -n "$explicit" ]; then
     spec_id="$explicit"
+    SPEC_ID_SOURCE="arg"
   elif [ -n "${RELIC_SPEC:-}" ]; then
     spec_id="$RELIC_SPEC"
+    SPEC_ID_SOURCE="env"
+  elif [ -f "$relic_dir/current-spec" ]; then
+    spec_id=$(tr -d '[:space:]' < "$relic_dir/current-spec")
+    SPEC_ID_SOURCE="current-spec"
   else
     local branch=""
     branch=$(git branch --show-current 2>/dev/null) || true
     if [ -n "$branch" ]; then
       spec_id=$(echo "$branch" | grep -oE '[0-9]{3}-[a-z0-9-]+' | head -1 || true)
+      [ -n "$spec_id" ] && SPEC_ID_SOURCE="git-branch"
     fi
   fi
 
   if [ -z "$spec_id" ]; then
     echo "ERROR: Cannot resolve spec ID." >&2
-    echo "       Use --spec <id>, set RELIC_SPEC, or be on a branch named NNN-slug." >&2
+    echo "       Run: relic use <spec-id>" >&2
     echo "" >&2
     echo "Available specs:" >&2
     ls "$relic_dir/specs/" 2>/dev/null | grep -E '^[0-9]{3}-' | sed 's/^/  /' >&2 || true

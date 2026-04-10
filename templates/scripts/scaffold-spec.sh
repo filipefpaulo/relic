@@ -168,6 +168,12 @@ if [ ! -f "$ARTIFACTS_FILE" ]; then
 fi
 
 #------------------------------------------------------------------------------
+# Track active spec
+#------------------------------------------------------------------------------
+
+printf '%s' "$SPEC_ID" > "$RELIC_DIR/current-spec"
+
+#------------------------------------------------------------------------------
 # Build JSON output
 #------------------------------------------------------------------------------
 
@@ -183,11 +189,12 @@ files_json+="]"
 
 cat <<EOF
 {
-  "spec_id":      "$(json_escape "$SPEC_ID")",
-  "spec_dir":     "$(json_escape "$SPEC_DIR")",
-  "title":        "$(json_escape "$TITLE")",
-  "date":         "$(json_escape "$DATE")",
-  "was_new":      $WAS_NEW,
-  "files_created": $files_json
+  "spec_id":               "$(json_escape "$SPEC_ID")",
+  "spec_dir":              "$(json_escape "$SPEC_DIR")",
+  "title":                 "$(json_escape "$TITLE")",
+  "date":                  "$(json_escape "$DATE")",
+  "was_new":               $WAS_NEW,
+  "current_spec_updated":  true,
+  "files_created":         $files_json
 }
 EOF

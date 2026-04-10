@@ -50,6 +50,18 @@ done
 # Resolve paths
 #------------------------------------------------------------------------------
 RELIC_DIR=$(find_relic_dir) || exit 1
+
+# Detect source before calling resolve_spec_id (subshell can't propagate the global)
+if [ -n "$SPEC_ARG" ]; then
+  SPEC_ID_SOURCE="arg"
+elif [ -n "${RELIC_SPEC:-}" ]; then
+  SPEC_ID_SOURCE="env"
+elif [ -f "$RELIC_DIR/current-spec" ]; then
+  SPEC_ID_SOURCE="current-spec"
+else
+  SPEC_ID_SOURCE="git-branch"
+fi
+
 SPEC_ID=$(resolve_spec_id "$SPEC_ARG" "$RELIC_DIR") || exit 1
 
 SPEC_DIR="$RELIC_DIR/specs/$SPEC_ID"
@@ -141,6 +153,7 @@ if $JSON_MODE; then
     jq -cn \
       --arg relic_dir "$RELIC_DIR" \
       --arg spec_id "$SPEC_ID" \
+      --arg spec_id_source "$SPEC_ID_SOURCE" \
       --arg spec_dir "$SPEC_DIR" \
       --argjson files "{
         \"preamble\":$f_preamble,
@@ -152,12 +165,13 @@ if $JSON_MODE; then
         \"changelog\":$f_changelog
       }" \
       --argjson shared_artifacts "$artifacts_json_array" \
-      '{relic_dir:$relic_dir,spec_id:$spec_id,spec_dir:$spec_dir,files:$files,shared_artifacts:$shared_artifacts}'
+      '{relic_dir:$relic_dir,spec_id:$spec_id,active_spec_source:$spec_id_source,spec_dir:$spec_dir,files:$files,shared_artifacts:$shared_artifacts}'
   else
     cat <<EOF
 {
   "relic_dir": "$(json_escape "$RELIC_DIR")",
   "spec_id": "$(json_escape "$SPEC_ID")",
+  "active_spec_source": "$(json_escape "$SPEC_ID_SOURCE")",
   "spec_dir": "$(json_escape "$SPEC_DIR")",
   "files": {
     "preamble": $f_preamble,
