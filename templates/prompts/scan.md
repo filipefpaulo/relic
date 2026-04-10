@@ -196,5 +196,13 @@ How you would know this assumption is no longer valid.
 Tell the user:
 - How many artifacts were generated (domains / contracts / rules / assumptions)
 - Which ones have low confidence and need human review
-- Next step: `/relic.specify` to create the first spec — it can now claim ownership of the
-  artifacts it needs by updating its `artifacts.json`
+
+## Next: Generate the Constitution
+
+Run `/relic.constitution` to complete the bootstrap.
+
+- `/relic.scan` → **WHAT** the system does (domains, contracts, rules, assumptions)
+- `/relic.constitution` → **HOW** the team works (coding standards, tech stack, architecture)
+
+Once both are done, run `/relic.specify` to create the first feature spec — it will start
+with a fully populated brain and a set of hard rules governing every decision.

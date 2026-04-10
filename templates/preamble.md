@@ -128,3 +128,28 @@ If you need to use an artifact already owned by another spec:
 2. Do not modify it — only the owning spec may do so.
 3. If it needs to change, flag it in Open Questions and coordinate via `/relic.clarify`
    on the owning spec.
+
+---
+
+## Relic Operational Rules
+
+These rules govern every AI-assisted interaction in every Relic project. They are not
+project-specific and are not amendable via the constitution.
+
+**Respect ownership.** Never modify a shared artifact you do not own.
+Check `artifacts.json` before editing anything in `.relic/shared/`.
+
+**Flag intersections before acting.** If your implementation touches a file or artifact
+that another spec owns, raise it explicitly. Do not proceed until the intersection is resolved.
+
+**Never bypass the plan.** If the plan is wrong or incomplete, update `plan.md` and write
+a changelog entry — do not silently deviate from it.
+
+**Changelog is mandatory.** Every plan mutation, contract change, or significant
+architectural decision must be written to `.relic/changelog.md`.
+
+**Assumptions must be declared.** If you make an assumption not captured in the spec,
+write it to `.relic/shared/assumptions/` before it influences any code.
+
+**The spec is the source of truth.** If code and spec disagree, the spec is right —
+unless a `clarify` has explicitly updated the spec to reflect the change.

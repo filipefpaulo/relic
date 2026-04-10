@@ -384,3 +384,36 @@ Use the manifest to read files selectively — do not explore the filesystem man
 - Do not write inside `specs/` — all output goes into `shared/`.
 - Do not modify artifacts that already have an owner.
 - Mark confidence as `medium` for inferences — they need human review.
+
+---
+
+### constitution — Extract project-specific principles from the codebase
+
+Run this **once** when adopting Relic. Run after `/relic.scan` for existing codebases,
+or standalone for new projects.
+
+**Detect mode:**
+```bash
+relic scan --json
+```
+- `total_files > 10` and `tech_stack` non-empty → existing codebase (extract from code)
+- Otherwise → new project (ask user for project name, framework, testing approach)
+
+**Existing codebase workflow:**
+1. Read config files: `tsconfig.json`, `.eslintrc*`, `jest.config.*` / `vitest.config.*`, `package.json`
+2. Read 5–10 test files — testing approach, framework, mocking strategy
+3. Read architecture files — layering, naming conventions, error handling patterns
+4. Read `README.md`, `CONTRIBUTING.md`, any ADRs — explicit decisions are high confidence
+5. Extract 3–7 project-specific principles (verifiable, specific, non-trivial)
+6. Write to `.relic/constitution.md` — mark each principle as `(explicit)`, `(inferred)`, or `(assumed)`
+7. Report to user with opportunity to correct
+
+**New project workflow:**
+Ask for: project name, language/framework, testing approach, key architecture decisions.
+Fill the template. Set today's date as the ratification date.
+
+**What NOT to do:**
+- Do not copy code into constitution.md — only principles
+- Do not make up principles not evidenced in the codebase
+- Do not create specs or plans — this is governance only
+- Do not modify `.relic/preamble.md` — it is not amendable

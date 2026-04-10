@@ -11,7 +11,7 @@ export interface AddEngineOptions {
   projectDir: string;
 }
 
-const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "use", "scan"];
+const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "use", "scan", "constitution"];
 
 export async function runAddEngine(options: AddEngineOptions): Promise<void> {
   const { engine, projectDir } = options;

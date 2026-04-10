@@ -81,5 +81,8 @@ export async function runInit(options: InitOptions): Promise<void> {
   }
 
   console.log("");
-  console.log("Next step: relic specify");
+  console.log("Next steps — open your AI agent and run:");
+  console.log("");
+  console.log("  Existing codebase:  /relic.scan  then  /relic.constitution");
+  console.log("  New project:        /relic.constitution  then  /relic.specify");
 }
