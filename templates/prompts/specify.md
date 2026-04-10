@@ -3,20 +3,28 @@
 > **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
 > Violating those rules cannot be undone by a changelog entry.
 
-## Before you begin — run this first
+## Before you begin — Step 0: derive the spec title
+
+Read the user's input (description, PRD snippet, or user story).
+Extract a short, clear feature name — 2–4 words, title case, no punctuation.
+Examples: "User History", "Checkout Flow", "Auth Token Refresh".
+
+## Before you begin — Step 1: scaffold the spec
 
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+bash .relic/scripts/scaffold-spec.sh --title "<derived title>" --json
 ```
 
-This returns all file paths and which files exist. Read only what it confirms is present.
+This generates the spec ID, creates the folder, and writes empty scaffolding for
+`spec.md`, `plan.md`, `tasks.md`, and `artifacts.json`. Use the `spec_id` from the
+JSON output for all subsequent file references — do not infer it from anywhere else.
 
 You are helping create a new spec for this project.
 
-## Before you begin
+## Before you begin — Step 2: load context
 
 1. Read `.relic/constitution.md` — understand the governing rules.
-2. Scan `.relic/specs/` to understand what specs already exist.
+2. Read the newly created `spec.md` from the path in the scaffold output.
 3. Scan `.relic/shared/` to understand what artifacts already exist.
 
 ## Your task

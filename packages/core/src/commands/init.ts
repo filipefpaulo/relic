@@ -27,6 +27,7 @@ export async function runInit(options: InitOptions): Promise<void> {
     join(relicDir, "specs"),
     join(relicDir, "prompts"),
     join(relicDir, "scripts"),
+    join(relicDir, "templates"),
   ];
   for (const d of dirs) ensureDir(d);
 
@@ -43,6 +44,11 @@ export async function runInit(options: InitOptions): Promise<void> {
       const dest = join(relicDir, key);
       writeText(dest, content);
     }
+  }
+
+  // Write spec scaffolding templates (used by scaffold-spec.sh for sed substitution)
+  for (const fname of ["spec.md", "plan.md", "tasks.md"]) {
+    writeText(join(relicDir, "templates", fname), TEMPLATES[fname] ?? "");
   }
 
   // Write and chmod all bash scripts
@@ -63,7 +69,8 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/shared/  (domains/, contracts/, rules/, assumptions/)");
   console.log("  .relic/specs/");
   console.log("  .relic/prompts/  (AI slash command prompts)");
-  console.log("  .relic/scripts/  (bash utilities: check-context, validate-artifacts)");
+  console.log("  .relic/scripts/  (bash utilities: check-context, scaffold-spec, validate-artifacts)");
+  console.log("  .relic/templates/  (spec scaffolding templates for scaffold-spec.sh)");
   console.log("");
 
   // Write engine-specific hook files

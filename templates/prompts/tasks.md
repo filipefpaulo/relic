@@ -6,10 +6,11 @@
 ## Before you begin — run this first
 
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+bash .relic/scripts/scaffold-spec.sh --spec <your-spec-id> --json
 ```
 
-This returns all file paths and which files exist. Read only what it confirms is present.
+This ensures the spec folder and all files exist, creating any that are missing.
+Check `files_created` in the output — if `plan.md` was just created, run `/relic.plan` first.
 
 You are generating a task list from the current implementation plan.
 

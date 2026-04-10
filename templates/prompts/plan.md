@@ -6,8 +6,8 @@
 ## Before you begin — run these first
 
 ```bash
-# 1. Resolve paths and check what exists
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+# 1. Ensure spec folder and files exist (creates missing files from templates)
+bash .relic/scripts/scaffold-spec.sh --spec <your-spec-id> --json
 
 # 2. Validate shared brain integrity — no conflicts before planning
 bash .relic/scripts/validate-artifacts.sh --json
