@@ -5,6 +5,7 @@ import {
   runInit,
   runAddEngine,
   runUse,
+  runScan,
   runSpecify,
   runFix,
   runClarify,
@@ -157,6 +158,20 @@ program
       process.exit(1);
     }
     await runUse({ specId, relicDir });
+  });
+
+program
+  .command("scan")
+  .description("Scan existing codebase and output a project manifest for AI artifact generation")
+  .option("--json", "Output manifest as JSON (for AI consumption)", false)
+  .action(async (opts: { json: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    const projectDir = join(relicDir, "..");
+    await runScan({ projectDir, relicDir, json: opts.json });
   });
 
 program.parse(process.argv);

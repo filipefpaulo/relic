@@ -326,3 +326,61 @@ You are fixing a bug in code that was built from a spec. Use the spec context as
 3. Contract impact — yes/no, and which artifacts if yes.
 4. Affected specs — any other specs that need review.
 5. Changelog entry — paste the entry you wrote.
+
+---
+
+### use — Switch the active spec
+
+The user will say something like "switch to spec 002-payments" or "use spec 001-auth".
+Extract the spec ID and run:
+
+```bash
+bash .relic/scripts/scaffold-spec.sh --spec <spec-id> --json
+```
+
+This updates `.relic/current-spec` so all subsequent Relic commands resolve to that spec.
+
+After switching, confirm to the user:
+- Which spec is now active and its title
+- Which files exist for it (spec.md, plan.md, tasks.md)
+- Suggested next step
+
+---
+
+### scan — Bootstrap shared artifacts from existing codebase
+
+Run this **once** when adopting Relic on a project that already has code.
+
+```bash
+relic scan --json
+```
+
+Use the manifest to read files selectively — do not explore the filesystem manually.
+
+**Workflow:**
+1. Read `key_files` with role `entry_point`, `types`, `schema` → identify domain language and contracts.
+2. Read `routes`, `services`, `middleware` files → identify the API surface.
+3. Sample 5–10 business logic files → identify rules and assumptions.
+4. Write artifacts to `.relic/shared/{domains,contracts,rules,assumptions}/`.
+5. Write a changelog entry summarising what was generated.
+
+**Artifact format** (apply to all four types):
+```markdown
+# <Name>
+
+**Type:** domain | contract | rule | assumption
+**Inferred from:** <file paths>
+**Confidence:** high | medium | low
+
+## Description
+...
+
+## Owned by
+(unowned — assign when a spec takes responsibility)
+```
+
+**What NOT to do:**
+- Do not create a spec or plan — this is discovery only.
+- Do not write inside `specs/` — all output goes into `shared/`.
+- Do not modify artifacts that already have an owner.
+- Mark confidence as `medium` for inferences — they need human review.

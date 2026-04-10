@@ -11,7 +11,7 @@ export interface AddEngineOptions {
   projectDir: string;
 }
 
-const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "use"];
+const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "use", "scan"];
 
 export async function runAddEngine(options: AddEngineOptions): Promise<void> {
   const { engine, projectDir } = options;
@@ -45,7 +45,7 @@ function writeClaude(projectDir: string): void {
   }
 
   console.log("Added Claude engine hooks:");
-  console.log("  .claude/commands/relic.*.md  (7 slash commands)");
+  console.log(`  .claude/commands/relic.*.md  (${PROMPT_NAMES.length} slash commands)`);
   console.log("  Usage inside Claude Code: /relic.specify, /relic.plan, /relic.fix, ...");
 }
 
