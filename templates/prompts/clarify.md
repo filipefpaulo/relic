@@ -3,6 +3,18 @@
 > **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
 > Violating those rules cannot be undone by a changelog entry.
 
+## Before you begin — run these first
+
+```bash
+# 1. Resolve paths and check what exists
+bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+
+# 2. Validate shared brain integrity
+bash .relic/scripts/validate-artifacts.sh --json
+```
+
+Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
+
 You are appending details, changing contracts, or adding behaviors to an existing spec.
 
 ## Before you begin

@@ -3,6 +3,14 @@
 > **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
 > Violating those rules cannot be undone by a changelog entry.
 
+## Before you begin — run this first
+
+```bash
+bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+```
+
+This returns all file paths and which files exist. Read only what it confirms is present.
+
 You are helping create a new spec for this project.
 
 ## Before you begin

@@ -1,5 +1,5 @@
 import { join } from "path";
-import { dirExists, ensureDir, writeText } from "../utils/fs.ts";
+import { dirExists, ensureDir, writeText, makeExecutable } from "../utils/fs.ts";
 import { TEMPLATES } from "../generated/templates.ts";
 
 export interface InitOptions {
@@ -24,6 +24,7 @@ export async function runInit(options: InitOptions): Promise<void> {
     join(relicDir, "shared", "assumptions"),
     join(relicDir, "specs"),
     join(relicDir, "prompts"),
+    join(relicDir, "scripts"),
   ];
   for (const d of dirs) ensureDir(d);
 
@@ -42,6 +43,15 @@ export async function runInit(options: InitOptions): Promise<void> {
     }
   }
 
+  // Write and chmod all bash scripts
+  for (const [key, content] of Object.entries(TEMPLATES)) {
+    if (key.startsWith("scripts/") && key.endsWith(".sh")) {
+      const dest = join(relicDir, key);
+      writeText(dest, content);
+      makeExecutable(dest);
+    }
+  }
+
   console.log("Relic initialised.");
   console.log("");
   console.log("Created:");
@@ -51,6 +61,7 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/shared/  (domains/, contracts/, rules/, assumptions/)");
   console.log("  .relic/specs/");
   console.log("  .relic/prompts/  (AI slash command prompts)");
+  console.log("  .relic/scripts/  (bash utilities: check-context, validate-artifacts)");
   console.log("");
   console.log("Next step: relic specify");
 }

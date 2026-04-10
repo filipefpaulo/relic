@@ -5,6 +5,7 @@ import {
   writeFileSync,
   readdirSync,
   statSync,
+  chmodSync,
 } from "fs";
 import { join, dirname } from "path";
 
@@ -41,6 +42,10 @@ export function listDirs(p: string): string[] {
   return readdirSync(p).filter((name: string) =>
     statSync(join(p, name)).isDirectory()
   );
+}
+
+export function makeExecutable(p: string): void {
+  chmodSync(p, 0o755);
 }
 
 export function findRelicDir(startDir: string): string | null {

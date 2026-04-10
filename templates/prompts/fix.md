@@ -3,6 +3,14 @@
 > **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
 > Violating those rules cannot be undone by a changelog entry.
 
+## Before you begin — run this first
+
+```bash
+bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+```
+
+This returns all file paths and loaded context. Use it to know exactly which shared artifacts apply to this spec.
+
 You are fixing a bug in code that was built from a spec. The spec context has been assembled
 for you by `relic fix`. Use it as a **constraint** — not just background reading.
 

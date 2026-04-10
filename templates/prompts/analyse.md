@@ -3,6 +3,18 @@
 > **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
 > Violating those rules cannot be undone by a changelog entry.
 
+## Before you begin — run these first
+
+```bash
+# 1. Resolve paths and check what exists
+bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+
+# 2. Run the automated integrity check (this IS the analyse starting point)
+bash .relic/scripts/validate-artifacts.sh --json
+```
+
+Report the `validate-artifacts.sh` output as your first finding, then continue with the manual checks below.
+
 You are performing a non-destructive consistency check. You must NOT modify any files.
 
 ## What to check
