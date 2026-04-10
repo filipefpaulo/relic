@@ -12,6 +12,8 @@ The core insight: existing SDD tools (spec-kit, Kiro, OpenSpec) treat specs as i
 
 The second core insight: **specs should not die after implementation**. The `fix` command keeps the spec alive as the lens through which bugs are understood and resolved — using the original intent, contracts, and decisions as constraints on every fix. This closes the loop between the knowledge layer and the living codebase.
 
+The third core insight: **most developers adopt Relic on existing codebases**. The `scan` command bootstraps the shared artifact layer from existing code in one pass — expensive upfront, but makes every subsequent spec dramatically cheaper.
+
 ---
 
 ## The Problems Being Solved
@@ -26,13 +28,16 @@ When using spec-kit (or similar tools) on a project with multiple specs:
 **Problem 2 — Specs die after implementation:**
 In every existing SDD tool, the spec becomes dead documentation the moment `implement` finishes. When a bug appears in production, the LLM only sees the error and the code — not the original intent, the contracts the code was supposed to honour, or the decisions that led to the architecture. The spec's knowledge is completely abandoned at the moment it is most needed.
 
+**Problem 3 — Cold start on existing codebases:**
+Most developers don't start greenfield. Without a pre-populated shared brain, the first spec has no domains or contracts to reference — the LLM must infer everything from scratch on every command.
+
 ---
 
 ## Lifecycle Commands
 
 | Command | Purpose | Notes |
 |---|---|---|
-| `constitution` | Hard rules that govern every interaction | Can be amended with client approval only |
+| `scan` | Bootstrap shared artifacts from existing codebase | Run **once** on adoption; populates `.relic/shared/` |
 | `specify` | Create a new spec from a PRD or User Story | No intersection check needed at this stage |
 | `clarify` | Append details, change contracts, add behaviors | **Must check for intersections** |
 | `plan` | Create implementation plan | **Principal intersection discovery point**; writes changelog |
@@ -40,18 +45,26 @@ In every existing SDD tool, the spec becomes dead documentation the moment `impl
 | `tasks` | Generate tasks from the current plan | **Must check for task overlap between specs** |
 | `implement` | Build the plan | Executes tasks |
 | `fix` | Debug and fix issues using the spec as context | **Keeps the spec alive post-implementation**; may trigger `clarify` if contracts change |
+| `use` | Set the active spec for the session | Writes `.relic/current-spec`; enables session switching in AI agents |
 
-### The Two Lifecycles
+### The Three Lifecycles
+
+**Bootstrap lifecycle** (adopting Relic on existing code):
+```
+relic init → /relic.scan → [shared brain populated] → /relic.specify
+```
 
 **Forward lifecycle** (greenfield / feature development):
 ```
-constitution → specify → clarify → plan → analyse → tasks → implement
+specify → clarify → plan → analyse → tasks → implement
 ```
 
 **Feedback lifecycle** (post-implementation, keeps knowledge layer alive):
 ```
 implement → [bug appears] → fix → [contract changed?] → clarify → plan (update) → changelog
 ```
+
+---
 
 ## The `fix` Command — Closing the Loop
 
@@ -60,13 +73,13 @@ implement → [bug appears] → fix → [contract changed?] → clarify → plan
 The user invokes `fix` with a spec reference and an error/issue description:
 
 ```bash
-# Infer spec from current git branch name
+# Infer spec from .relic/current-spec (or git branch)
 relic fix
 
 # Explicit spec reference
 relic fix --spec 001-auth
 
-# Override via .env (useful when on main or a hotfix branch)
+# Override via env (useful when on main or a hotfix branch)
 RELIC_SPEC=001-auth relic fix
 ```
 
@@ -108,22 +121,52 @@ to changelog.md           update shared artifact
                           the changed artifact
 ```
 
-### The branch/env override
+### Spec resolution order
 
-- Normally `fix` infers the spec from the current git branch (e.g. branch `001-auth` → loads spec `001-auth`)
-- For hotfixes on `main` or unrelated branches, set `RELIC_SPEC=001-auth` in `.env`
-- This solves "we merged 3 months ago but the bug is in auth code" — the spec context is always accessible regardless of branch
+`fix` (and all commands that need a spec) resolve the spec ID in this order:
 
-### Why this is the sweet spot
-
-No existing tool does this. When using Cursor or Claude Code to fix a bug today, the model sees only the error and the surrounding code. With `fix`, the model sees all of that **plus** the original intent, the contracts the code is supposed to honour, the assumptions that were made, and the changelog of decisions. It can tell you not just *how* to fix it but *whether the fix is consistent with the spec* — or flag that the fix actually requires a `clarify` or `plan` update first.
-
-**The spec stops being dead documentation and becomes a living constraint on every future change.**
+| Priority | Source | Who sets it |
+|---|---|---|
+| 1 | `--spec <id>` CLI arg | caller explicitly |
+| 2 | `RELIC_SPEC` env var | CI / power user |
+| 3 | `.relic/current-spec` file | `relic use` or `/relic.use` or `scaffold-spec.sh` |
+| 4 | Git branch inference | branch named `NNN-slug` |
+| 5 | Error | lists available specs |
 
 ---
 
+## The `scan` Command — Bootstrapping the Brain
+
+```bash
+relic scan          # human-readable output
+relic scan --json   # JSON manifest for AI consumption
+```
+
+The CLI walks the project and outputs a structured manifest:
+- **Tech stack** — detected from marker files (package.json → node, tsconfig.json → typescript, go.mod → go, etc.)
+- **Key files** — entry points, type files, route dirs, schemas, config files, etc.
+- **File tree** — depth 4, excludes node_modules/dist/build, truncated at 200 entries
+- **Existing artifacts** — what's already in `.relic/shared/`
+
+The AI prompt `/relic.scan` uses this manifest to read files selectively and write artifacts to `.relic/shared/{domains,contracts,rules,assumptions}/`. Each artifact gets an `Inferred from` source and `Confidence` field (high/medium/low) — prompting human review before a spec claims ownership.
+
+---
+
+## Active Spec Tracking — `.relic/current-spec`
+
+A single-line file at `.relic/current-spec` tracks which spec is active for the session.
+
+- Written by `relic use <spec-id>`, `/relic.use`, and `scaffold-spec.sh`
+- Read by all TypeScript commands and bash scripts as priority 3 in the resolution chain
+- Gitignored (via `.relic/.gitignore`) — each team member can work on a different spec
+- Enables remote session spec switching without terminal access
+
+---
+
+## The Two-Layer Architecture
+
 ### Layer 1 — Intent Layer (Specs)
-Each spec describes what a feature should do. Lives in `.relic/specs/<branch-id>/`.
+Each spec describes what a feature should do. Lives in `.relic/specs/<id>/`.
 
 ### Layer 2 — Knowledge Layer (Shared Artifacts)
 The brain. Domains, contracts, rules, and assumptions that exist independently of any single spec. Lives in `.relic/shared/`.
@@ -136,8 +179,11 @@ The brain. Domains, contracts, rules, and assumptions that exist independently o
 
 ```
 .relic/
-  constitution.md           ← Always loaded (hot memory). Governs all interactions.
-  changelog.md              ← Every plan step writes here. Full audit trail.
+  preamble.md               ← Relic architectural invariants — NEVER edit this file
+  constitution.md           ← Project-specific governance. Always loaded.
+  changelog.md              ← Append-only audit trail. Every plan writes here.
+  .gitignore                ← Ignores current-spec (session-local state)
+  current-spec              ← Active spec ID (gitignored, written by relic use)
   shared/                   ← THE BRAIN — shared across all specs
     domains/                ← Bounded contexts, entity definitions (e.g. UserAuth.md)
     contracts/              ← API shapes, event schemas (e.g. AuthAPI.md)
@@ -154,6 +200,13 @@ The brain. Domains, contracts, rules, and assumptions that exist independently o
       plan.md
       tasks.md
       artifacts.json
+  scripts/                  ← Bash utilities for AI agents
+    common.sh               ← Shared functions (resolve_spec_id, find_relic_dir, etc.)
+    check-context.sh        ← Resolve and validate spec context, output JSON
+    scaffold-spec.sh        ← Ensure spec folder/files exist; create from templates
+    validate-artifacts.sh   ← Check artifact integrity and ownership
+  prompts/                  ← Copies of AI slash command prompts (for reference)
+  templates/                ← Blank spec.md/plan.md/tasks.md for scaffold-spec.sh
 ```
 
 ---
@@ -192,15 +245,45 @@ Every spec must declare its relationship to shared artifacts. This is what enabl
 
 ```
 packages/
-  core/          ← TypeScript, all business logic
-  cli-node/      ← npm package, thin bin wrapper around core
-  cli-python/    ← PyPI package for uv/pip, shells out to compiled binary
+  core/                     ← TypeScript, all business logic
+    src/
+      commands/
+        init.ts             ← Scaffold .relic/ into user's project
+        add-engine.ts       ← Write AI engine hooks (Claude/Copilot/Codex)
+        use.ts              ← Write .relic/current-spec
+        scan.ts             ← Walk project and output manifest JSON
+        specify.ts          ← Create new spec folder
+        fix.ts              ← Assemble spec context for bug fixing
+        clarify.ts
+        plan.ts
+        analyse.ts
+        tasks.ts
+        implement.ts
+      core/
+        artifact-registry.ts
+        intersection.ts
+        changelog.ts
+        context-builder.ts  ← Assembles and renders spec context for LLM
+      generated/
+        templates.ts        ← All templates embedded at build time (gitignored)
+      utils/
+        fs.ts               ← File I/O utilities
+        spec-id.ts          ← Spec ID generation and inference
+  cli-node/                 ← npm package (relic-cli)
+    src/
+      bin.ts                ← Production binary: init, add-engine, use, scan
+      bin.debug.ts          ← Debug binary: all 9 workflow commands
+    bin/
+      relic.js              ← npm bin entrypoint — imports dist/relic.js
+    dist/
+      relic.js              ← Node.js bundle (gitignored, produced by build:npm)
 templates/
+  preamble.md               ← Architectural invariants copied verbatim to .relic/
   constitution.md
   spec.md
   plan.md
   tasks.md
-  prompts/       ← AI slash command prompt files (markdown)
+  prompts/                  ← AI slash command prompt files (9 commands)
     specify.md
     clarify.md
     plan.md
@@ -208,9 +291,24 @@ templates/
     tasks.md
     implement.md
     fix.md
+    use.md
+    scan.md
+  scripts/                  ← Bash utilities copied verbatim to .relic/scripts/
+    common.sh
+    check-context.sh
+    scaffold-spec.sh
+    validate-artifacts.sh
+  engines/                  ← Engine-specific instruction files
+    copilot/
+      copilot-instructions.md   → .github/copilot-instructions.md
+    codex/
+      instructions.md           → .codex/instructions.md
+scripts/
+  embed-templates.ts        ← Bakes all templates into generated/templates.ts
 docs/
   architecture.md
-  context.md
+  context.md                ← Ideation history and design rationale
+  implementation.md         ← What was built post-ideation (this session's work)
 ```
 
 ---
@@ -220,10 +318,74 @@ docs/
 | Decision | Choice | Rationale |
 |---|---|---|
 | Language | TypeScript | Thin code layer, npm is primary target, existing Bun monorepo experience |
-| Build | Bun `--compile` | Single self-contained binary, no Node required on user machine |
-| Distribution | npm (primary) + PyPI (secondary) | Both point at the same compiled binary |
-| PyPI packaging | Python shim that ships/invokes the Bun binary | One source of truth, no duplicated logic |
+| Build (development) | Bun `--compile` | Single self-contained binary for local dev/testing |
+| Build (npm publishing) | `bun build --target node` | Node.js-compatible JS bundle — works cross-platform without Bun |
+| Distribution | npm `relic-cli` (primary) | Published as a 175 KB Node.js bundle; no platform-specific binary |
+| Template embedding | `scripts/embed-templates.ts` | All `.md`/`.sh` files baked into `generated/templates.ts` at build time |
 | Storage format | Markdown + JSON | Human-readable, AI-native, git-friendly |
+| AI engine hooks | Prompt files per engine | Claude → `.claude/commands/`, Copilot → `.github/`, Codex → `.codex/` |
+
+---
+
+## CLI Architecture
+
+### Production binary (`bin.ts`) — what users get via `npm install -g relic-cli`
+
+| Command | Purpose |
+|---|---|
+| `relic init [--dir] [--engine] [--force]` | Scaffold `.relic/` into a project |
+| `relic add-engine <claude\|copilot\|codex>` | Add AI engine hooks to existing project |
+| `relic use <spec-id>` | Set active spec (writes `.relic/current-spec`) |
+| `relic scan [--json]` | Output project manifest for `/relic.scan` AI workflow |
+
+### Debug binary (`bin.debug.ts`) — all commands including AI workflow stubs
+
+All of the above plus: `specify`, `clarify`, `plan`, `analyse`, `tasks`, `implement`, `fix`
+
+### AI slash commands (written to engine-specific directories by `init` / `add-engine`)
+
+```
+/relic.specify    /relic.clarify    /relic.plan       /relic.analyse
+/relic.tasks      /relic.implement  /relic.fix        /relic.use
+/relic.scan
+```
+
+---
+
+## AI Engine Hooks
+
+`relic init --engine <name>` (or `relic add-engine <name>`) writes engine-specific files:
+
+| Engine | File written | How the AI picks it up |
+|---|---|---|
+| Claude | `.claude/commands/relic.*.md` (9 files) | Claude Code slash commands |
+| Copilot | `.github/copilot-instructions.md` | GitHub Copilot workspace instructions |
+| Codex | `.codex/instructions.md` | OpenAI Codex agent instructions |
+
+Default engine is `claude`. Multiple engines can be specified: `--engine claude,copilot`.
+
+---
+
+## Bash Utilities (in `.relic/scripts/`)
+
+Scripts that AI agents run directly — no TypeScript needed for in-session tasks.
+
+| Script | Purpose |
+|---|---|
+| `common.sh` | Shared functions: `find_relic_dir()`, `resolve_spec_id()`, `json_escape()`, `has_jq()` |
+| `check-context.sh [--spec <id>] [--json\|--text]` | Resolve spec, report file existence + artifact refs. JSON by default. |
+| `scaffold-spec.sh [--title\|--spec] [--json]` | Ensure spec folder exists; create from templates if needed. Writes `current-spec`. |
+| `validate-artifacts.sh [--json]` | Check every path in every `artifacts.json` actually exists in `shared/` |
+
+`check-context.sh` JSON output:
+```json
+{
+  "relic_dir": "...", "spec_id": "001-auth",
+  "active_spec_source": "current-spec",
+  "files": { "preamble": true, "spec": true, "plan": false, ... },
+  "shared_artifacts": [{ "path": "shared/domains/UserAuth.md", "role": "owns", "exists": true }]
+}
+```
 
 ---
 
@@ -235,8 +397,10 @@ docs/
 4. **Constitution is versioned** — amendments are appended, never overwritten
 5. **Analyse is always non-destructive** — read-only, never mutates anything
 6. **LLM context is assembled, not assumed** — before any command, context is built from: constitution + target spec + referenced shared artifacts
-7. **Specs never die** — `fix` keeps the spec alive as a living constraint on every bug fix, not just during greenfield development
+7. **Specs never die** — `fix` keeps the spec alive as a living constraint on every bug fix
 8. **Fixes that change contracts must propagate** — if `fix` alters a contract, it must trigger `clarify` and update the shared artifact, preventing knowledge drift
+9. **One upfront scan pays dividends forever** — `scan` is expensive once; it saves tokens on every subsequent spec command
+10. **Session state is personal** — `.relic/current-spec` is gitignored; each team member tracks their own active spec
 
 ---
 
@@ -245,11 +409,11 @@ docs/
 - [ ] Who owns an artifact when two specs claim the same one? Need explicit ownership transfer flow.
 - [ ] How granular are contracts? Full OpenAPI schema vs. light shape definition?
 - [ ] Is the constitution versioned with diffs, or append-only?
-- [ ] ~~Does `implement` write back to shared artifacts when it diverges from the plan?~~ **Resolved: `fix` is the feedback mechanism. It detects contract drift and triggers `clarify` when needed.**
 - [ ] What is the LLM's role in `plan` (semantic conflict detection) vs `tasks` (more mechanical)?
 - [ ] If `fix` determines the bug requires changing a contract, does it automatically trigger `clarify`, or prompt the user to do so manually?
 - [ ] If `fix` reveals a `shared/assumptions/` entry is now stale, does it flag that proactively?
 - [ ] Should `fix` always write to `changelog.md`, or only when a contract changes?
+- [ ] Should `scan` artifacts with `confidence: low` be quarantined (e.g. `shared/draft/`) rather than written directly to `shared/`?
 
 ---
 
@@ -258,7 +422,7 @@ docs/
 - **spec-kit** (GitHub): Constitution → Specify → Clarify → Plan → Tasks → Implement. No shared artifact layer. Specs are isolated. This is the tool that inspired Relic.
 - **Kiro** (AWS): Steering files + per-spec workflows. No cross-spec intersection detection.
 - **OpenSpec**: Propose → Apply → Archive. Per-feature, no shared brain.
-- **Gap**: No tool has a shared artifact layer with governed lifecycle, intersection detection, and a traceable changelog. This is the Relic opportunity.
+- **Gap**: No tool has a shared artifact layer with governed lifecycle, intersection detection, a traceable changelog, and a bootstrap path for existing codebases. This is the Relic opportunity.
 
 ---
 
@@ -281,23 +445,19 @@ The name reflects the core philosophy — preserved artifacts that carry knowled
 The user always types `relic` regardless of install channel:
 
 ```bash
-brew install relic        # Homebrew (primary)
-uv tool install relic     # PyPI
-npm install -g relic-cli  # npm (same binary)
+npm install -g relic-cli   # npm (primary — cross-platform Node.js bundle)
+brew install relic         # Homebrew (planned)
+uv tool install relic      # PyPI (planned)
 
 relic init
-relic fix --spec 001-auth
+relic scan
+relic use 001-auth
 ```
 
 ### Slash commands inside AI agents
 
 ```
-/relic.constitution
-/relic.specify
-/relic.clarify
-/relic.plan
-/relic.analyse
-/relic.tasks
-/relic.implement
-/relic.fix
+/relic.specify    /relic.clarify    /relic.plan       /relic.analyse
+/relic.tasks      /relic.implement  /relic.fix        /relic.use
+/relic.scan
 ```
