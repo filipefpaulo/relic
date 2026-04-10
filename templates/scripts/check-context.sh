@@ -26,12 +26,12 @@ source "$SCRIPT_DIR/common.sh"
 SPEC_ARG=""
 JSON_MODE=true  # JSON is the default for AI consumption
 
-for arg in "$@"; do
-  case "$arg" in
-    --spec)   shift; SPEC_ARG="${1:-}" ;;
-    --spec=*) SPEC_ARG="${arg#--spec=}" ;;
-    --json)   JSON_MODE=true ;;
-    --text)   JSON_MODE=false ;;
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --spec)   SPEC_ARG="${2:-}"; shift 2 ;;
+    --spec=*) SPEC_ARG="${1#--spec=}"; shift ;;
+    --json)   JSON_MODE=true; shift ;;
+    --text)   JSON_MODE=false; shift ;;
     --help|-h)
       echo "Usage: bash .relic/scripts/check-context.sh [--spec <id>] [--json|--text]"
       echo ""
@@ -42,7 +42,7 @@ for arg in "$@"; do
       echo "  --help        Show this help"
       exit 0
       ;;
-    *) ;;
+    *) shift ;;
   esac
 done
 

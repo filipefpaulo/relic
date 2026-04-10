@@ -138,9 +138,13 @@ create_from_template() {
   local dest="$2"
 
   if [ -f "$TEMPLATES_DIR/$tmpl" ]; then
+    # Escape characters that have special meaning as sed replacement strings:
+    # & → matched text, \ → escape prefix, | → our delimiter
+    local safe_title
+    safe_title=$(printf '%s' "$TITLE" | sed -e 's/[&\|]/\\&/g')
     sed \
       -e "s|{{SPEC_ID}}|$SPEC_ID|g" \
-      -e "s|{{TITLE}}|$TITLE|g" \
+      -e "s|{{TITLE}}|$safe_title|g" \
       -e "s|{{DATE}}|$DATE|g" \
       "$TEMPLATES_DIR/$tmpl" > "$dest"
   else

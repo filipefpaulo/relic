@@ -1,4 +1,5 @@
 import { join } from "path";
+import { createInterface } from "readline";
 import { ensureDir, writeText, writeJson } from "../utils/fs.ts";
 import { nextSpecId, slugify } from "../utils/spec-id.ts";
 import { TEMPLATES } from "../generated/templates.ts";
@@ -8,10 +9,20 @@ export interface SpecifyOptions {
   relicDir: string;
 }
 
+function ask(question: string): Promise<string> {
+  return new Promise((resolve) => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+
 export async function runSpecify(options: SpecifyOptions): Promise<void> {
   let title = options.title?.trim();
   if (!title) {
-    title = prompt("Spec title: ")?.trim() ?? "";
+    title = await ask("Spec title: ");
     if (!title) {
       console.error("Error: title is required.");
       process.exit(1);

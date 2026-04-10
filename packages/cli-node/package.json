@@ -23,9 +23,5 @@
     "type": "git",
     "url": "https://github.com/filipefpaulo/relic"
   },
-  "homepage": "https://github.com/filipefpaulo/relic#readme",
-  "dependencies": {
-    "@relic/core": "workspace:*",
-    "commander": "^14.0.3"
-  }
+  "homepage": "https://github.com/filipefpaulo/relic#readme"
 }

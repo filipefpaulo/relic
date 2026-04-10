@@ -29,6 +29,7 @@ export function buildContext(relicDir: string, specId: string | null): BuiltCont
       const artJson = readJson<ArtifactsJson>(artifactsJsonPath);
       const allRefs = [...artJson.owns, ...artJson.reads];
       for (const ref of allRefs) {
+        if (!ref.startsWith("shared/")) continue;
         const absPath = join(relicDir, ref);
         if (fileExists(absPath)) {
           artifacts[ref] = readText(absPath);
