@@ -9,7 +9,9 @@
   "scripts": {
     "build:templates": "bun run scripts/embed-templates.ts",
     "build:binary": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --outfile dist/relic",
+    "build:binary:debug": "bun run build:templates && bun build packages/cli-node/src/bin.debug.ts --compile --outfile dist/relic-debug",
     "dev": "bun run packages/cli-node/src/bin.ts",
+    "dev:debug": "bun run packages/cli-node/src/bin.debug.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
