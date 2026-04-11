@@ -25,7 +25,6 @@ export async function runInit(options: InitOptions): Promise<void> {
     join(relicDir, "shared", "rules"),
     join(relicDir, "shared", "assumptions"),
     join(relicDir, "specs"),
-    join(relicDir, "prompts"),
   ];
   for (const d of dirs) ensureDir(d);
 
@@ -37,14 +36,6 @@ export async function runInit(options: InitOptions): Promise<void> {
     "# Relic Changelog\n\n*All plan mutations and fix events are recorded here.*\n"
   );
 
-  // Write all prompt files
-  for (const [key, content] of Object.entries(TEMPLATES)) {
-    if (key.startsWith("prompts/")) {
-      const dest = join(relicDir, key);
-      writeText(dest, content);
-    }
-  }
-
   console.log("Relic initialised.");
   console.log("");
   console.log("Created:");
@@ -53,7 +44,6 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/changelog.md");
   console.log("  .relic/shared/  (domains/, contracts/, rules/, assumptions/)");
   console.log("  .relic/specs/");
-  console.log("  .relic/prompts/  (AI slash command prompts)");
   console.log("  .relic/.gitignore  (ignores current-spec — personal session state)");
   console.log("");
 

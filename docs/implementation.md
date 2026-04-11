@@ -20,7 +20,6 @@ The `init` command scaffolds the full `.relic/` structure into a user's project:
 - `.relic/shared/{domains,contracts,rules,assumptions}/` — the shared brain
 - `.relic/specs/` — per-spec intent documents
 - `.relic/scripts/` — bash utilities for AI agents
-- `.relic/prompts/` — copies of AI slash command prompts (for reference)
 - `.relic/templates/` — blank spec/plan/tasks templates for `scaffold-spec.sh`
 
 All content is embedded at build time via `scripts/embed-templates.ts` into
