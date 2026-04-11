@@ -16,7 +16,7 @@ The user will say something like:
 Extract the spec ID (in `NNN-slug` format) from the user's message and run:
 
 ```bash
-bash .relic/scripts/scaffold-spec.sh --spec <spec-id> --json
+relic scaffold --spec <spec-id>
 ```
 
 This updates `.relic/current-spec` so all subsequent Relic commands resolve to the

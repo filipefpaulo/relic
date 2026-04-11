@@ -7,13 +7,13 @@
 
 ```bash
 # 1. Resolve paths and check what exists
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 
 # 2. Validate shared brain integrity
-bash .relic/scripts/validate-artifacts.sh --json
+relic validate
 ```
 
-Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
+Do not proceed if `relic validate` reports `"valid": false`.
 
 You are appending details, changing contracts, or adding behaviors to an existing spec.
 

@@ -7,13 +7,13 @@
 
 ```bash
 # 1. Resolve paths and check what exists
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 
 # 2. Run the automated integrity check (this IS the analyse starting point)
-bash .relic/scripts/validate-artifacts.sh --json
+relic validate
 ```
 
-Report the `validate-artifacts.sh` output as your first finding, then continue with the manual checks below.
+Report the `relic validate` output as your first finding, then continue with the manual checks below.
 
 You are performing a non-destructive consistency check. You must NOT modify any files.
 

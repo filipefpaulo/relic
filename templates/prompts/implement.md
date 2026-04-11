@@ -6,7 +6,7 @@
 ## Before you begin — run this first
 
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 ```
 
 This returns all file paths and which files exist. Read only what it confirms is present.

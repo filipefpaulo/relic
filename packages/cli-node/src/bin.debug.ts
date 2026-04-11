@@ -13,6 +13,9 @@ import {
   runAnalyse,
   runTasks,
   runImplement,
+  runContext,
+  runScaffold,
+  runValidate,
   findRelicDir,
   SUPPORTED_ENGINES,
   type Engine,
@@ -172,6 +175,32 @@ program
     }
     const projectDir = join(relicDir, "..");
     await runScan({ projectDir, relicDir, json: opts.json });
+  });
+
+program
+  .command("context")
+  .description("Resolve active spec and report context (files, shared artifacts)")
+  .option("--spec <id>", "Spec ID (overrides branch inference and RELIC_SPEC env)")
+  .option("--text", "Human-readable output instead of JSON", false)
+  .action(async (opts: { spec?: string; text: boolean }) => {
+    await runContext({ spec: opts.spec, text: opts.text });
+  });
+
+program
+  .command("scaffold")
+  .description("Ensure a spec folder exists; create from templates if new")
+  .option("--title <title>", "Title for a new spec")
+  .option("--spec <id>", "Spec ID for an existing spec")
+  .action(async (opts: { title?: string; spec?: string }) => {
+    await runScaffold({ title: opts.title, spec: opts.spec });
+  });
+
+program
+  .command("validate")
+  .description("Check artifact integrity and ownership conflicts")
+  .option("--text", "Human-readable output instead of JSON", false)
+  .action(async (opts: { text: boolean }) => {
+    await runValidate({ text: opts.text });
   });
 
 program.parse(process.argv);

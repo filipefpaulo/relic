@@ -6,7 +6,7 @@
 ## Before you begin — run this first
 
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 ```
 
 This returns all file paths and loaded context. Use it to know exactly which shared artifacts apply to this spec.

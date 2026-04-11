@@ -1,5 +1,5 @@
 import { join } from "path";
-import { dirExists, ensureDir, writeText, makeExecutable } from "../utils/fs.ts";
+import { dirExists, ensureDir, writeText } from "../utils/fs.ts";
 import { TEMPLATES } from "../generated/templates.ts";
 import { runAddEngine, type Engine } from "./add-engine.ts";
 
@@ -26,8 +26,6 @@ export async function runInit(options: InitOptions): Promise<void> {
     join(relicDir, "shared", "assumptions"),
     join(relicDir, "specs"),
     join(relicDir, "prompts"),
-    join(relicDir, "scripts"),
-    join(relicDir, "templates"),
   ];
   for (const d of dirs) ensureDir(d);
 
@@ -47,20 +45,6 @@ export async function runInit(options: InitOptions): Promise<void> {
     }
   }
 
-  // Write spec scaffolding templates (used by scaffold-spec.sh for sed substitution)
-  for (const fname of ["spec.md", "plan.md", "tasks.md"]) {
-    writeText(join(relicDir, "templates", fname), TEMPLATES[fname] ?? "");
-  }
-
-  // Write and chmod all bash scripts
-  for (const [key, content] of Object.entries(TEMPLATES)) {
-    if (key.startsWith("scripts/") && key.endsWith(".sh")) {
-      const dest = join(relicDir, key);
-      writeText(dest, content);
-      makeExecutable(dest);
-    }
-  }
-
   console.log("Relic initialised.");
   console.log("");
   console.log("Created:");
@@ -71,8 +55,6 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/specs/");
   console.log("  .relic/prompts/  (AI slash command prompts)");
   console.log("  .relic/.gitignore  (ignores current-spec — personal session state)");
-  console.log("  .relic/scripts/  (bash utilities: check-context, scaffold-spec, validate-artifacts)");
-  console.log("  .relic/templates/  (spec scaffolding templates for scaffold-spec.sh)");
   console.log("");
 
   // Write engine-specific hook files
