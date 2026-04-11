@@ -305,10 +305,16 @@ templates/
       instructions.md           → .codex/instructions.md
 scripts/
   embed-templates.ts        ← Bakes all templates into generated/templates.ts
+  fix-shebang.mjs           ← Post-build: replaces Bun shebang with #!/usr/bin/env node
+  publish.ts                ← Unified publish script (bumps versions, tags, pushes)
+.github/
+  workflows/
+    publish-npm.yml         ← CI: builds Node.js bundle, publishes to npm on v* tags
+    publish-pypi.yml        ← CI: builds platform binaries, signs (macOS), publishes to PyPI on v* tags
 docs/
-  architecture.md
   context.md                ← Ideation history and design rationale
-  implementation.md         ← What was built post-ideation (this session's work)
+  implementation.md         ← What was built in the initial MVP session
+  distribution.md           ← How npm + PyPI publishing works (added post-MVP)
 ```
 
 ---
@@ -320,7 +326,10 @@ docs/
 | Language | TypeScript | Thin code layer, npm is primary target, existing Bun monorepo experience |
 | Build (development) | Bun `--compile` | Single self-contained binary for local dev/testing |
 | Build (npm publishing) | `bun build --target node` | Node.js-compatible JS bundle — works cross-platform without Bun |
-| Distribution | npm `relic-cli` (primary) | Published as a 175 KB Node.js bundle; no platform-specific binary |
+| Build (PyPI publishing) | `bun build --compile --target bun-<platform>` | Self-contained native binary per platform; no Node.js required |
+| Distribution (npm) | `relic-cli` on npm | 186 KB Node.js bundle; requires Node.js 18+ |
+| Distribution (PyPI) | `relic-cli` on PyPI | Platform-specific wheels with pre-compiled binaries; no runtime required |
+| macOS binary signing | `codesign --sign -` (ad-hoc) | Unsigned Bun binaries are SIGKILL'd by Gatekeeper; ad-hoc signing satisfies the requirement |
 | Template embedding | `scripts/embed-templates.ts` | All `.md`/`.sh` files baked into `generated/templates.ts` at build time |
 | Storage format | Markdown + JSON | Human-readable, AI-native, git-friendly |
 | AI engine hooks | Prompt files per engine | Claude → `.claude/commands/`, Copilot → `.github/`, Codex → `.codex/` |
@@ -436,18 +445,19 @@ The name reflects the core philosophy — preserved artifacts that carry knowled
 
 | Channel | Package name | Status |
 |---|---|---|
-| Homebrew | `relic` | ✅ Free |
-| PyPI | `relic` | ✅ Free |
-| npm | `relic-cli` | ✅ Free (`relic` is squatted but 10yr abandoned — claim via npm support later) |
+| npm | `relic-cli` | ✅ Published |
+| PyPI / uv | `relic-cli` | ✅ Published |
+| Homebrew | `relic` | planned |
 
 ### CLI command
 
 The user always types `relic` regardless of install channel:
 
 ```bash
-npm install -g relic-cli   # npm (primary — cross-platform Node.js bundle)
-brew install relic         # Homebrew (planned)
-uv tool install relic      # PyPI (planned)
+npm install -g relic-cli      # npm — Node.js bundle, requires Node.js 18+
+uv tool install relic-cli     # PyPI — native binary, no Node.js required
+pip install relic-cli         # pip — same as above
+brew install relic            # Homebrew (planned)
 
 relic init
 relic scan

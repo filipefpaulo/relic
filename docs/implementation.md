@@ -211,10 +211,11 @@ cross-platform, 175 KB instead of 61 MB.
 The Bun binary is still used for local development (`bun run dev`, `bun run build:binary`)
 but is not what gets published to npm.
 
-### PyPI distribution (not yet implemented)
+### PyPI distribution
 
-The original design included a PyPI package as a secondary distribution channel.
-This has not been implemented. The npm package is the current focus.
+See `docs/distribution.md` for the full implementation. Platform-specific wheels with
+pre-compiled Bun binaries — no Node.js required. Published via `pypa/gh-action-pypi-publish`
+with OIDC trusted publisher.
 
 ---
 
@@ -231,7 +232,7 @@ This has not been implemented. The npm package is the current focus.
 - **Ownership transfer flow** — still unresolved (from original open questions). When two specs
   want to own the same artifact, there is no formal transfer mechanism yet.
 
-- **PyPI package** — not implemented. Homebrew formula not written.
+- **PyPI package** — now implemented. See `docs/distribution.md`. Homebrew formula not yet written.
 
 ---
 
