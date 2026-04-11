@@ -5,6 +5,8 @@ on:
     tags:
       - "v*"
 
+permissions: {}
+
 jobs:
   publish:
     if: "!endsWith(github.ref_name, '-pypi')"

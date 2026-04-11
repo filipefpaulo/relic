@@ -1,0 +1,10 @@
+# All files — default owner
+* @filipefpaulo
+
+# CI/CD workflows — require explicit owner review
+.github/workflows/ @filipefpaulo
+
+# Publish scripts and version files
+scripts/publish.ts @filipefpaulo
+packages/cli-node/package.json @filipefpaulo
+packages/cli-python/pyproject.toml @filipefpaulo

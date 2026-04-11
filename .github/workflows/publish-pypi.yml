@@ -5,6 +5,8 @@ on:
     tags:
       - "v*"
 
+permissions: {}
+
 jobs:
   build-binaries:
     if: "!endsWith(github.ref_name, '-npm')"
