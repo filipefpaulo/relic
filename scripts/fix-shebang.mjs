@@ -7,12 +7,14 @@ import { readFileSync, writeFileSync } from "fs";
 const outFile = new URL("../packages/cli-node/dist/relic.js", import.meta.url);
 let src = readFileSync(outFile, "utf8");
 
-// Remove the Bun shebang line if present
+// Replace Bun shebang with Node.js shebang, or prepend Node.js shebang if missing
 if (src.startsWith("#!/usr/bin/env bun")) {
-  src = src.replace(/^#!.*\n/, "");
+  src = src.replace(/^#!.*\n/, "#!/usr/bin/env node\n");
+} else if (!src.startsWith("#!/usr/bin/env node")) {
+  src = "#!/usr/bin/env node\n" + src;
 }
 // Remove the @bun marker comment if present
 src = src.replace(/^\/\/ @bun\n/m, "");
 
 writeFileSync(outFile, src, "utf8");
-console.log("  Stripped Bun shebang from dist/relic.js");
+console.log("  Fixed shebang in dist/relic.js (#!/usr/bin/env node)");

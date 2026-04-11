@@ -4,10 +4,9 @@
   "description": "Spec-driven development with a shared artifact layer",
   "type": "module",
   "bin": {
-    "relic": "./bin/relic.js"
+    "relic": "./dist/relic.js"
   },
   "files": [
-    "bin/",
     "dist/relic.js"
   ],
   "scripts": {
