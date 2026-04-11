@@ -12,7 +12,7 @@ Examples: "User History", "Checkout Flow", "Auth Token Refresh".
 ## Before you begin — Step 1: scaffold the spec
 
 ```bash
-bash .relic/scripts/scaffold-spec.sh --title "<derived title>" --json
+relic scaffold --title "<derived title>"
 ```
 
 This generates the spec ID, creates the folder, and writes empty scaffolding for

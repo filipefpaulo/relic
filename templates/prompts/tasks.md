@@ -6,7 +6,7 @@
 ## Before you begin — run this first
 
 ```bash
-bash .relic/scripts/scaffold-spec.sh --spec <your-spec-id> --json
+relic scaffold --spec <your-spec-id>
 ```
 
 This ensures the spec folder and all files exist, creating any that are missing.

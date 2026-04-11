@@ -44,10 +44,10 @@ is invalid and breaks intersection detection.
 
 ```bash
 # Always: resolve spec context
-bash .relic/scripts/check-context.sh --spec <spec-id> --json
+relic context --spec <spec-id>
 
 # For plan / clarify / analyse: also validate integrity
-bash .relic/scripts/validate-artifacts.sh --json
+relic validate
 ```
 
 Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
@@ -62,7 +62,7 @@ Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
 
 Run before starting:
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 ```
 
 You are helping create a new spec for this project.
@@ -101,8 +101,8 @@ artifacts owned by another spec.
 
 Run before starting:
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
-bash .relic/scripts/validate-artifacts.sh --json
+relic context --spec <your-spec-id>
+relic validate
 ```
 
 Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
@@ -137,8 +137,8 @@ write a changelog entry. Update `artifacts.json` if ownership or file touches ch
 
 Run before starting:
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
-bash .relic/scripts/validate-artifacts.sh --json
+relic context --spec <your-spec-id>
+relic validate
 ```
 
 Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
@@ -176,8 +176,8 @@ by another spec. Do not skip the intersection check. Do not write code.
 
 Run before starting:
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
-bash .relic/scripts/validate-artifacts.sh --json
+relic context --spec <your-spec-id>
+relic validate
 ```
 
 Report the `validate-artifacts.sh` output as your first finding, then continue with manual checks.
@@ -206,7 +206,7 @@ Do not make any changes. Suggest what to run to resolve each issue.
 
 Run before starting:
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 ```
 
 You are generating a task list from the current implementation plan.
@@ -237,7 +237,7 @@ implementer is aware.
 
 Run before starting:
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 ```
 
 You are implementing the tasks from the current plan.
@@ -273,7 +273,7 @@ You are implementing the tasks from the current plan.
 
 Run before starting:
 ```bash
-bash .relic/scripts/check-context.sh --spec <your-spec-id> --json
+relic context --spec <your-spec-id>
 ```
 
 You are fixing a bug in code that was built from a spec. Use the spec context as a
@@ -335,7 +335,7 @@ The user will say something like "switch to spec 002-payments" or "use spec 001-
 Extract the spec ID and run:
 
 ```bash
-bash .relic/scripts/scaffold-spec.sh --spec <spec-id> --json
+relic scaffold --spec <spec-id>
 ```
 
 This updates `.relic/current-spec` so all subsequent Relic commands resolve to that spec.
