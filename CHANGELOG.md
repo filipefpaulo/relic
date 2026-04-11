@@ -7,7 +7,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [0.2.0] — 2026-04-11
 
 ### Added
 - `relic context [--spec <id>] [--text]` — resolve the active spec and report file
