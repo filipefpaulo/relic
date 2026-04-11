@@ -7,6 +7,16 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.2.1] — 2026-04-11
+
+### Fixed
+- `relic init` no longer creates `.relic/prompts/` — prompt files already live in
+  engine-specific hook directories (`.claude/commands/`, `.github/`, `.codex/`).
+  The copy in `.relic/prompts/` was redundant. Existing projects can safely delete
+  that folder.
+
+---
+
 ## [0.2.0] — 2026-04-11
 
 ### Added
