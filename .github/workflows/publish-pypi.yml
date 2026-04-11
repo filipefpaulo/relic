@@ -1,0 +1,122 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-binaries:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - bun_target: bun-linux-x64
+            platform_tag: linux_x86_64
+            binary: relic
+          - bun_target: bun-linux-arm64
+            platform_tag: manylinux_2_17_aarch64
+            binary: relic
+          - bun_target: bun-darwin-x64
+            platform_tag: macosx_10_9_x86_64
+            binary: relic
+          - bun_target: bun-darwin-arm64
+            platform_tag: macosx_11_0_arm64
+            binary: relic
+          - bun_target: bun-windows-x64
+            platform_tag: win_amd64
+            binary: relic.exe
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Embed templates
+        run: bun run build:templates
+
+      - name: Compile binary (${{ matrix.bun_target }})
+        run: |
+          bun build packages/cli-node/src/bin.ts \
+            --compile \
+            --target ${{ matrix.bun_target }} \
+            --outfile packages/cli-python/relic/${{ matrix.binary }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.platform_tag }}
+          path: packages/cli-python/relic/${{ matrix.binary }}
+
+  build-wheels:
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - platform_tag: linux_x86_64
+            binary: relic
+          - platform_tag: manylinux_2_17_aarch64
+            binary: relic
+          - platform_tag: macosx_10_9_x86_64
+            binary: relic
+          - platform_tag: macosx_11_0_arm64
+            binary: relic
+          - platform_tag: win_amd64
+            binary: relic.exe
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download binary (${{ matrix.platform_tag }})
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-${{ matrix.platform_tag }}
+          path: packages/cli-python/relic/
+
+      - name: Make binary executable
+        if: matrix.binary != 'relic.exe'
+        run: chmod +x packages/cli-python/relic/${{ matrix.binary }}
+
+      - name: Install build
+        run: pip install build
+
+      - name: Build wheel
+        run: python -m build --wheel packages/cli-python/ --outdir dist/
+
+      - name: Rename wheel with platform tag
+        run: |
+          wheel=$(ls dist/relic_cli-*.whl)
+          renamed="${wheel/py3-none-any/py3-none-${{ matrix.platform_tag }}}"
+          mv "$wheel" "$renamed"
+          echo "Built: $renamed"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.platform_tag }}
+          path: dist/*.whl
+
+  publish:
+    needs: build-wheels
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          merge-multiple: true
+          path: dist/
+
+      - name: List wheels
+        run: ls -lh dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}

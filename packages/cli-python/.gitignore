@@ -1,0 +1,4 @@
+relic/relic
+relic/relic.exe
+dist/
+*.egg-info/
