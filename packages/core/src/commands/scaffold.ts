@@ -66,8 +66,14 @@ export async function runScaffold(options: ScaffoldOptions): Promise<void> {
     process.exit(1);
   }
 
+  if (options.title && options.spec) {
+    console.error("Error: --title and --spec are mutually exclusive. Use --title for a new spec or --spec for an existing one.");
+    process.exit(1);
+  }
+
   const specsDir = join(relicDir, "specs");
-  const date = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const filesCreated: string[] = [];
 
   let specId: string;

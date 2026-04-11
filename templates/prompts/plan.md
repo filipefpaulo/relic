@@ -13,7 +13,7 @@ relic scaffold --spec <your-spec-id>
 relic validate
 ```
 
-Do not proceed if `validate-artifacts.sh` reports `"valid": false`. Resolve conflicts first.
+Do not proceed if `relic validate` reports `"valid": false`. Resolve conflicts first.
 
 You are creating an implementation plan for this spec.
 

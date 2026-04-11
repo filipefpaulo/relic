@@ -13,7 +13,7 @@ relic context --spec <your-spec-id>
 relic validate
 ```
 
-Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
+Do not proceed if `relic validate` reports `"valid": false`.
 
 You are appending details, changing contracts, or adding behaviors to an existing spec.
 

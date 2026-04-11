@@ -50,7 +50,7 @@ relic context --spec <spec-id>
 relic validate
 ```
 
-Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
+Do not proceed if `relic validate` reports `"valid": false`.
 
 ---
 
@@ -105,7 +105,7 @@ relic context --spec <your-spec-id>
 relic validate
 ```
 
-Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
+Do not proceed if `relic validate` reports `"valid": false`.
 
 You are appending details, changing contracts, or adding behaviors to an existing spec.
 
@@ -141,7 +141,7 @@ relic context --spec <your-spec-id>
 relic validate
 ```
 
-Do not proceed if `validate-artifacts.sh` reports `"valid": false`.
+Do not proceed if `relic validate` reports `"valid": false`.
 
 You are creating an implementation plan for this spec.
 
@@ -180,7 +180,7 @@ relic context --spec <your-spec-id>
 relic validate
 ```
 
-Report the `validate-artifacts.sh` output as your first finding, then continue with manual checks.
+Report the `relic validate` output as your first finding, then continue with manual checks.
 
 You are performing a non-destructive consistency check. You must NOT modify any files.
 

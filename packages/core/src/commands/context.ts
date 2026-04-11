@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import { join } from "path";
-import { findRelicDir, fileExists, readText, readJson } from "../utils/fs.ts";
+import { findRelicDir, fileExists, dirExists, readText, readJson } from "../utils/fs.ts";
 import { inferSpecFromBranch, availableSpecs } from "../utils/spec-id.ts";
 import type { ArtifactsJson } from "../types.ts";
 
@@ -80,17 +80,28 @@ export async function runContext(options: ContextOptions): Promise<void> {
 
   const { specId, source } = resolved;
   const specDir = join(relicDir, "specs", specId);
+
+  if (!dirExists(specDir)) {
+    console.error(`Error: spec directory not found for "${specId}".`);
+    console.error(`Run: relic scaffold --spec ${specId}`);
+    process.exit(1);
+  }
+
   const artifactsPath = join(specDir, "artifacts.json");
 
   // Check shared artifacts if artifacts.json exists
   const sharedArtifacts: SharedArtifactRef[] = [];
   if (fileExists(artifactsPath)) {
-    const art = readJson<ArtifactsJson>(artifactsPath);
-    for (const p of art.owns) {
-      sharedArtifacts.push({ path: p, role: "owns", exists: fileExists(join(relicDir, p)) });
-    }
-    for (const p of art.reads) {
-      sharedArtifacts.push({ path: p, role: "reads", exists: fileExists(join(relicDir, p)) });
+    try {
+      const art = readJson<ArtifactsJson>(artifactsPath);
+      for (const p of art.owns) {
+        sharedArtifacts.push({ path: p, role: "owns", exists: fileExists(join(relicDir, p)) });
+      }
+      for (const p of art.reads) {
+        sharedArtifacts.push({ path: p, role: "reads", exists: fileExists(join(relicDir, p)) });
+      }
+    } catch {
+      // malformed artifacts.json — skip artifact refs
     }
   }
 

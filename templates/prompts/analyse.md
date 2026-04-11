@@ -13,7 +13,7 @@ relic context --spec <your-spec-id>
 relic validate
 ```
 
-Report the `validate-artifacts.sh` output as your first finding, then continue with the manual checks below.
+Report the `relic validate` output as your first finding, then continue with the manual checks below.
 
 You are performing a non-destructive consistency check. You must NOT modify any files.
 
