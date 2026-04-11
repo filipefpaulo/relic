@@ -23,7 +23,7 @@ const program = new Command();
 program
   .name("relic")
   .description("Spec-driven development with a shared artifact layer")
-  .version("0.1.4");
+  .version("0.1.5");
 
 program
   .command("init")
