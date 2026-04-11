@@ -14,7 +14,7 @@
     "dev": "bun run packages/cli-node/src/bin.ts",
     "dev:debug": "bun run packages/cli-node/src/bin.debug.ts",
     "typecheck": "tsc --noEmit",
-    "publish:npm": "bun run build:npm && cp README.md packages/cli-node/README.md && cd packages/cli-node && npm publish --access public",
+    "publish:npm": "bun run build:npm && cd packages/cli-node && npm publish --access public",
     "build:pypi:linux-x64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-linux-x64 --outfile packages/cli-python/relic/relic",
     "build:pypi:linux-arm64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-linux-arm64 --outfile packages/cli-python/relic/relic",
     "build:pypi:macos-x64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-darwin-x64 --outfile packages/cli-python/relic/relic",

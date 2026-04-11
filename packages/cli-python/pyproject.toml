@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "relic-cli"
 version = "0.1.6"
 description = "Spec-driven development with a shared artifact layer"
+readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 keywords = ["spec-driven", "ai", "llm", "cli"]

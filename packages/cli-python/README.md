@@ -1,21 +1,23 @@
 # relic-cli
 
-> Spec-driven development with a shared artifact layer — npm distribution.
+> Spec-driven development with a shared artifact layer — Python / uv distribution.
 
 Relic connects all your specs through a shared "brain" of domains, contracts, rules, and assumptions. Intersection detection between specs. Specs that stay alive through bug fixes.
+
+This package ships a **pre-compiled native binary** — no Node.js or Python runtime required at execution time.
 
 ---
 
 ## Install
 
 ```bash
-npm install -g relic-cli
+uv tool install relic-cli
 ```
 
-Requires **Node.js 18+**. One-off usage without installing:
+Or with pip:
 
 ```bash
-npx relic-cli init
+pip install relic-cli
 ```
 
 ---
@@ -63,11 +65,23 @@ Written to your agent's hooks directory by `relic init`:
 
 ---
 
-## Also available via uv / pip
+## Platform support
+
+Pre-compiled binaries are shipped for:
+
+| Platform | Architecture |
+|---|---|
+| Linux | x86_64, arm64 |
+| macOS | x86_64 (Intel), arm64 (Apple Silicon) |
+| Windows | x86_64 |
+
+---
+
+## Also available via npm
 
 ```bash
-uv tool install relic-cli   # no Node.js required — native binary
-pip install relic-cli
+npm install -g relic-cli   # requires Node.js 18+
+npx relic-cli init
 ```
 
 ---

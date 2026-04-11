@@ -28,9 +28,6 @@ jobs:
       - name: Build npm bundle
         run: bun run build:npm
 
-      - name: Copy README
-        run: cp README.md packages/cli-node/README.md
-
       - name: Publish to npm
         working-directory: packages/cli-node
         run: npm publish --access public

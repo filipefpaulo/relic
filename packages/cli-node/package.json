@@ -7,7 +7,8 @@
     "relic": "./dist/relic.js"
   },
   "files": [
-    "dist/relic.js"
+    "dist/relic.js",
+    "README.md"
   ],
   "devDependencies": {
     "@relic/core": "workspace:*",

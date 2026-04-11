@@ -16,29 +16,32 @@ Relic fixes both.
 
 ## Install
 
+**npm (Node.js 18+):**
 ```bash
 npm install -g relic-cli
 ```
 
-Requires Node.js 18+.
+**uv (no runtime required):**
+```bash
+uv tool install relic-cli
+```
+
+**pip:**
+```bash
+pip install relic-cli
+```
 
 ---
 
 ## Getting started
 
 ```bash
-# Initialise Relic in your project
 cd my-project
 relic init
 
 # Open your AI agent (Claude Code, Copilot, Codex) and run:
-# Existing codebase:
-/relic.scan
-/relic.constitution
-
-# New project:
-/relic.constitution
-/relic.specify
+# Existing codebase:  /relic.scan  then  /relic.constitution
+# New project:        /relic.constitution  then  /relic.specify
 ```
 
 ---
@@ -68,8 +71,6 @@ relic init
 ---
 
 ## CLI commands
-
-These are the commands available in the terminal:
 
 | Command | Purpose |
 |---|---|
@@ -102,11 +103,10 @@ The workflow lives inside your AI agent. After `relic init`, these slash command
 ## AI engine support
 
 ```bash
-relic init                             # defaults to Claude
+relic init                              # defaults to Claude Code
 relic init --engine claude,copilot,codex
 
-# Add to an existing project
-relic add-engine copilot
+relic add-engine copilot                # add to an existing project
 ```
 
 | Engine | Hook location | Format |
@@ -114,28 +114,6 @@ relic add-engine copilot
 | Claude Code | `.claude/commands/relic.*.md` | 10 slash commands |
 | GitHub Copilot | `.github/copilot-instructions.md` | Consolidated workspace instructions |
 | Codex | `.codex/instructions.md` | Agent instructions |
-
----
-
-## The `fix` command — specs that don't die
-
-Every other tool abandons the spec after implementation. Relic doesn't.
-
-```
-/relic.fix TypeError: Cannot read property 'session' of undefined at auth.middleware.ts:42
-```
-
-Before the LLM sees the error, Relic assembles full context from the spec, plan, shared artifacts, and changelog. The fix is constrained by the original intent and contracts — not just the surrounding code. If the fix changes a contract, it triggers `/relic.clarify` and propagates the change to every spec that reads the affected artifact.
-
----
-
-## The `scan` command — adopting Relic on existing code
-
-```bash
-relic scan --json   # outputs structured project manifest for AI consumption
-```
-
-Then in your agent: `/relic.scan` reads the manifest and generates domains, contracts, rules, and assumptions in `.relic/shared/`. One expensive pass upfront; every subsequent spec starts with a populated brain.
 
 ---
 
@@ -151,7 +129,7 @@ relic init → /relic.scan → /relic.constitution → /relic.specify
 /relic.specify → /relic.clarify → /relic.plan → /relic.tasks → /relic.implement
 ```
 
-**Feedback** (bug fix):
+**Feedback** (bug fix, keeps the spec alive):
 ```
 /relic.fix → [contract changed?] → /relic.clarify → changelog updated
 ```
@@ -163,8 +141,8 @@ relic init → /relic.scan → /relic.constitution → /relic.specify
 | Channel | Package | Status |
 |---|---|---|
 | npm | `relic-cli` | ✅ Available |
+| PyPI / uv | `relic-cli` | ✅ Available |
 | Homebrew | `relic` | planned |
-| PyPI | `relic` | planned |
 
 ---
 
