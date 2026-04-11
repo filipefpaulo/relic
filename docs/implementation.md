@@ -44,38 +44,19 @@ agent the developer uses:
 `relic init` defaults to `--engine claude`. Multiple engines can be specified:
 `relic init --engine claude,copilot`.
 
-### Phase 3 — Bash utilities for AI agents
+### Phase 3 — Native CLI commands for AI agents
 
-Four bash scripts are copied to `.relic/scripts/` at init time:
+> **Updated in Phase 8.** The original implementation shipped bash scripts
+> (`check-context.sh`, `scaffold-spec.sh`, `validate-artifacts.sh`, `common.sh`) copied
+> into `.relic/scripts/`. These have been replaced with native TypeScript CLI commands.
+> See Phase 8 for the current approach.
 
-**`common.sh`** — shared utilities sourced by all other scripts:
-- `find_relic_dir()` — walks up the directory tree to find `.relic/`
-- `resolve_spec_id()` — implements the 4-priority resolution chain
-- `json_escape()` — safe JSON string encoding without jq dependency
-- `has_jq()` — feature detection for pretty JSON output
+~~Four bash scripts are copied to `.relic/scripts/` at init time.~~
 
-**`check-context.sh`** — the AI agent's primary entry point before any command:
-```bash
-bash .relic/scripts/check-context.sh [--spec <id>] [--json|--text]
-```
-Outputs a JSON object with the resolved spec, which files exist, and which shared
-artifacts are referenced with their existence status. The `active_spec_source` field
-tells the agent how the spec was resolved (`"arg"` | `"env"` | `"current-spec"` | `"git-branch"`).
+The commands below now live in `packages/core/src/commands/` and are exposed via the
+production binary. No bash, Python, jq, or sed dependency in user projects.
 
-**`scaffold-spec.sh`** — ensures a spec folder exists before the AI acts on it:
-```bash
-bash .relic/scripts/scaffold-spec.sh --title "User Authentication"   # new spec
-bash .relic/scripts/scaffold-spec.sh --spec 001-auth                 # existing spec
-```
-Creates `spec.md`, `plan.md`, `tasks.md`, and `artifacts.json` from templates if missing.
-Always writes `.relic/current-spec` after resolution so subsequent commands know the
-active spec. Returns JSON with `spec_id`, `was_new`, `files_created`, `title`.
-
-**`validate-artifacts.sh`** — integrity check (used by plan/clarify/analyse):
-Verifies every path in every `artifacts.json` exists in `shared/`. Reports
-ownership conflicts (two specs claiming the same artifact).
-
-### Phase 4 — Production vs debug CLI split
+### Phase 4 — Production vs debug CLI split (updated in Phase 8)
 
 A key architectural decision made during implementation: **workflow commands (`specify`, `plan`, `fix`, etc.) are AI-only — they should not appear in the user-facing binary**.
 
@@ -86,7 +67,7 @@ Result:
 
 | Binary | Commands | Used by |
 |---|---|---|
-| `bin.ts` (production) | `init`, `add-engine`, `use`, `scan` | End users |
+| `bin.ts` (production) | `init`, `add-engine`, `use`, `scan`, `context`, `scaffold`, `validate` | End users + AI agents |
 | `bin.debug.ts` (debug) | All of the above + 5 workflow stubs | Development / testing |
 
 The workflow command stubs (`specify`, `fix`, etc.) exist in the debug binary for
@@ -108,8 +89,8 @@ Resolution order (implemented in both TypeScript and bash):
 
 Three ways to set `current-spec`:
 - `relic use 001-auth` — TypeScript CLI command
-- `/relic.use` — AI slash command (calls `scaffold-spec.sh --spec <id>`)
-- `scaffold-spec.sh` — automatically on every spec creation or resolution
+- `/relic.use` — AI slash command (calls `relic scaffold --spec <id>`)
+- `relic scaffold` — automatically on every spec creation or resolution
 
 The file is gitignored so different team members can work on different specs simultaneously.
 Remote AI sessions (with no terminal access) can switch specs via `/relic.use` without
@@ -166,6 +147,52 @@ LLM has no domains, contracts, or rules to check against.
 
 Each artifact carries `Inferred from`, `Confidence` (high/medium/low), and `Owned by: (unowned)`
 fields. Specs claim ownership when they're created — the scan just establishes the vocabulary.
+
+### Phase 8 — Native CLI commands replacing bash scripts
+
+**Problem:** The bash scripts in `.relic/scripts/` had real portability and reliability issues:
+- Not portable to Windows or minimal CI environments
+- Required Python 3 for JSON encoding (not always present)
+- Template substitution via `sed` — past injection bugs with special characters in titles
+- `shift` inside `for..in` loop was a no-op (arg parsing bug)
+- Duplicated logic already in TypeScript (`findRelicDir`, `loadRegistry`, spec ID utilities)
+- Added weight to `.relic/` that was hard to explain to new users
+
+**Solution:** Migrate all three functional scripts to native TypeScript CLI commands in
+`packages/core/src/commands/`, exposed in the production binary.
+
+| Old call | New call |
+|---|---|
+| `bash .relic/scripts/check-context.sh [--spec id]` | `relic context [--spec id] [--text]` |
+| `bash .relic/scripts/scaffold-spec.sh [--title t\|--spec id]` | `relic scaffold [--title t\|--spec id]` |
+| `bash .relic/scripts/validate-artifacts.sh` | `relic validate [--text]` |
+
+All three default to JSON output (`--text` for human-readable), matching the old script behaviour.
+
+**`relic context`** — resolves the active spec via the 4-priority chain, then reports:
+- Which core files exist (`preamble`, `constitution`, `spec`, `plan`, `tasks`, `artifacts_json`, `changelog`)
+- All shared artifacts referenced in `artifacts.json`, with their existence status and role (`owns`/`reads`)
+- Errors with a `relic scaffold --spec <id>` hint if the spec directory does not exist
+
+**`relic scaffold`** — ensures the spec folder and its files exist:
+- `--title "User Auth"` → generates next spec ID (e.g. `002-user-auth`), creates folder + files
+- `--spec 001-auth` → resolves existing spec, creates only missing files
+- Passing both `--title` and `--spec` is an error (mutually exclusive)
+- Uses `TEMPLATES` (embedded at build time) for `spec.md`/`plan.md`/`tasks.md` — no `sed`, no injection risk
+- Always writes `.relic/current-spec` on success
+
+**`relic validate`** — checks artifact integrity across all specs:
+- Ownership conflicts (two specs `own` the same artifact)
+- Missing owned artifacts (path in `owns` doesn't exist on disk)
+- Missing read artifacts (path in `reads` doesn't exist on disk)
+- Illegal files in spec dirs (anything other than `spec.md`, `plan.md`, `tasks.md`, `artifacts.json`)
+- Invalid paths (`owns`/`reads` entries that don't start with `shared/`)
+
+**`relic init` after Phase 8:** No longer writes `.relic/scripts/` or `.relic/templates/`.
+Projects that upgraded from an earlier version can safely delete those folders.
+
+**All AI prompt templates and engine instructions** (`copilot-instructions.md`, `instructions.md`)
+updated to invoke `relic <command>` directly.
 
 ---
 
@@ -261,4 +288,5 @@ bun run typecheck
 ---
 
 *Document created: April 10, 2026.*
-*Covers: Phase 1–7 of initial MVP implementation.*
+*Updated: April 11, 2026 — Phase 8: native CLI commands replacing bash scripts.*
+*Covers: Phase 1–8.*

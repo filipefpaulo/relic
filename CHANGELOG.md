@@ -7,6 +7,36 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- `relic context [--spec <id>] [--text]` — resolve the active spec and report file
+  existence and shared artifact references. Replaces `check-context.sh`. JSON by default;
+  `--text` for human-readable output. Errors with a `relic scaffold` hint if the spec
+  directory does not exist.
+- `relic scaffold [--title <title>] [--spec <id>]` — ensure a spec folder exists; create
+  it from templates if new. Replaces `scaffold-spec.sh`. `--title` generates a new spec ID;
+  `--spec` resolves an existing one. Errors if both flags are passed simultaneously.
+  Writes `.relic/current-spec` on success.
+- `relic validate [--text]` — check artifact integrity and ownership conflicts across all
+  specs. Replaces `validate-artifacts.sh`. JSON by default; `--text` for human-readable
+  output. Checks: ownership conflicts, missing owned/read artifacts, illegal spec-dir
+  files, and invalid paths (must start with `shared/`).
+
+### Changed
+- `relic init` no longer writes `.relic/scripts/` or `.relic/templates/` — all helpers
+  are now first-class CLI commands; no bash or Python dependency in user projects.
+- All AI prompt templates and engine instructions (`copilot-instructions.md`,
+  `instructions.md`) updated to call `relic context`, `relic scaffold`, and `relic validate`
+  directly instead of `bash .relic/scripts/*.sh`.
+
+### Removed
+- Bash utility scripts (`check-context.sh`, `scaffold-spec.sh`, `validate-artifacts.sh`,
+  `common.sh`) removed from the template set. Existing projects that still have
+  `.relic/scripts/` can delete that folder — it is no longer used or written.
+
+---
+
 ## [0.1.1] — 2026-04-11
 
 ### Fixed
