@@ -7,6 +7,7 @@ on:
 
 jobs:
   publish:
+    if: "!endsWith(github.ref_name, '-pypi')"
     runs-on: ubuntu-latest
     permissions:
       contents: read
