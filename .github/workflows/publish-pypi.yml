@@ -12,7 +12,7 @@ jobs:
       matrix:
         include:
           - bun_target: bun-linux-x64
-            platform_tag: linux_x86_64
+            platform_tag: manylinux_2_17_x86_64
             binary: relic
           - bun_target: bun-linux-arm64
             platform_tag: manylinux_2_17_aarch64
@@ -57,7 +57,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - platform_tag: linux_x86_64
+          - platform_tag: manylinux_2_17_x86_64
             binary: relic
           - platform_tag: manylinux_2_17_aarch64
             binary: relic
