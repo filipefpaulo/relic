@@ -1,6 +1,6 @@
 {
   "name": "relic-workspace",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -13,7 +13,8 @@
     "build:npm": "bun run build:templates && bun build packages/cli-node/src/bin.ts --target node --outfile packages/cli-node/dist/relic.js && node scripts/fix-shebang.mjs",
     "dev": "bun run packages/cli-node/src/bin.ts",
     "dev:debug": "bun run packages/cli-node/src/bin.debug.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "publish:npm": "bun run build:npm && cp README.md packages/cli-node/README.md && cd packages/cli-node && npm publish --access public"
   },
   "devDependencies": {
     "@types/bun": "latest",
