@@ -8,25 +8,30 @@ on:
 jobs:
   build-binaries:
     if: "!endsWith(github.ref_name, '-npm')"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
         include:
           - bun_target: bun-linux-x64
             platform_tag: manylinux_2_17_x86_64
             binary: relic
+            runs_on: ubuntu-latest
           - bun_target: bun-linux-arm64
             platform_tag: manylinux_2_17_aarch64
             binary: relic
+            runs_on: ubuntu-latest
           - bun_target: bun-darwin-x64
             platform_tag: macosx_10_9_x86_64
             binary: relic
+            runs_on: macos-latest
           - bun_target: bun-darwin-arm64
             platform_tag: macosx_11_0_arm64
             binary: relic
+            runs_on: macos-latest
           - bun_target: bun-windows-x64
             platform_tag: win_amd64
             binary: relic.exe
+            runs_on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -46,6 +51,10 @@ jobs:
             --compile \
             --target ${{ matrix.bun_target }} \
             --outfile packages/cli-python/relic/${{ matrix.binary }}
+
+      - name: Ad-hoc sign binary (macOS only)
+        if: startsWith(matrix.bun_target, 'bun-darwin')
+        run: codesign --force --sign - packages/cli-python/relic/relic
 
       - uses: actions/upload-artifact@v4
         with:
