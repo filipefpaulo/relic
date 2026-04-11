@@ -200,13 +200,6 @@ The brain. Domains, contracts, rules, and assumptions that exist independently o
       plan.md
       tasks.md
       artifacts.json
-  scripts/                  ← Bash utilities for AI agents
-    common.sh               ← Shared functions (resolve_spec_id, find_relic_dir, etc.)
-    check-context.sh        ← Resolve and validate spec context, output JSON
-    scaffold-spec.sh        ← Ensure spec folder/files exist; create from templates
-    validate-artifacts.sh   ← Check artifact integrity and ownership
-  prompts/                  ← Copies of AI slash command prompts (for reference)
-  templates/                ← Blank spec.md/plan.md/tasks.md for scaffold-spec.sh
 ```
 
 ---
