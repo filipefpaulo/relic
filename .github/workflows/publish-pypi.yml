@@ -54,7 +54,9 @@ jobs:
 
       - name: Ad-hoc sign binary (macOS only)
         if: startsWith(matrix.bun_target, 'bun-darwin')
-        run: codesign --force --sign - packages/cli-python/relic/relic
+        run: |
+          codesign --remove-signature packages/cli-python/relic/relic || true
+          codesign --force --sign - --timestamp=none packages/cli-python/relic/relic
 
       - uses: actions/upload-artifact@v4
         with:
