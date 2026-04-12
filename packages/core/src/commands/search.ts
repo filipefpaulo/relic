@@ -1,5 +1,6 @@
 import { join } from "path";
 import { findRelicDir, fileExists, readJson } from "../utils/fs.ts";
+import { SHARED_SUBDIRS } from "../types.ts";
 import type { ManifestEntry, SearchResult } from "../types.ts";
 
 export interface SearchOptions {
@@ -10,8 +11,6 @@ export interface SearchOptions {
 export interface DeepSearchOptions {
   relicDir?: string;
 }
-
-const SHARED_SUBDIRS = ["domains", "contracts", "rules", "assumptions"] as const;
 
 function loadAllManifests(
   relicDir: string
@@ -39,7 +38,12 @@ export async function runSearch(options: SearchOptions): Promise<void> {
     process.exit(1);
   }
 
-  const keywords = options.keywords.map((k) => k.toLowerCase());
+  const keywords = options.keywords.map((k) => k.toLowerCase()).filter(Boolean);
+  if (keywords.length === 0) {
+    console.error("Error: at least one non-empty keyword is required.");
+    process.exit(1);
+  }
+
   const all = loadAllManifests(relicDir);
 
   const results: SearchResult[] = [];

@@ -37,11 +37,11 @@ You are creating an implementation plan for this spec.
    Read only `tldr` fields. Select and fully read only the artifacts with clear relevance to this plan.
 
 4. Load ALL other specs' `artifacts.json` files from `specs/*/artifacts.json`.
-4. Run an intersection check:
+5. Run an intersection check:
    - Which shared artifacts does this plan need to create or modify?
    - Which files does this plan touch (`touches_files`)?
    - Compare against all other specs' `owns` and `touches_files`.
-5. **Report any conflicts BEFORE writing the plan.** Conflicts must be resolved first.
+6. **Report any conflicts BEFORE writing the plan.** Conflicts must be resolved first.
 
 ## Writing the plan
 
