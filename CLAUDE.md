@@ -129,7 +129,7 @@ to changelog.md           update shared artifact
 |---|---|---|
 | 1 | `--spec <id>` CLI arg | caller explicitly |
 | 2 | `RELIC_SPEC` env var | CI / power user |
-| 3 | `.relic/current-spec` file | `relic use` or `/relic.use` or `scaffold-spec.sh` |
+| 3 | `.relic/current-spec` file | `relic use` or `/relic.use` or `relic scaffold` |
 | 4 | Git branch inference | branch named `NNN-slug` |
 | 5 | Error | lists available specs |
 
@@ -186,9 +186,13 @@ The brain. Domains, contracts, rules, and assumptions that exist independently o
   current-spec              ← Active spec ID (gitignored, written by relic use)
   shared/                   ← THE BRAIN — shared across all specs
     domains/                ← Bounded contexts, entity definitions (e.g. UserAuth.md)
+      manifest.json         ← Index of all domain artifacts (name, file, tldr, tags)
     contracts/              ← API shapes, event schemas (e.g. AuthAPI.md)
+      manifest.json         ← Index of all contract artifacts
     rules/                  ← Cross-cutting business rules (e.g. SessionRules.md)
+      manifest.json         ← Index of all rule artifacts
     assumptions/            ← Things true today but flagged as potentially stale
+      manifest.json         ← Index of all assumption artifacts
   specs/
     001-auth/
       spec.md
@@ -339,6 +343,11 @@ docs/
 | `relic add-engine <claude\|copilot\|codex>` | Add AI engine hooks to existing project |
 | `relic use <spec-id>` | Set active spec (writes `.relic/current-spec`) |
 | `relic scan [--json]` | Output project manifest for `/relic.scan` AI workflow |
+| `relic context [--spec id] [--text]` | Resolve active spec; report file and artifact status |
+| `relic scaffold [--title t\|--spec id]` | Ensure spec folder exists; create from templates if new |
+| `relic validate [--text]` | Check artifact integrity, ownership conflicts, and manifest health |
+| `relic search <keywords...>` | Search `shared/*/manifest.json` by tag keywords; returns scored JSON |
+| `relic deep-search` | Consolidated index of all manifest entries for tldr-first triage |
 
 ### Debug binary (`bin.debug.ts`) — all commands including AI workflow stubs
 
@@ -368,25 +377,37 @@ Default engine is `claude`. Multiple engines can be specified: `--engine claude,
 
 ---
 
-## Bash Utilities (in `.relic/scripts/`)
+## AI Agent Utility Commands
 
-Scripts that AI agents run directly — no TypeScript needed for in-session tasks.
+Native TypeScript CLI commands that AI agents call directly during workflows.
+No bash, Python, or jq dependency in user projects.
 
-| Script | Purpose |
+| Command | Purpose |
 |---|---|
-| `common.sh` | Shared functions: `find_relic_dir()`, `resolve_spec_id()`, `json_escape()`, `has_jq()` |
-| `check-context.sh [--spec <id>] [--json\|--text]` | Resolve spec, report file existence + artifact refs. JSON by default. |
-| `scaffold-spec.sh [--title\|--spec] [--json]` | Ensure spec folder exists; create from templates if needed. Writes `current-spec`. |
-| `validate-artifacts.sh [--json]` | Check every path in every `artifacts.json` actually exists in `shared/` |
+| `relic context [--spec id]` | Resolve spec; report which files exist and which shared artifacts are referenced |
+| `relic scaffold [--title t\|--spec id]` | Ensure spec folder exists; create from templates if new; writes `current-spec` |
+| `relic validate` | Check artifact integrity, ownership conflicts, missing manifests, unregistered files |
+| `relic search <keywords...>` | Find relevant shared artifacts by tag; returns scored candidates |
+| `relic deep-search` | Return all manifest entries; LLM reads `tldr` and loads selectively |
 
-`check-context.sh` JSON output:
+`relic context` JSON output:
 ```json
 {
   "relic_dir": "...", "spec_id": "001-auth",
   "active_spec_source": "current-spec",
+  "spec_dir": "...",
   "files": { "preamble": true, "spec": true, "plan": false, ... },
   "shared_artifacts": [{ "path": "shared/domains/UserAuth.md", "role": "owns", "exists": true }]
 }
+```
+
+`relic search auth session` JSON output:
+```json
+[
+  { "path": "shared/domains/UserAuth.md", "name": "UserAuth",
+    "tldr": "Handles user authentication and session tokens.",
+    "tags": ["auth", "session", "token"], "score": 2 }
+]
 ```
 
 ---
