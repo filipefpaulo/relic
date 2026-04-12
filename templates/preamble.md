@@ -153,3 +153,31 @@ write it to `.relic/shared/assumptions/` before it influences any code.
 
 **The spec is the source of truth.** If code and spec disagree, the spec is right —
 unless a `clarify` has explicitly updated the spec to reflect the change.
+
+---
+
+## Manifest Registration
+
+**Every file you create or modify in `shared/<subdir>/` MUST be registered in that
+subdirectory's `manifest.json`.** The manifest is a flat JSON array:
+
+```json
+[
+  {
+    "name": "UserAuth",
+    "file": "UserAuth.md",
+    "tldr": "One sentence description accurate enough to decide whether to read the full file.",
+    "tags": ["auth", "session", "token", "login", "user"]
+  }
+]
+```
+
+Rules:
+- `name` matches the `# Heading` in the file.
+- `file` is the filename only (no path).
+- `tldr` is one sentence — precise enough to decide relevance without reading the file.
+- `tags` are lowercase keywords, aim for 4–8 per artifact. Include domain terms, entity names, and technical concepts.
+- If the manifest does not exist, create it as `[]` and add your entry.
+- If you modify an artifact's scope or purpose, update its manifest entry.
+
+`relic validate` will flag missing manifests and unregistered files as errors.

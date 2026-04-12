@@ -25,6 +25,18 @@ export interface IntersectionReport {
   warnings: FileOverlapWarning[];
 }
 
+export interface ManifestEntry {
+  name: string;
+  file: string;
+  tldr: string;
+  tags: string[];
+}
+
+export interface SearchResult extends ManifestEntry {
+  path: string;
+  score: number;
+}
+
 export interface BuiltContext {
   preamble: string;
   constitution: string;

@@ -16,6 +16,8 @@ import {
   runContext,
   runScaffold,
   runValidate,
+  runSearch,
+  runDeepSearch,
   findRelicDir,
   SUPPORTED_ENGINES,
   type Engine,
@@ -201,6 +203,34 @@ program
   .option("--text", "Human-readable output instead of JSON", false)
   .action(async (opts: { text: boolean }) => {
     await runValidate({ text: opts.text });
+  });
+
+program
+  .command("search <keywords...>")
+  .description("Search shared artifact manifests by keyword tags")
+  .action(async (keywords: string[]) => {
+    if (keywords.length === 0) {
+      console.error("Error: at least one keyword is required.");
+      process.exit(1);
+    }
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runSearch({ keywords, relicDir });
+  });
+
+program
+  .command("deep-search")
+  .description("Return all shared artifact manifest entries consolidated")
+  .action(async () => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runDeepSearch({ relicDir });
   });
 
 program.parse(process.argv);

@@ -25,7 +25,22 @@ You are helping create a new spec for this project.
 
 1. Read `.relic/constitution.md` — understand the governing rules.
 2. Read the newly created `spec.md` from the path in the scaffold output.
-3. Scan `.relic/shared/` to understand what artifacts already exist.
+3. Discover relevant shared artifacts using the two-step cascade:
+
+   **Step A — targeted search (preferred):**
+   From the user's input, extract up to 10 keywords (domain terms, entity names, technical concepts). Run:
+   ```bash
+   relic search <keyword1> <keyword2> ...
+   ```
+   Read the returned entries. For candidates with a high `score`, read the full artifact file.
+   If the results cover the domain well enough to identify overlaps and dependencies, stop here.
+
+   **Step B — full brain scan (fallback, only if Step A is insufficient):**
+   ```bash
+   relic deep-search
+   ```
+   Read only the `tldr` field of each entry. Identify which artifacts are relevant to this spec,
+   then read those full files. Do not read all files indiscriminately.
 
 ## Your task
 
@@ -40,7 +55,7 @@ Help them fill in `.relic/specs/{{SPEC_ID}}/spec.md`.
 3. Write **User Stories** in the format: *As a [role], I want [capability] so that [benefit]*.
 4. Define **Scope** — what is explicitly in scope and out of scope.
 5. Identify **Shared Artifacts** this spec should own or read:
-   - Check `shared/domains/`, `shared/contracts/`, `shared/rules/` for existing artifacts.
+   - Use `relic search <keywords>` to find existing artifacts by domain terms before scanning directories directly.
    - Propose new shared artifacts where needed.
    - Do NOT claim ownership of an artifact already owned by another spec.
 6. Update `artifacts.json` with the correct `owns`, `reads`, and `touches_files` arrays.

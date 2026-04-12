@@ -21,7 +21,22 @@ You are creating an implementation plan for this spec.
 
 1. Read `.relic/constitution.md`.
 2. Read `specs/{{SPEC_ID}}/spec.md` fully.
-3. Load ALL other specs' `artifacts.json` files from `specs/*/artifacts.json`.
+3. Discover relevant shared artifacts using the two-step cascade:
+
+   **Step A — targeted search (preferred):**
+   Extract up to 10 keywords from the spec (feature domain, entities, verbs, technical concepts). Run:
+   ```bash
+   relic search <keyword1> <keyword2> ...
+   ```
+   Load full files for high-score results. If the returned candidates are sufficient context for planning, stop here.
+
+   **Step B — full brain scan (fallback, only if Step A is insufficient):**
+   ```bash
+   relic deep-search
+   ```
+   Read only `tldr` fields. Select and fully read only the artifacts with clear relevance to this plan.
+
+4. Load ALL other specs' `artifacts.json` files from `specs/*/artifacts.json`.
 4. Run an intersection check:
    - Which shared artifacts does this plan need to create or modify?
    - Which files does this plan touch (`touches_files`)?
