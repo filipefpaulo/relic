@@ -60,14 +60,19 @@ bumpRegex("packages/cli-python/relic/__init__.py", /__version__ = "[^"]+"/, `__v
 console.log("");
 
 // --- commit, tag, push ---
+const releaseBranch = `release/v${version}`;
+execSync(`git checkout -b ${releaseBranch}`, { stdio: "inherit" });
 execSync(
   `git add package.json packages/cli-node/package.json packages/cli-node/src/bin.ts packages/cli-node/src/bin.debug.ts packages/cli-python/pyproject.toml packages/cli-python/relic/__init__.py`,
   { stdio: "inherit" }
 );
 execSync(`git commit -m "chore: bump version to ${version}"`, { stdio: "inherit" });
 execSync(`git tag ${tag}`, { stdio: "inherit" });
-execSync(`git push`, { stdio: "inherit" });
+execSync(`git push -u origin ${releaseBranch}`, { stdio: "inherit" });
 execSync(`git push origin ${tag}`, { stdio: "inherit" });
 
 console.log("");
 console.log(`Done — CI publishing to: ${repository ?? "npm + pypi"}`);
+console.log("");
+console.log(`Next: open a PR to merge ${releaseBranch} → main`);
+console.log(`  https://github.com/filipefpaulo/relic/pull/new/${releaseBranch}`);
