@@ -1,7 +1,14 @@
 import { spawnSync } from "child_process";
 import { join } from "path";
-import { readEnginesRegistry, readText, writeText, fileExists, findRelicDir } from "@relic/utility";
-import { runAddEngine } from "@relic/engines";
+import {
+  readEnginesRegistry,
+  readText,
+  writeText,
+  fileExists,
+  findRelicDir,
+  fetchWithTimeout,
+} from "@relic/utility";
+import { runAddEngine, SUPPORTED_ENGINES } from "@relic/engines";
 import { TEMPLATES } from "../generated/templates.ts";
 
 // Injected at build time by bun build --define. Undefined in dev builds.
@@ -33,6 +40,21 @@ export interface UpgradeResult {
   warnings: string[];
 }
 
+/** Compare two semver strings. Returns true if `a` is greater than `b`. */
+function semverGt(a: string, b: string): boolean {
+  const parse = (v: string): number[] => v.split(".").map(Number);
+  const [aMaj = 0, aMin = 0, aPat = 0] = parse(a);
+  const [bMaj = 0, bMin = 0, bPat = 0] = parse(b);
+  if (aMaj !== bMaj) return aMaj > bMaj;
+  if (aMin !== bMin) return aMin > bMin;
+  return aPat > bPat;
+}
+
+/** Return true when `v` is a valid X.Y.Z semver string. */
+function isValidSemver(v: string): boolean {
+  return /^\d+\.\d+\.\d+$/.test(v);
+}
+
 async function checkVersion(
   currentVersion: string,
   resolvedChannel: string
@@ -42,25 +64,40 @@ async function checkVersion(
   let latest: string;
   try {
     if (resolvedChannel === "npm") {
-      const res = await fetch("https://registry.npmjs.org/relic-cli/latest");
+      const res = await fetchWithTimeout("https://registry.npmjs.org/relic-cli/latest");
       if (!res.ok) throw new Error(`npm registry returned ${res.status}`);
       const data = (await res.json()) as { version: string };
       latest = data.version;
     } else {
       // pypi
-      const res = await fetch("https://pypi.org/pypi/relic-cli/json");
+      const res = await fetchWithTimeout("https://pypi.org/pypi/relic-cli/json");
       if (!res.ok) throw new Error(`PyPI registry returned ${res.status}`);
       const data = (await res.json()) as { info: { version: string } };
       latest = data.info.version;
     }
   } catch (err) {
-    throw new Error(`Failed to fetch latest version from ${resolvedChannel} registry: ${String(err)}`);
+    throw new Error(
+      `Failed to fetch latest version from ${resolvedChannel} registry: ${String(err)}`
+    );
+  }
+
+  if (!isValidSemver(latest)) {
+    throw new Error(
+      `Registry returned an unexpected version string: "${latest}". ` +
+        "Cannot determine if an update is available."
+    );
+  }
+  if (!isValidSemver(currentVersion)) {
+    throw new Error(
+      `Current version "${currentVersion}" is not a valid semver string. ` +
+        "Cannot compare versions."
+    );
   }
 
   return {
     current: currentVersion,
     latest,
-    update_available: latest !== currentVersion,
+    update_available: semverGt(latest, currentVersion),
     channel: resolvedChannel,
   };
 }
@@ -70,21 +107,35 @@ function upgradeBinary(targetVersion: string, resolvedChannel: string): void {
     const result = spawnSync("npm", ["install", "-g", `relic-cli@${targetVersion}`], {
       stdio: "inherit",
     });
-    if (result.status !== 0) {
+    if (result.error) {
       throw new Error(
-        `npm install failed. Run manually: npm install -g relic-cli@${targetVersion}`
+        "npm not found on PATH. Install Node.js and npm, then run:\n" +
+          `  npm install -g relic-cli@${targetVersion}`
       );
+    }
+    if (result.status !== 0) {
+      throw new Error(`npm install failed. Run manually: npm install -g relic-cli@${targetVersion}`);
     }
   } else {
     // pypi: try uv first, fall back to pip
     const uvResult = spawnSync("uv", ["tool", "upgrade", "relic-cli"], { stdio: "inherit" });
-    if (uvResult.status !== 0) {
+    if (uvResult.error || uvResult.status !== 0) {
+      const uvNotFound = !!uvResult.error;
       const pipResult = spawnSync("pip", ["install", "--upgrade", "relic-cli"], {
         stdio: "inherit",
       });
+      if (pipResult.error) {
+        throw new Error(
+          (uvNotFound ? "uv not found on PATH. " : "uv upgrade failed. ") +
+            "pip not found on PATH either. Install one of them, then run:\n" +
+            "  uv tool upgrade relic-cli  OR  pip install --upgrade relic-cli"
+        );
+      }
       if (pipResult.status !== 0) {
         throw new Error(
-          "Both uv and pip failed. Run manually: uv tool upgrade relic-cli  OR  pip install --upgrade relic-cli"
+          (uvNotFound ? "uv not found on PATH. " : "uv upgrade failed. ") +
+            "pip install also failed. Run manually:\n" +
+            "  uv tool upgrade relic-cli  OR  pip install --upgrade relic-cli"
         );
       }
     }
@@ -107,8 +158,22 @@ async function refreshHooks(
   }
 
   for (const engine of engines) {
-    await runAddEngine({ engine: engine as Parameters<typeof runAddEngine>[0]["engine"], projectDir });
-    result.hooks_refreshed.push(engine);
+    if (!(SUPPORTED_ENGINES as string[]).includes(engine)) {
+      result.warnings.push(
+        `Warning: unknown engine "${engine}" in engines.json — skipping. ` +
+          `Supported engines: ${SUPPORTED_ENGINES.join(", ")}`
+      );
+      continue;
+    }
+    try {
+      await runAddEngine({
+        engine: engine as Parameters<typeof runAddEngine>[0]["engine"],
+        projectDir,
+      });
+      result.hooks_refreshed.push(engine);
+    } catch (err) {
+      result.warnings.push(`Warning: failed to refresh hooks for engine "${engine}": ${String(err)}`);
+    }
   }
 
   // Refresh preamble.md if content has changed
@@ -123,8 +188,7 @@ async function refreshHooks(
 
 export async function runUpgrade(options: UpgradeOptions): Promise<void> {
   const resolvedChannel = options._channel ?? channel;
-  const relicDir =
-    options.relicDir ?? findRelicDir(process.cwd()) ?? undefined;
+  const relicDir = options.relicDir ?? findRelicDir(process.cwd()) ?? undefined;
 
   // FR-4: dev channel warning
   if (resolvedChannel === "dev") {
@@ -184,11 +248,17 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
 
   // Default: upgrade if behind, then refresh hooks
   if (!checkResult!.update_available) {
-    const output = { message: "Already up to date.", ...checkResult };
+    const result: UpgradeResult = {
+      check: checkResult,
+      binary_upgraded: false,
+      hooks_refreshed: [],
+      preamble_updated: false,
+      warnings: [],
+    };
     if (options.text) {
       console.log(`Already up to date. (${checkResult!.current})`);
     } else {
-      console.log(JSON.stringify(output, null, 2));
+      console.log(JSON.stringify(result, null, 2));
     }
     return;
   }
