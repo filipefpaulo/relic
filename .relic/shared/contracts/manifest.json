@@ -34,5 +34,11 @@
     "file": "FixDocumentContract.md",
     "tldr": "Schema for .relic/fixes/<fix-id>.md: classification, proposed changes, status, and changelog draft.",
     "tags": ["fix", "document", "schema", "classification", "status", "solve", "changelog"]
+  },
+  {
+    "name": "SessionStateContract",
+    "file": "SessionStateContract.md",
+    "tldr": "Schema for .relic/session.json: unified gitignored session state holding active spec and fix IDs.",
+    "tags": ["session", "json", "current-spec", "current-fix", "spec", "fix", "gitignore", "state"]
   }
 ]

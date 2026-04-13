@@ -22,9 +22,11 @@ The pipeline has two stages separated by a human review step:
 2. **`/relic.solve`** — applies the approved fix: code changes, spec amendments, changelog
    entry, and clears the fix session state.
 
-To support this, fix session state is tracked in a new `.relic/current-fix` file (gitignored),
-parallel to the existing `.relic/current-spec`. When a fix is active, it takes precedence
-over `current-spec` for context-sensitive commands (`/relic.clarify`, `/relic.analyse`).
+To support this, both spec and fix session state are consolidated into a single structured
+file: `.relic/session.json` (gitignored). This supersedes the existing `.relic/current-spec`
+flat text file. `session.json` holds all personal session state in one place and can grow
+without adding new files to `.relic/`. When a fix is active (`session.fix` is set), it takes
+precedence over `session.spec` for context-sensitive commands (`/relic.clarify`, `/relic.analyse`).
 
 ---
 
@@ -75,19 +77,26 @@ over `current-spec` for context-sensitive commands (`/relic.clarify`, `/relic.an
 
 **Fix session state:**
 
-- **FR-8:** When `.relic/current-fix` exists, it takes precedence over `current-spec` for
-  `/relic.clarify` and `/relic.analyse`. Both commands operate on the owning spec of the
-  active fix rather than the spec in `current-spec`. `/relic.fix` and `/relic.solve` always
-  use `current-fix` when present.
+- **FR-8:** Session state lives in a single `.relic/session.json` (gitignored, JSON format).
+  Shape: `{ "spec": "<spec-id> | null", "fix": "<fix-id> | null" }`. Both fields are
+  optional and written independently by different commands. When `fix` is non-null, it takes
+  precedence over `spec` for `/relic.clarify` and `/relic.analyse`. `/relic.fix` and
+  `/relic.solve` always operate on `session.fix` when present.
 
-- **FR-9:** `relic use --fix <fix-id>` sets `.relic/current-fix` explicitly. Validates that
-  `.relic/fixes/<fix-id>.md` exists before writing. Errors if the fix document is not found.
-  `relic use <spec-id>` (no `--fix` flag) continues to set only `current-spec` — behaviour
-  unchanged.
+- **FR-8a:** `.relic/session.json` supersedes the existing `.relic/current-spec` flat text
+  file. `relic use <spec-id>` writes `session.spec`; `relic use --fix <fix-id>` writes
+  `session.fix`. For backwards compatibility, if `session.json` does not exist but
+  `current-spec` does, the spec ID is read from `current-spec` (priority 3 in the resolution
+  chain is unchanged). New writes always go to `session.json`.
 
-- **FR-10:** `/relic.use` (the AI slash command) is amended to support both spec and fix
-  session state. When the argument matches the fix ID pattern (`YYYY-MM-DD-*`), it calls
-  `relic use --fix <fix-id>`. Otherwise it calls `relic use <spec-id>` as before.
+- **FR-9:** `relic use --fix <fix-id>` writes `session.fix` in `.relic/session.json`.
+  Validates that `.relic/fixes/<fix-id>.md` exists before writing. Errors if not found.
+  `relic use <spec-id>` (no `--fix`) writes `session.spec` only — `session.fix` is
+  untouched.
+
+- **FR-10:** `/relic.use` (the AI slash command) is amended to support both fields. When the
+  argument matches the fix ID pattern (`YYYY-MM-DD-*`), it calls `relic use --fix <fix-id>`.
+  Otherwise it calls `relic use <spec-id>` as before.
 
 **Apply the fix:**
 
@@ -98,18 +107,19 @@ over `current-spec` for context-sensitive commands (`/relic.clarify`, `/relic.an
   - If a shared artifact contract changed: updates the artifact and flags all reader specs
   - Writes a changelog entry to `.relic/changelog.md`
   - Sets fix document status to `solved`
-  - Deletes `.relic/current-fix` to clear session state
+  - Clears `session.fix` in `.relic/session.json` (sets field to null)
 
 - **FR-12:** If the fix document status is not `approved` when `/relic.solve` runs, the
   command stops and tells the user to set `status: approved` in the fix document first.
 
 **Infrastructure updates:**
 
-- **FR-13:** `relic init` writes both `current-spec` and `current-fix` to `.relic/.gitignore`
-  so both session files are personal and never committed.
+- **FR-13:** `relic init` adds `session.json` to `.relic/.gitignore`. `current-spec` remains
+  gitignored for backwards compatibility (existing projects may still have it).
 
-- **FR-14:** `relic context` JSON output gains a `current_fix` field: the active fix ID if
-  `.relic/current-fix` exists, `null` otherwise.
+- **FR-14:** `relic context` JSON output gains a `current_fix` field: `session.fix` value
+  if set, `null` otherwise. The existing `active_spec_source` field reports `session` when
+  the spec was resolved from `session.json`.
 
 ### Non-Functional Requirements
 
@@ -130,6 +140,10 @@ over `current-spec` for context-sensitive commands (`/relic.clarify`, `/relic.an
 
 - **NFR-6:** `relic use --fix` errors if the fix document does not exist. It does not create
   fix documents — that is `/relic.fix`'s responsibility.
+
+- **NFR-7:** `session.json` is always written as valid JSON with both `spec` and `fix` keys
+  present (values may be null). Partial writes (only updating one field) must read-merge,
+  not overwrite the whole file.
 
 ---
 
@@ -157,14 +171,16 @@ over `current-spec` for context-sensitive commands (`/relic.clarify`, `/relic.an
 - Full rewrite of `templates/prompts/fix.md`
 - New `templates/prompts/solve.md`
 - New `.relic/fixes/` directory (runtime-created, not scaffolded)
-- `packages/core/src/commands/fix.ts` — add `--fix` flag for session state; no diagnosis logic
-- `packages/core/src/commands/use.ts` — add `--fix <fix-id>` flag
-- `packages/core/src/commands/init.ts` — add `current-fix` to `.relic/.gitignore`
-- `packages/core/src/commands/context.ts` — add `current_fix` to JSON output
+- `packages/core/src/commands/fix.ts` — add `--fix` flag; read/write `session.json`
+- `packages/core/src/commands/use.ts` — add `--fix <fix-id>` flag; write `session.json`
+- `packages/core/src/commands/init.ts` — gitignore `session.json` (keep `current-spec` too)
+- `packages/core/src/commands/context.ts` — read `session.json`; add `current_fix` to output;
+  update `active_spec_source` to report `session` when resolved from `session.json`
 - `templates/prompts/use.md` — support fix ID argument detection
 - `ContextResultContract` amendment — add `current_fix` field
 - New `FixDomain` shared artifact
 - New `FixDocumentContract` shared artifact
+- New `SessionStateContract` — defines `.relic/session.json` schema
 
 ### Out of Scope
 
@@ -217,6 +233,17 @@ over `current-spec` for context-sensitive commands (`/relic.clarify`, `/relic.an
 
 - **`relic use --fix` as the API:** A flag on the existing `relic use` keeps the API surface
   minimal. The pattern is: `relic use` manages all active session state.
+
+- **`session.json` not another flat text file:** Adding `.relic/current-fix` as a second
+  flat text file alongside `current-spec` produces a proliferation of opaque, single-purpose
+  files. A single `.relic/session.json` holds all personal session state in one readable,
+  extensible place. Future session concerns (e.g. active branch override, last search query)
+  can be added as fields without creating new files. JSON was chosen over TOML because Relic
+  already has `readJson`/`writeJson` utilities in `@relic/utility` — no new parser dependency.
+
+- **Backwards compatibility via read fallback:** `current-spec` is kept gitignored and
+  readable as a fallback so existing users don't break on upgrade. New writes always go to
+  `session.json`.
 
 - **`wrong-spec` classification requires spec amendment:** When the spec itself is wrong,
   fixing only the code produces a codebase that contradicts its spec. `/relic.solve` must

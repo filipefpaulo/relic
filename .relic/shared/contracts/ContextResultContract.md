@@ -12,7 +12,7 @@ The JSON output of `relic context`. Used by AI agents to determine which spec is
 {
   "relic_dir": "<absolute path>",
   "spec_id": "001-auth",
-  "active_spec_source": "arg|env|current-spec|git-branch",
+  "active_spec_source": "arg|env|session|current-spec|git-branch",
   "spec_dir": "<absolute path>",
   "files": {
     "preamble": true,
@@ -30,8 +30,10 @@ The JSON output of `relic context`. Used by AI agents to determine which spec is
 }
 ```
 
-`current_fix` is `null` when no fix is active; the fix ID string when `.relic/current-fix`
-exists. AI commands use this field to detect fix context and switch behaviour accordingly.
+`current_fix` is `null` when no fix is active; the fix ID string when `session.fix` is set
+in `.relic/session.json`. `active_spec_source` reports `session` when the spec was resolved
+from `session.json`. AI commands use these fields to detect fix/spec context and switch
+behaviour accordingly.
 
 ## Consumers
 - All AI workflow commands (`/relic.specify`, `/relic.plan`, `/relic.fix`, etc.) — call `relic context` first to orient themselves

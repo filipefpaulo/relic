@@ -17,8 +17,9 @@ issue tied to an owning spec, stored as a document pending human review before a
   derived from the issue description, lowercase, hyphenated, max 6 words.
 - **Fix document**: A markdown file at `.relic/fixes/<fix-id>.md`. Committed to version
   control — it is audit trail. Schema defined in `FixDocumentContract`.
-- **`current-fix`**: A gitignored single-line file at `.relic/current-fix` holding the
-  active fix ID. Session state — personal, not shared. Parallel to `current-spec`.
+- **`session.fix`**: The `fix` field in `.relic/session.json`. Holds the active fix ID.
+  Session state — personal, gitignored. Part of the unified session state file that also
+  holds `session.spec` (superseding `.relic/current-spec`). Defined in `SessionStateContract`.
 - **Root cause classification**: One of `code-bug`, `misspecification`, `misunderstanding`,
   `wrong-spec`.
 
@@ -44,7 +45,7 @@ Ownership check (touches_files prefix scan)
 Diagnosis (classify root cause)
     ↓
 Write .relic/fixes/<fix-id>.md  (status: pending-approval)
-Write .relic/current-fix
+Write session.fix in .relic/session.json
     ↓  [human review: read fix doc, optionally /relic.clarify]
 Set status: approved in fix doc
     ↓
@@ -52,7 +53,7 @@ Set status: approved in fix doc
     ↓
 Apply code changes + spec amendments + changelog
 Set status: solved in fix doc
-Delete .relic/current-fix
+Clear session.fix (set to null in session.json)
 ```
 
 ## Relationships

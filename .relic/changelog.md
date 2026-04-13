@@ -2,6 +2,18 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 003-fix-solve-workflow
+
+Replaced `.relic/current-fix` flat text file proposal with `.relic/session.json` structured
+JSON. A single gitignored file now holds all personal session state (`spec` + `fix` fields),
+replacing both `current-spec` and the proposed `current-fix`. Backwards compat: if
+`session.json` absent, `relic context` falls back to reading `current-spec`. New writes
+always go to `session.json`.
+
+New shared artifact: `SessionStateContract` — defines the `session.json` schema, write rules
+(read-merge semantics), and gitignore requirement. Added to `artifacts.json` `owns`.
+`FixDomain` and `ContextResultContract` updated to reference `session.fix`/`session.json`.
+
 ## [2026-04-13] specify — 003-fix-solve-workflow
 
 New spec: full cross-spec fix and solve pipeline. `/relic.fix` becomes a cross-spec command

@@ -2,7 +2,8 @@
   "owns": [
     "shared/domains/FixDomain.md",
     "shared/contracts/FixDocumentContract.md",
-    "shared/contracts/ContextResultContract.md"
+    "shared/contracts/ContextResultContract.md",
+    "shared/contracts/SessionStateContract.md"
   ],
   "reads": [
     "shared/domains/SpecResolutionDomain.md",
