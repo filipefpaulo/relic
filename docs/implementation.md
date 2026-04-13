@@ -72,28 +72,27 @@ Result:
 The workflow command stubs (`specify`, `fix`, etc.) exist in the debug binary for
 testing context assembly but are not exported to production.
 
-### Phase 5 — Active spec tracking (`.relic/current-spec`)
+### Phase 5 — Active spec tracking (`.relic/current-spec` → `session.json`)
 
 **Problem:** Spec ID resolution previously relied on git branch naming (`001-auth-feature` → spec `001-auth`). Most developers don't create branches per spec, so resolution failed in the common case.
 
-**Solution:** A single-line file `.relic/current-spec` that persists the active spec across
-commands and sessions.
+**Original solution:** A single-line file `.relic/current-spec`.
 
-Resolution order (implemented in both TypeScript and bash):
+**Updated in Phase 11:** `.relic/current-spec` was replaced by `.relic/session.json` — a structured JSON file that holds all personal session state in one place.
+
+Resolution order (TypeScript):
 1. `--spec <id>` CLI arg
 2. `RELIC_SPEC` env var
-3. `.relic/current-spec` ← **new**
+3. `.relic/session.json` (`session.spec` field) ← written by `relic use` and `relic scaffold`
 4. Git branch inference
 5. Error (lists available specs)
 
-Three ways to set `current-spec`:
-- `relic use 001-auth` — TypeScript CLI command
+Three ways to set `session.spec`:
+- `relic use 001-auth` — writes `session.spec`
 - `/relic.use` — AI slash command (calls `relic scaffold --spec <id>`)
 - `relic scaffold` — automatically on every spec creation or resolution
 
-The file is gitignored so different team members can work on different specs simultaneously.
-Remote AI sessions (with no terminal access) can switch specs via `/relic.use` without
-needing shell access.
+`session.json` is gitignored so different team members can work on different specs simultaneously.
 
 ### Phase 6 — npm publishing (cross-platform Node.js bundle)
 
@@ -255,6 +254,46 @@ propagates to all three engines on the next `bun run build:engine-templates`.
 `packages/core/src/generated/templates.ts` now contains only the 5 scaffold templates
 (`preamble.md`, `constitution.md`, `spec.md`, `plan.md`, `tasks.md`).
 
+### Phase 11 — Two-stage fix pipeline + `session.json` (spec 003)
+
+**Problems solved:**
+
+1. `/relic.fix` was a context-assembly stub that assumed the user already knew which spec
+   owned the broken code.
+2. Session state lived in two files (`.relic/current-spec` for spec, proposed `current-fix`
+   for fix) — inconsistent and hard to extend.
+3. There was no way to record a bug diagnosis for human review before applying it.
+
+**Solution:**
+
+**`session.json`** replaces `.relic/current-spec` as the single gitignored session state file:
+```json
+{ "spec": "001-auth", "fix": "2026-04-13-null-session-crash" }
+```
+All commands that previously read/wrote `current-spec` now use `readSession`/`writeSession`
+from `@relic/utility`. Read-merge semantics prevent partial writes from clobbering unrelated fields.
+`relic init` creates the file and the `.relic/fixes/` directory upfront.
+
+**Two-stage fix pipeline:**
+
+| Stage | Command | What it does |
+|---|---|---|
+| Diagnose | `/relic.fix <issue>` | Cross-spec ownership check; classifies root cause; writes `.relic/fixes/<fix-id>.md`; sets `session.fix` |
+| Apply | `/relic.solve` | Reads fix doc; applies code changes; updates knowledge layer; writes changelog; clears `session.fix` |
+
+**Ownership enforcement:** `/relic.fix` scans all `specs/*/artifacts.json` `touches_files`
+entries using prefix matching. If no spec owns the affected code area, it stops and instructs
+the user to run `/relic.specify`. Every fix attempt either succeeds (spec exists) or produces
+a new spec — coverage grows monotonically.
+
+**`relic use` flags added:**
+- `relic use --fix <fix-id>` — writes `session.fix` (validates fix doc exists first)
+- `relic use --clear-fix` — sets `session.fix` to null
+
+**`relic context` output** gains a `current_fix` field and reports `active_spec_source: "session"`.
+
+**New `@relic/utility` exports:** `SessionState`, `readSession`, `writeSession`.
+
 ---
 
 ## What Changed from the Original Design
@@ -281,12 +320,14 @@ This split makes it clear which rules come from Relic and which come from the te
 
 Original design: 8 slash commands (specify, clarify, plan, analyse, tasks, implement, fix, constitution).
 
-What shipped: 9 commands. `constitution` was not implemented as a slash command (it's a file, not a workflow). `use` and `scan` were added.
+What shipped initially: 9 commands. `constitution` was added as a proper slash command. `use` and `scan` were added.
+
+**Updated in Phase 11:** `/relic.solve` added — now 11 commands total.
 
 ```
 /relic.specify    /relic.clarify    /relic.plan       /relic.analyse
-/relic.tasks      /relic.implement  /relic.fix        /relic.use
-/relic.scan
+/relic.tasks      /relic.implement  /relic.fix        /relic.solve
+/relic.use        /relic.scan       /relic.constitution
 ```
 
 ### npm distribution (changed from Bun binary)
@@ -355,9 +396,11 @@ before the changelog step.
 
 ## Implementation Gaps / Known Limitations
 
-- **`fix.ts`, `plan.ts`, `specify.ts` etc.** are stub commands in the debug binary.
+- **`plan.ts`, `specify.ts` etc.** are stub commands in the debug binary.
   They print context or a placeholder message. The actual workflow lives in the AI prompts.
   Full TypeScript implementations are not planned — the AI prompt approach is the intended design.
+  `fix.ts` now handles session-state plumbing (spec resolution via `session.json`); the diagnosis
+  and apply logic remains in `fix.md` and `solve.md` per Constitution Principle II.
 
 - **`scan` confidence calibration** — the `Confidence: medium` default for all inferred artifacts
   is a safe starting point but could be smarter. Entry points with explicit type exports probably
@@ -400,4 +443,5 @@ bun run typecheck
 
 *Document created: April 10, 2026.*
 *Updated: April 13, 2026 — Phase 10: @relic/utility, @relic/engines, permission configs.*
-*Covers: Phase 1–10.*
+*Updated: April 13, 2026 — Phase 11: session.json, two-stage fix pipeline, /relic.solve.*
+*Covers: Phase 1–11.*

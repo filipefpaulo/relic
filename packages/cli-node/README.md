@@ -40,8 +40,10 @@ relic init
 | `relic init [--engine claude\|copilot\|codex] [--dir] [--force]` | Scaffold `.relic/` in your project |
 | `relic add-engine <engine>` | Add AI engine hooks to an existing project |
 | `relic use <spec-id>` | Set the active spec for this session |
+| `relic use --fix <fix-id>` | Set the active fix (validates fix doc exists) |
+| `relic use --clear-fix` | Clear the active fix from session state |
 | `relic scan [--json]` | Output a project manifest for `/relic.scan` |
-| `relic context [--spec id] [--text]` | Resolve active spec and report file/artifact status |
+| `relic context [--spec id] [--text]` | Resolve active spec; report file/artifact status and `current_fix` |
 | `relic scaffold [--title t\|--spec id]` | Ensure spec folder exists; create from templates if new |
 | `relic validate [--text]` | Check artifact integrity and ownership conflicts |
 | `relic search <keywords...>` | Search shared artifact manifests by keyword tags |
@@ -63,8 +65,9 @@ Written to your agent's hooks directory by `relic init`:
 | `/relic.analyse` | Non-destructive consistency check |
 | `/relic.tasks` | Generate tasks from the plan |
 | `/relic.implement` | Build the plan |
-| `/relic.fix` | Fix a bug constrained by the original spec |
-| `/relic.use` | Switch active spec from inside the AI session |
+| `/relic.fix` | Cross-spec ownership check + diagnosis → writes fix document |
+| `/relic.solve` | Apply the active fix document and close the fix |
+| `/relic.use` | Switch active spec or fix from inside the AI session |
 
 ---
 
