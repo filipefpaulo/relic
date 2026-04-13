@@ -243,6 +243,52 @@ See `docs/distribution.md` for the full implementation. Platform-specific wheels
 pre-compiled Bun binaries — no Node.js required. Published via `pypa/gh-action-pypi-publish`
 with OIDC trusted publisher.
 
+### Phase 9 — Manifest-based knowledge indexing (`relic search` + `relic deep-search`)
+
+**Problem:** When an LLM needs to find relevant shared artifacts it reads every file under
+`.relic/shared/` — expensive in tokens, especially on cold starts where none of the brain
+is in context yet.
+
+**Solution:** Each `shared/<subdir>/` holds a `manifest.json` index. The LLM discovers
+candidates programmatically before reading any full files, using a two-step cascade.
+
+**Manifest schema** (`shared/<subdir>/manifest.json`):
+```json
+[
+  {
+    "name": "UserAuth",
+    "file": "UserAuth.md",
+    "tldr": "Handles user authentication, session tokens, and login flows.",
+    "tags": ["auth", "session", "token", "login", "user"]
+  }
+]
+```
+
+**`relic search <keywords...>`** — targeted lookup:
+- Loads all `manifest.json` files from the four known subdirs; skips missing ones silently
+- Score per entry = number of distinct tags where any keyword is a case-insensitive substring
+- Filters score === 0, sorts descending by score
+- Returns `[]` on no match (not an error); errors if no keywords passed
+
+**`relic deep-search`** — full index dump:
+- Returns all entries across all manifests with `path`, `name`, `tldr`, `tags` — no score
+- LLM is instructed to read only `tldr` fields and load full files selectively
+
+**Discovery cascade in `specify` and `plan` prompts:**
+1. Extract up to 10 keywords from the user's input or active spec
+2. Run `relic search <keywords>` — read full files for high-score hits
+3. If results are insufficient, fall back to `relic deep-search` — read `tldr` only, load selectively
+
+**`relic validate` extended** with two new checks:
+- `missing_manifests` — subdir has `.md` files but no `manifest.json`
+- `unregistered_files` — `.md` file not listed in its manifest
+
+**`preamble.md`** updated with a `## Manifest Registration` section that makes manifest
+maintenance a hard invariant alongside the existing artifact placement rules.
+
+**`/relic.scan`** gets a new Step 8 to register every produced artifact in its manifest
+before the changelog step.
+
 ---
 
 ## Implementation Gaps / Known Limitations
@@ -287,5 +333,5 @@ bun run typecheck
 ---
 
 *Document created: April 10, 2026.*
-*Updated: April 11, 2026 — Phase 8: native CLI commands replacing bash scripts.*
-*Covers: Phase 1–8.*
+*Updated: April 12, 2026 — Phase 9: manifest-based knowledge indexing.*
+*Covers: Phase 1–9.*

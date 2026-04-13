@@ -7,6 +7,31 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- `relic search <keywords...>` — search shared artifact manifests by keyword tags.
+  Loads all `shared/*/manifest.json` files and returns scored candidates where any
+  tag matches a keyword (case-insensitive substring). Returns JSON array sorted
+  by score descending; returns `[]` if no matches. Errors if no keywords given.
+- `relic deep-search` — return all manifest entries consolidated across every
+  `shared/` subdirectory. LLM is instructed to read `tldr` fields only and load
+  full artifact files selectively. Use as a fallback when `relic search` returns
+  insufficient results.
+- `manifest.json` per `shared/<subdir>/` — flat JSON index that every artifact file
+  must register in. Schema: `[{ name, file, tldr, tags }]`. The `preamble.md`
+  now mandates this as an invariant.
+- `relic validate` extended with two new checks:
+  - `missing_manifests` — a `shared/` subdirectory has `.md` files but no `manifest.json`
+  - `unregistered_files` — a `.md` file is not listed in its subdirectory's manifest
+- `templates/prompts/scan.md` — new Step 8: register every produced artifact in its
+  manifest before the changelog step.
+- Two-step discovery cascade in `specify` and `plan` prompts: extract up to 10 keywords
+  from the user's input → `relic search` first; fall back to `relic deep-search` only
+  if results are insufficient.
+
+---
+
 ## [0.2.1] — 2026-04-11
 
 ### Fixed

@@ -25,6 +25,21 @@ export interface IntersectionReport {
   warnings: FileOverlapWarning[];
 }
 
+export const SHARED_SUBDIRS = ["domains", "contracts", "rules", "assumptions"] as const;
+export type SharedSubdir = (typeof SHARED_SUBDIRS)[number];
+
+export interface ManifestEntry {
+  name: string;
+  file: string;
+  tldr: string;
+  tags: string[];
+}
+
+export interface SearchResult extends ManifestEntry {
+  path: string;
+  score: number;
+}
+
 export interface BuiltContext {
   preamble: string;
   constitution: string;

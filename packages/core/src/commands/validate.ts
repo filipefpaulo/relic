@@ -1,7 +1,9 @@
 import { join } from "path";
 import { readdirSync, statSync } from "fs";
-import { findRelicDir, fileExists, dirExists } from "../utils/fs.ts";
+import { findRelicDir, fileExists, dirExists, readJson } from "../utils/fs.ts";
 import { loadRegistry } from "../core/artifact-registry.ts";
+import { SHARED_SUBDIRS } from "../types.ts";
+import type { ManifestEntry } from "../types.ts";
 
 export interface ValidateOptions {
   text?: boolean;
@@ -17,6 +19,9 @@ interface ValidateResult {
   missing_reads: Array<{ artifact: string; spec: string }>;
   illegal_files: Array<{ file: string; spec: string }>;
   invalid_paths: Array<{ path: string; spec: string; field: string }>;
+  missing_manifests: Array<{ subdir: string }>;
+  invalid_manifests: Array<{ subdir: string }>;
+  unregistered_files: Array<{ subdir: string; file: string }>;
 }
 
 export async function runValidate(options: ValidateOptions): Promise<void> {
@@ -33,6 +38,9 @@ export async function runValidate(options: ValidateOptions): Promise<void> {
   const missingReads: ValidateResult["missing_reads"] = [];
   const illegalFiles: ValidateResult["illegal_files"] = [];
   const invalidPaths: ValidateResult["invalid_paths"] = [];
+  const missingManifests: ValidateResult["missing_manifests"] = [];
+  const invalidManifests: ValidateResult["invalid_manifests"] = [];
+  const unregisteredFiles: ValidateResult["unregistered_files"] = [];
 
   // Build ownership map to detect conflicts
   const ownershipMap = new Map<string, string[]>();
@@ -78,13 +86,50 @@ export async function runValidate(options: ValidateOptions): Promise<void> {
     }
   }
 
+  // Check shared/ subdirs for missing manifests and unregistered files
+  for (const subdir of SHARED_SUBDIRS) {
+    const subdirPath = join(relicDir, "shared", subdir);
+    if (!dirExists(subdirPath)) continue;
+    const mdFiles = readdirSync(subdirPath).filter((f) => f.endsWith(".md"));
+    if (mdFiles.length === 0) continue;
+
+    const manifestPath = join(subdirPath, "manifest.json");
+    if (!fileExists(manifestPath)) {
+      missingManifests.push({ subdir });
+      continue;
+    }
+
+    let manifest: ManifestEntry[];
+    try {
+      const parsed = readJson<unknown>(manifestPath);
+      if (!Array.isArray(parsed)) {
+        invalidManifests.push({ subdir });
+        continue;
+      }
+      manifest = parsed as ManifestEntry[];
+    } catch {
+      invalidManifests.push({ subdir });
+      continue;
+    }
+
+    const registered = new Set(manifest.map((e) => e.file));
+    for (const mdFile of mdFiles) {
+      if (!registered.has(mdFile)) {
+        unregisteredFiles.push({ subdir, file: mdFile });
+      }
+    }
+  }
+
   const result: ValidateResult = {
-    valid: conflicts.length === 0 && missingOwned.length === 0 && missingReads.length === 0 && illegalFiles.length === 0 && invalidPaths.length === 0,
+    valid: conflicts.length === 0 && missingOwned.length === 0 && missingReads.length === 0 && illegalFiles.length === 0 && invalidPaths.length === 0 && missingManifests.length === 0 && invalidManifests.length === 0 && unregisteredFiles.length === 0,
     conflicts,
     missing_owned: missingOwned,
     missing_reads: missingReads,
     illegal_files: illegalFiles,
     invalid_paths: invalidPaths,
+    missing_manifests: missingManifests,
+    invalid_manifests: invalidManifests,
+    unregistered_files: unregisteredFiles,
   };
 
   if (options.text) {
@@ -108,6 +153,18 @@ export async function runValidate(options: ValidateOptions): Promise<void> {
     if (invalidPaths.length > 0) {
       console.log("\nInvalid paths (must start with shared/):");
       for (const p of invalidPaths) console.log(`  [${p.spec}] ${p.field}: ${p.path}`);
+    }
+    if (missingManifests.length > 0) {
+      console.log("\nMissing manifests (shared/<subdir>/manifest.json required):");
+      for (const m of missingManifests) console.log(`  shared/${m.subdir}/manifest.json`);
+    }
+    if (invalidManifests.length > 0) {
+      console.log("\nInvalid manifests (must be a JSON array):");
+      for (const m of invalidManifests) console.log(`  shared/${m.subdir}/manifest.json`);
+    }
+    if (unregisteredFiles.length > 0) {
+      console.log("\nUnregistered files (add to manifest.json):");
+      for (const u of unregisteredFiles) console.log(`  shared/${u.subdir}/${u.file}`);
     }
   } else {
     console.log(JSON.stringify(result, null, 2));

@@ -2,6 +2,7 @@ export { runInit } from "./commands/init.ts";
 export { runContext } from "./commands/context.ts";
 export { runScaffold } from "./commands/scaffold.ts";
 export { runValidate } from "./commands/validate.ts";
+export { runSearch, runDeepSearch } from "./commands/search.ts";
 export { runAddEngine, SUPPORTED_ENGINES } from "./commands/add-engine.ts";
 export type { Engine } from "./commands/add-engine.ts";
 export { runUse } from "./commands/use.ts";
@@ -29,6 +30,8 @@ export type {
   FileOverlapWarning,
   IntersectionReport,
   BuiltContext,
+  ManifestEntry,
+  SearchResult,
 } from "./types.ts";
 
 export type { ChangelogEntry } from "./core/changelog.ts";

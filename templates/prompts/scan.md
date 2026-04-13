@@ -170,7 +170,27 @@ How you would know this assumption is no longer valid.
 
 ---
 
-## Step 8 — Write changelog entry
+## Step 8 — Register artifacts in manifests
+
+For every artifact you created, add an entry to the appropriate `manifest.json`:
+
+- `shared/domains/manifest.json` for domain artifacts
+- `shared/contracts/manifest.json` for contract artifacts
+- `shared/rules/manifest.json` for rule artifacts
+- `shared/assumptions/manifest.json` for assumption artifacts
+
+If a manifest does not exist for a subdirectory, create it as an empty array `[]` first,
+then add your entries. Each entry must have:
+- `name` — matches the `# Heading` in the artifact file
+- `file` — filename only (e.g. `UserAuth.md`)
+- `tldr` — one sentence summary of what the artifact covers
+- `tags` — 4–8 lowercase keywords
+
+Run `relic validate` after this step — it will fail if any `.md` files are unregistered.
+
+---
+
+## Step 9 — Write changelog entry
 
 ```
 [scan] Initial artifact scan: generated <N> artifacts from existing codebase.

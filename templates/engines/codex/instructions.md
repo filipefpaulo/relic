@@ -48,6 +48,12 @@ relic context --spec <spec-id>
 
 # For plan / clarify / analyse: also validate integrity
 relic validate
+
+# Discover shared artifacts — always try search first:
+# 1. Extract up to 10 keywords from the user's input or the active spec.
+relic search <keyword1> <keyword2> ...   # targeted: returns scored candidates
+# 2. Only if search results are insufficient, fall back to:
+relic deep-search                        # returns all entries; read tldr only, load selectively
 ```
 
 Do not proceed if `relic validate` reports `"valid": false`.

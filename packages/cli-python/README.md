@@ -43,6 +43,11 @@ relic init
 | `relic add-engine <engine>` | Add AI engine hooks to an existing project |
 | `relic use <spec-id>` | Set the active spec for this session |
 | `relic scan [--json]` | Output a project manifest for `/relic.scan` |
+| `relic context [--spec id] [--text]` | Resolve active spec and report file/artifact status |
+| `relic scaffold [--title t\|--spec id]` | Ensure spec folder exists; create from templates if new |
+| `relic validate [--text]` | Check artifact integrity and ownership conflicts |
+| `relic search <keywords...>` | Search shared artifact manifests by keyword tags |
+| `relic deep-search` | Return all manifest entries consolidated (tldr-first triage) |
 
 ---
 
