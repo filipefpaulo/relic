@@ -169,10 +169,14 @@ Verify `use.md` already has the standard preamble block; add it if missing.
 | `packages/core/src/commands/use.ts` | **modify** | Session writes; `--fix` and `--clear-fix` flags |
 | `packages/core/src/commands/fix.ts` | **modify** | Spec resolution reads `session.spec` |
 | `packages/cli-node/src/bin.ts` | **modify** | Register `--fix` and `--clear-fix` options on `use` command |
+| `packages/cli-node/src/bin.debug.ts` | **modify** | Same `--fix` and `--clear-fix` registration as `bin.ts` |
 | `templates/prompts/fix.md` | **rewrite** | Full cross-spec ownership check + diagnosis pipeline |
 | `templates/prompts/solve.md` | **create** | Apply approved fix, clear session.fix |
 | `templates/prompts/use.md` | **modify** | Detect fix ID pattern, route to `relic use --fix` |
-| `.relic/shared/contracts/FixDocumentContract.md` | **modify** | Simplify status to `pending \| solved` |
+| `.relic/shared/contracts/FixDocumentContract.md` | **modify** | Simplify status to `pending \| solved` — already done |
+| `.relic/constitution.md` | **amend** | Replace stale `current-spec` principle with `session.json`; append amendment block |
+| `.relic/shared/domains/manifest.json` | **modify** | Update `SpecResolutionDomain` and `FixDomain` entries (stale tags/tldr) |
+| `.relic/shared/contracts/manifest.json` | **modify** | Update `SessionStateContract` entry (stale tags) |
 
 ---
 

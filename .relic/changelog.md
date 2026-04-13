@@ -2,6 +2,16 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 003-fix-solve-workflow (5)
+
+Three gaps found by /relic.analyse resolved: (1) `packages/cli-node/src/bin.debug.ts` added
+to `artifacts.json` touches_files and plan File Changes table — it registers the same `use`
+command as `bin.ts` and needs the same `--fix`/`--clear-fix` flags. (2) Task T-17b added:
+update 3 stale manifest entries (SpecResolutionDomain tldr/tags, FixDomain tags, SessionStateContract
+tags) that still reference `current-spec`/`current-fix`. (3) Task T-17a added: amend
+`constitution.md` to replace the stale `current-spec` principle line and append a dated
+amendment block — must be done before TypeScript migration tasks begin.
+
 ## [2026-04-13] clarify — 003-fix-solve-workflow (4)
 
 Added NFR-8: all prompts (`solve.md`, `fix.md`, and all future prompts) must open with the

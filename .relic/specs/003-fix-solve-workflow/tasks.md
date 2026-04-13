@@ -204,7 +204,28 @@
 
 ---
 
-## Phase 12 — Verify
+## Phase 12 — Pre-implementation cleanup
+
+- [ ] **T-17a** Amend `constitution.md` — update the stale `current-spec` principle
+  - Line 81: `".relic/current-spec is gitignored — each team member tracks their own active spec session"`
+    → `".relic/session.json is gitignored — each team member tracks their own active spec and fix session in session.json"`
+  - Append a dated amendment block at the bottom of `constitution.md` documenting the change:
+    `[2026-04-13] session.json replaces current-spec as the single session state file. Priority 3 in spec resolution now reads session.json (session.spec field). Authorised by spec 003-fix-solve-workflow.`
+  - This amendment must be written **before** the TypeScript migration tasks (T-03 through T-08)
+    so the constitution is accurate before the behaviour it describes changes.
+
+- [ ] **T-17b** Update 3 stale manifest entries in `shared/*/manifest.json`
+  - `shared/domains/manifest.json` — `SpecResolutionDomain` entry:
+    - `tldr`: change `"arg > env > current-spec file > git branch"` → `"arg > env > session.json (session.spec) > git branch"`
+    - `tags`: remove `"current-spec"`, add `"session-json"`, `"session"`
+  - `shared/domains/manifest.json` — `FixDomain` entry:
+    - `tags`: remove `"current-fix"`, add `"session-fix"`
+  - `shared/contracts/manifest.json` — `SessionStateContract` entry:
+    - `tags`: remove `"current-spec"` and `"current-fix"`, add `"session-spec"`, `"session-fix"`
+
+---
+
+## Phase 13 — Verify
 
 - [ ] **T-17** Run `bun run test` — all packages pass (utility, engines, core)
 - [ ] **T-18** Run `relic validate` — `valid: true`

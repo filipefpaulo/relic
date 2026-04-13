@@ -19,6 +19,7 @@
     "packages/core/src/commands/context.ts",
     "packages/core/src/commands/scaffold.ts",
     "packages/cli-node/src/bin.ts",
+    "packages/cli-node/src/bin.debug.ts",
     "templates/prompts/fix.md",
     "templates/prompts/solve.md",
     "templates/prompts/use.md"
