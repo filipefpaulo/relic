@@ -25,13 +25,18 @@ The JSON output of `relic context`. Used by AI agents to determine which spec is
   },
   "shared_artifacts": [
     { "path": "shared/domains/UserAuth.md", "role": "owns|reads", "exists": true }
-  ]
+  ],
+  "current_fix": "2026-04-13-null-session-crash"
 }
 ```
+
+`current_fix` is `null` when no fix is active; the fix ID string when `.relic/current-fix`
+exists. AI commands use this field to detect fix context and switch behaviour accordingly.
 
 ## Consumers
 - All AI workflow commands (`/relic.specify`, `/relic.plan`, `/relic.fix`, etc.) — call `relic context` first to orient themselves
 - `relic validate` — uses context to locate the spec
+- `/relic.clarify` and `/relic.analyse` — check `current_fix` to determine which context to operate in
 
 ## Owned by
-(unowned — assign when a spec takes responsibility)
+003-fix-solve-workflow

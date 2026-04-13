@@ -2,6 +2,16 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] specify — 003-fix-solve-workflow
+
+New spec: full cross-spec fix and solve pipeline. `/relic.fix` becomes a cross-spec command
+that enforces spec ownership as a gate: unowned code cannot be fixed until a spec is written.
+Two-stage pipeline (diagnose → human review → solve) with fix session state in
+`.relic/current-fix`. New `/relic.solve` command applies approved fixes.
+
+New shared artifacts: `FixDomain`, `FixDocumentContract`. Ownership claimed for
+`ContextResultContract` (previously unowned); amended to add `current_fix` field.
+
 ## [2026-04-13] clarify — 002-agent-permission-config (2)
 
 Correction: the gitignore for `packages/engines/src/generated/` must live in

@@ -8,8 +8,8 @@
   {
     "name": "ContextResultContract",
     "file": "ContextResultContract.md",
-    "tldr": "JSON output of `relic context`: active spec, resolution source, file existence, shared artifact refs.",
-    "tags": ["context", "json", "spec", "files", "artifacts", "resolution"]
+    "tldr": "JSON output of `relic context`: active spec, resolution source, file existence, shared artifact refs, and active fix ID.",
+    "tags": ["context", "json", "spec", "files", "artifacts", "resolution", "fix", "current-fix"]
   },
   {
     "name": "ArtifactsJsonContract",
@@ -28,5 +28,11 @@
     "file": "ScaffoldResultContract.md",
     "tldr": "JSON output of `relic scaffold`: spec_id, spec_dir, was_new, and files_created.",
     "tags": ["scaffold", "json", "spec", "new", "files-created"]
+  },
+  {
+    "name": "FixDocumentContract",
+    "file": "FixDocumentContract.md",
+    "tldr": "Schema for .relic/fixes/<fix-id>.md: classification, proposed changes, status, and changelog draft.",
+    "tags": ["fix", "document", "schema", "classification", "status", "solve", "changelog"]
   }
 ]
