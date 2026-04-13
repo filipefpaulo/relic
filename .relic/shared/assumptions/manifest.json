@@ -1,0 +1,26 @@
+[
+  {
+    "name": "BunRuntimeAvailability",
+    "file": "BunRuntimeAvailability.md",
+    "tldr": "Dev and CI build steps assume Bun is installed; production npm bundle targets Node.js 18+.",
+    "tags": ["bun", "runtime", "build", "ci", "node"]
+  },
+  {
+    "name": "SingleSpecPerBranch",
+    "file": "SingleSpecPerBranch.md",
+    "tldr": "Branch inference assumes branches are named NNN-slug and contain a single spec.",
+    "tags": ["branch", "spec", "inference", "git", "naming"]
+  },
+  {
+    "name": "GitAvailability",
+    "file": "GitAvailability.md",
+    "tldr": "Branch-based spec inference assumes git is installed; silently fails if not available.",
+    "tags": ["git", "branch", "inference", "availability"]
+  },
+  {
+    "name": "ClaudeAsDefaultEngine",
+    "file": "ClaudeAsDefaultEngine.md",
+    "tldr": "relic init defaults to claude engine; assumes Claude Code is the primary AI agent.",
+    "tags": ["claude", "engine", "default", "init", "copilot", "codex"]
+  }
+]

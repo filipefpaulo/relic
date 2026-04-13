@@ -1,0 +1,14 @@
+{
+  "owns": [
+    "shared/rules/TestingRules.md"
+  ],
+  "reads": [
+    "shared/assumptions/BunRuntimeAvailability.md"
+  ],
+  "touches_files": [
+    "packages/core/src/__tests__/",
+    "packages/core/package.json",
+    "package.json",
+    ".github/workflows/test.yml"
+  ]
+}
