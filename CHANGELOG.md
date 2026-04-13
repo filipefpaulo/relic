@@ -9,6 +9,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-04-12
+
 ### Added
 - `relic search <keywords...>` — search shared artifact manifests by keyword tags.
   Loads all `shared/*/manifest.json` files and returns scored candidates where any
