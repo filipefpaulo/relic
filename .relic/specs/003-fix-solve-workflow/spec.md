@@ -139,6 +139,14 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
   present (values may be null). Partial writes (only updating one field) must read-merge,
   not overwrite the whole file.
 
+- **NFR-8:** `templates/prompts/solve.md` (and `fix.md`) must open with the standard Relic
+  prompt preamble block — instructing the AI to read `.relic/preamble.md` and
+  `.relic/constitution.md` in full before taking any action. The preamble is non-negotiable
+  and cannot be skipped. If the prompt's behaviour bypasses or deviates from a constitution
+  principle, a constitution amendment must be written first; the prompt must reference the
+  amendment that authorises the deviation. This constraint applies to all current and future
+  Relic prompts.
+
 ---
 
 ## User Stories

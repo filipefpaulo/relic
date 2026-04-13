@@ -87,6 +87,14 @@ is the approval act. Status is now `pending | solved`.
 
 Full rewrite. The new prompt:
 
+**Preamble block (mandatory first lines):**
+```markdown
+> **Before proceeding:** Read `.relic/preamble.md` and `.relic/constitution.md` in full.
+> The preamble defines structural invariants that cannot be bypassed.
+> If this prompt deviates from a constitution principle, a constitution amendment
+> authorising the deviation must exist before you proceed.
+```
+
 1. Run `relic context` (no `--spec`) to get session state.
 2. Read all `specs/*/artifacts.json` files (use `ls .relic/specs/` then read each).
 3. For each spec, scan `touches_files` entries for prefix matches against the issue's code area.
@@ -105,7 +113,13 @@ Full rewrite. The new prompt:
 
 ### Phase 8 — Write `templates/prompts/solve.md`
 
-New prompt:
+New prompt. Opens with the standard preamble block (same as all other Relic prompts):
+```markdown
+> **Before proceeding:** Read `.relic/preamble.md` and `.relic/constitution.md` in full.
+> The preamble defines structural invariants that cannot be bypassed.
+> If this prompt deviates from a constitution principle, a constitution amendment
+> authorising the deviation must exist before you proceed.
+```
 
 1. Run `relic context` (no `--spec`).
 2. If `current_fix` is null: stop. Tell user to run `/relic.fix <issue>` first.
@@ -122,6 +136,8 @@ New prompt:
 9. Report: what was changed, which files, which specs (if any) need follow-up clarify.
 
 ### Phase 9 — Update `templates/prompts/use.md`
+
+Verify `use.md` already has the standard preamble block; add it if missing.
 
 1. Add branch at the top: if argument matches pattern `YYYY-MM-DD-*` (fix ID format), call
    `relic use --fix <fix-id>` instead of `relic scaffold --spec`.

@@ -2,6 +2,15 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 003-fix-solve-workflow (4)
+
+Added NFR-8: all prompts (`solve.md`, `fix.md`, and all future prompts) must open with the
+standard preamble/constitution block — the AI must read both files in full before acting.
+The preamble is non-negotiable. If a prompt behaviour deviates from a constitution principle,
+a constitution amendment authorising the deviation must be written first and referenced in
+the prompt. Plan Phases 7, 8, and 9 updated to include the mandatory preamble block
+specification for each prompt file written or modified by this spec.
+
 ## [2026-04-13] plan — 003-fix-solve-workflow
 
 11-phase implementation plan. Key touches: `packages/utility/src/session.ts` (new — session
