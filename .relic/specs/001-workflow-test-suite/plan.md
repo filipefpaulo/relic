@@ -29,8 +29,8 @@ The CI workflow mirrors the pattern of the existing `publish-npm.yml`: `actions/
 2. Add `"test": "bun run --filter '*' test"` to the `scripts` section of the root `package.json`. This uses Bun's workspace filter to delegate to every workspace package that defines a `test` script. New packages with tests automatically participate without changing the root script.
 
 ### Phase 2 — Pure unit tests (no I/O)
-2. Create `__tests__/spec-id.test.ts` — tests for `slugify`, `nextSpecId`, `inferSpecFromBranch`, `availableSpecs`. `nextSpecId` and `availableSpecs` require a directory, so use a temp dir for those two functions.
-3. Create `__tests__/intersection.test.ts` — tests for `detectIntersections` and `formatIntersectionReport` using in-memory `SpecMeta` objects.
+3. Create `__tests__/spec-id.test.ts` — tests for `slugify`, `nextSpecId`, `inferSpecFromBranch`, `availableSpecs`. `nextSpecId` and `availableSpecs` require a directory, so use a temp dir for those two functions.
+4. Create `__tests__/intersection.test.ts` — tests for `detectIntersections` and `formatIntersectionReport` using in-memory `SpecMeta` objects.
 
 ### Phase 3 — Integration tests for core utilities (temp dir)
 4. Create `__tests__/fs.test.ts` — tests for `fileExists`, `dirExists`, `findRelicDir`. All operate on a real temp directory.

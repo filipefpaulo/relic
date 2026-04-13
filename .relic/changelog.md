@@ -37,3 +37,12 @@
   Updated: spec.md (FR-4, scope, decisions), plan.md (Phase 1, file changes table),
   tasks.md (T-01 split into T-01a/T-01b), artifacts.json (added packages/core/package.json
   to touches_files), TestingRules.md (script location section added).
+
+## [2026-04-12] implement — 001-workflow-test-suite
+
+[implement] 001-workflow-test-suite: Implementation complete. 86 tests across 12 files — all passing.
+  Created: spec-id.test.ts, intersection.test.ts, fs.test.ts, changelog.test.ts,
+  context-builder.test.ts, init.test.ts, use.test.ts, scaffold.test.ts, validate.test.ts,
+  context.test.ts, search.test.ts, scan.test.ts, .github/workflows/test.yml.
+  One test corrected during implementation: inferSpecFromBranch returns the full greedy
+  NNN-slug match (not a truncated prefix) — test updated to reflect actual behaviour.

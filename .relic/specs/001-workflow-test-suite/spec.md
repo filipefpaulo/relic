@@ -2,7 +2,7 @@
 
 **Spec ID:** 001-workflow-test-suite
 **Created:** 2026-04-12
-**Status:** draft
+**Status:** ready
 
 ---
 
