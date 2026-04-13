@@ -1,8 +1,8 @@
 import { join } from "path";
 import { execSync } from "child_process";
 import { buildContext, renderContext } from "../core/context-builder.ts";
-import { inferSpecFromBranch, availableSpecs } from "../utils/spec-id.ts";
-import { dirExists, fileExists, readText } from "../utils/fs.ts";
+import { inferSpecFromBranch, availableSpecs } from "@relic/utility";
+import { dirExists, fileExists, readText } from "@relic/utility";
 
 export interface FixOptions {
   spec?: string;

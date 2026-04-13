@@ -1,5 +1,5 @@
 import { join } from "path";
-import { listDirs, fileExists, readJson } from "../utils/fs.ts";
+import { listDirs, fileExists, readJson } from "@relic/utility";
 import type { ArtifactsJson, SpecMeta } from "../types.ts";
 
 export function loadRegistry(relicDir: string): SpecMeta[] {

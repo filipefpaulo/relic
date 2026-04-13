@@ -3,8 +3,8 @@ export { runContext } from "./commands/context.ts";
 export { runScaffold } from "./commands/scaffold.ts";
 export { runValidate } from "./commands/validate.ts";
 export { runSearch, runDeepSearch } from "./commands/search.ts";
-export { runAddEngine, SUPPORTED_ENGINES } from "./commands/add-engine.ts";
-export type { Engine } from "./commands/add-engine.ts";
+export { runAddEngine, SUPPORTED_ENGINES } from "@relic/engines";
+export type { Engine } from "@relic/engines";
 export { runUse } from "./commands/use.ts";
 export { runScan } from "./commands/scan.ts";
 export { runSpecify } from "./commands/specify.ts";
@@ -20,8 +20,8 @@ export { detectIntersections, formatIntersectionReport } from "./core/intersecti
 export { appendChangelog, filterChangelog } from "./core/changelog.ts";
 export { buildContext, renderContext } from "./core/context-builder.ts";
 
-export { findRelicDir } from "./utils/fs.ts";
-export { nextSpecId, slugify, inferSpecFromBranch, availableSpecs } from "./utils/spec-id.ts";
+export { findRelicDir } from "@relic/utility";
+export { nextSpecId, slugify, inferSpecFromBranch, availableSpecs } from "@relic/utility";
 
 export type {
   ArtifactsJson,

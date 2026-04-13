@@ -104,11 +104,11 @@
 
 ## Phase 4 — Update `packages/core`
 
-- [ ] **T-16** Update `packages/core/package.json`
+- [x] **T-16** Update `packages/core/package.json`
   - Add `"@relic/utility": "workspace:*"` to dependencies
   - Add `"@relic/engines": "workspace:*"` to dependencies
 
-- [ ] **T-17** Update imports in `packages/core/src/commands/` (9 files)
+- [x] **T-17** Update imports in `packages/core/src/commands/` (9 files)
   - `context.ts`: `../utils/fs.ts` → `@relic/utility`; `../utils/spec-id.ts` → `@relic/utility`
   - `fix.ts`: same pattern
   - `init.ts`: `../utils/fs.ts` → `@relic/utility`
@@ -119,17 +119,17 @@
   - `use.ts`: both utils imports → `@relic/utility`
   - `validate.ts`: `../utils/fs.ts` → `@relic/utility`
 
-- [ ] **T-18** Update imports in `packages/core/src/core/` (3 files)
+- [x] **T-18** Update imports in `packages/core/src/core/` (3 files)
   - `artifact-registry.ts`: `../utils/fs.ts` → `@relic/utility`
   - `changelog.ts`: `../utils/fs.ts` → `@relic/utility`
   - `context-builder.ts`: `../utils/fs.ts` → `@relic/utility`
 
-- [ ] **T-19** Delete `packages/core/src/commands/add-engine.ts`
+- [x] **T-19** Delete `packages/core/src/commands/add-engine.ts`
 
-- [ ] **T-20** Delete `packages/core/src/utils/fs.ts`, `packages/core/src/utils/spec-id.ts`
+- [x] **T-20** Delete `packages/core/src/utils/fs.ts`, `packages/core/src/utils/spec-id.ts`
   - Remove `packages/core/src/utils/` directory
 
-- [ ] **T-21** Update `packages/core/src/index.ts`
+- [x] **T-21** Update `packages/core/src/index.ts`
   - Remove: `export { runAddEngine, SUPPORTED_ENGINES } from "./commands/add-engine.ts"`
   - Remove: `export type { Engine } from "./commands/add-engine.ts"`
   - Add: `export { runAddEngine, SUPPORTED_ENGINES } from "@relic/engines"`
@@ -137,11 +137,9 @@
   - Update: `export { findRelicDir } from "./utils/fs.ts"` → `from "@relic/utility"`
   - Update: `export { nextSpecId, slugify, inferSpecFromBranch, availableSpecs } from "./utils/spec-id.ts"` → `from "@relic/utility"`
 
-- [ ] **T-22** Review and update `packages/core/src/__tests__/init.test.ts`
-  - `runInit` now calls `runAddEngine` from `@relic/engines` which writes `.claude/settings.json`
-    in addition to the command files
-  - Verify existing assertions don't break due to the additional file; add assertion for
-    `.claude/settings.json` existence if appropriate
+- [x] **T-22** Review and update `packages/core/src/__tests__/init.test.ts`
+  - Tests use `engines: []` — `runAddEngine` is never called; no `.claude/settings.json` created
+  - No change needed
 
 ---
 

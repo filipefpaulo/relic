@@ -9,6 +9,10 @@
   "scripts": {
     "test": "bun test src/__tests__"
   },
+  "dependencies": {
+    "@relic/utility": "workspace:*",
+    "@relic/engines": "workspace:*"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   }

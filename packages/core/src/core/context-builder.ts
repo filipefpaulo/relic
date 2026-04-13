@@ -1,5 +1,5 @@
 import { join } from "path";
-import { fileExists, readText, readJson } from "../utils/fs.ts";
+import { fileExists, readText, readJson } from "@relic/utility";
 import { filterChangelog } from "./changelog.ts";
 import type { ArtifactsJson, BuiltContext } from "../types.ts";
 

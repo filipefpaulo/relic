@@ -1,5 +1,5 @@
 import { join } from "path";
-import { findRelicDir, fileExists, readJson } from "../utils/fs.ts";
+import { findRelicDir, fileExists, readJson } from "@relic/utility";
 import { SHARED_SUBDIRS } from "../types.ts";
 import type { ManifestEntry, SearchResult } from "../types.ts";
 
