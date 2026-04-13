@@ -1,5 +1,5 @@
 import { join } from "path";
-import { dirExists, ensureDir, writeText } from "@relic/utility";
+import { dirExists, ensureDir, writeText, writeJson } from "@relic/utility";
 import { TEMPLATES } from "../generated/templates.ts";
 import { runAddEngine, type Engine } from "@relic/engines";
 
@@ -25,10 +25,13 @@ export async function runInit(options: InitOptions): Promise<void> {
     join(relicDir, "shared", "rules"),
     join(relicDir, "shared", "assumptions"),
     join(relicDir, "specs"),
+    join(relicDir, "fixes"),
   ];
   for (const d of dirs) ensureDir(d);
 
-  writeText(join(relicDir, ".gitignore"), "current-spec\n");
+  writeText(join(relicDir, "fixes", "manifest.json"), "[]\n");
+  writeJson(join(relicDir, "session.json"), { spec: null, fix: null });
+  writeText(join(relicDir, ".gitignore"), "session.json\n");
   writeText(join(relicDir, "preamble.md"), TEMPLATES["preamble.md"] ?? "");
   writeText(join(relicDir, "constitution.md"), TEMPLATES["constitution.md"] ?? "");
   writeText(
@@ -44,7 +47,10 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/changelog.md");
   console.log("  .relic/shared/  (domains/, contracts/, rules/, assumptions/)");
   console.log("  .relic/specs/");
-  console.log("  .relic/.gitignore  (ignores current-spec — personal session state)");
+  console.log("  .relic/fixes/");
+  console.log("  .relic/fixes/manifest.json");
+  console.log("  .relic/session.json  (gitignored — personal session state)");
+  console.log("  .relic/.gitignore  (ignores session.json — personal session state)");
   console.log("");
 
   // Write engine-specific hook files

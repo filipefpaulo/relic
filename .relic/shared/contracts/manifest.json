@@ -39,6 +39,6 @@
     "name": "SessionStateContract",
     "file": "SessionStateContract.md",
     "tldr": "Schema for .relic/session.json: unified gitignored session state holding active spec and fix IDs.",
-    "tags": ["session", "json", "current-spec", "current-fix", "spec", "fix", "gitignore", "state"]
+    "tags": ["session", "json", "session-spec", "session-fix", "spec", "fix", "gitignore", "state"]
   }
 ]

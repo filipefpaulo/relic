@@ -14,21 +14,21 @@ afterEach(() => {
 });
 
 describe("ENGINE_TEMPLATES", () => {
-  test("has entries for all 10 prompts/*.md keys", () => {
+  test("has entries for all 11 prompts/*.md keys", () => {
     const promptKeys = Object.keys(ENGINE_TEMPLATES).filter((k) =>
       k.startsWith("prompts/")
     );
-    expect(promptKeys.length).toBe(10);
+    expect(promptKeys.length).toBe(11);
   });
 });
 
 describe("Claude engine", () => {
-  test("writes 10 command files to .claude/commands/", async () => {
+  test("writes 11 command files to .claude/commands/", async () => {
     await runAddEngine({ engine: "claude", projectDir: dir });
     const commandsDir = join(dir, ".claude", "commands");
     expect(existsSync(commandsDir)).toBe(true);
     const files = (await import("fs")).readdirSync(commandsDir);
-    expect(files.length).toBe(10);
+    expect(files.length).toBe(11);
   });
 
   test("writes .claude/settings.json with Bash(relic *) allow rule", async () => {

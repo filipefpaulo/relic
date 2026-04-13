@@ -2,7 +2,7 @@ import { join } from "path";
 import { ensureDir, writeText, fileExists, readJson, writeJson } from "@relic/utility";
 import { ENGINE_TEMPLATES } from "../../generated/engine-templates.ts";
 
-const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "use", "scan", "constitution"];
+const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "solve", "use", "scan", "constitution"];
 
 export function writeClaude(projectDir: string): void {
   const commandsDir = join(projectDir, ".claude", "commands");

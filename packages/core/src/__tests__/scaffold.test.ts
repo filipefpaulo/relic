@@ -33,10 +33,11 @@ describe("runScaffold --title", () => {
     expect(existsSync(join(specDir, "artifacts.json"))).toBe(true);
   });
 
-  test("writes spec ID to current-spec", async () => {
+  test("writes spec ID to session.json", async () => {
     await runScaffold({ title: "User Auth", relicDir });
-    const content = readFileSync(join(relicDir, "current-spec"), "utf8").trim();
-    expect(content).toBe("001-user-auth");
+    const session = JSON.parse(readFileSync(join(relicDir, "session.json"), "utf8"));
+    expect(session.spec).toBe("001-user-auth");
+    expect(session.fix).toBeNull();
   });
 
   test("second call with different title increments to 002-slug", async () => {
@@ -72,12 +73,12 @@ describe("runScaffold --spec on existing spec", () => {
     expect(content).toBe("custom content");
   });
 
-  test("still updates current-spec", async () => {
+  test("still updates session.json spec", async () => {
     await runScaffold({ title: "User Auth", relicDir });
     await runScaffold({ title: "Payments", relicDir });
     // Switch back to first spec
     await runScaffold({ spec: "001-user-auth", relicDir });
-    const content = readFileSync(join(relicDir, "current-spec"), "utf8").trim();
-    expect(content).toBe("001-user-auth");
+    const session = JSON.parse(readFileSync(join(relicDir, "session.json"), "utf8"));
+    expect(session.spec).toBe("001-user-auth");
   });
 });

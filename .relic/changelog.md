@@ -2,6 +2,16 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] implement — 003-fix-solve-workflow
+
+[implement] 003-fix-solve-workflow: Implementation complete. session.json replaces current-spec as
+the single gitignored session state file (spec + fix fields). New packages/utility/src/session.ts
+provides readSession/writeSession. relic init now scaffolds fixes/ dir and fixes/manifest.json.
+relic use gains --fix <id> and --clear-fix flags. relic context gains current_fix field and
+reports active_spec_source: "session". fix.md rewritten as two-stage diagnosis prompt; solve.md
+created as apply stage; use.md updated with fix-ID detection branch. All 109 tests pass;
+relic validate: valid. Claude engine PROMPT_NAMES updated to include "solve" (11 slash commands).
+
 ## [2026-04-13] clarify — 003-fix-solve-workflow (6)
 
 Five issues from second /relic.analyse pass resolved:

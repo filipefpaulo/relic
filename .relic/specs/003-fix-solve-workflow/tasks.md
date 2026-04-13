@@ -7,7 +7,7 @@
 
 ## ⚠️ Phase 0 — Pre-implementation cleanup (DO THIS FIRST — before any TypeScript tasks)
 
-- [ ] **T-17a** Amend `constitution.md` — update the stale `current-spec` principle
+- [x] **T-17a** Amend `constitution.md` — update the stale `current-spec` principle
   - Line 81: `".relic/current-spec is gitignored — each team member tracks their own active spec session"`
     → `".relic/session.json is gitignored — each team member tracks their own active spec and fix session in session.json"`
   - Append a dated amendment block at the bottom of `constitution.md` documenting the change:
@@ -15,7 +15,7 @@
   - **Must be done before T-03 through T-08** so the constitution accurately describes the
     system before the behaviour it governs is changed.
 
-- [ ] **T-17b** Update 3 stale manifest entries in `shared/*/manifest.json`
+- [x] **T-17b** Update 3 stale manifest entries in `shared/*/manifest.json`
   - `shared/domains/manifest.json` — `SpecResolutionDomain` entry:
     - `tldr`: change `"arg > env > current-spec file > git branch"` → `"arg > env > session.json (session.spec) > git branch"`
     - `tags`: remove `"current-spec"`, add `"session-json"`, `"session"`
@@ -28,21 +28,21 @@
 
 ## Phase 1 — Session utility in `@relic/utility`
 
-- [ ] **T-01** Create `packages/utility/src/session.ts`
+- [x] **T-01** Create `packages/utility/src/session.ts`
   - Export `SessionState` interface: `{ spec: string | null; fix: string | null }`
   - Export `readSession(relicDir: string): SessionState` — reads `.relic/session.json`;
     returns `{ spec: null, fix: null }` if file absent or malformed
   - Export `writeSession(relicDir: string, state: SessionState): void` — writes
     `session.json` as formatted JSON; always writes both fields
 
-- [ ] **T-02** Update `packages/utility/src/index.ts`
+- [x] **T-02** Update `packages/utility/src/index.ts`
   - Add: `export { SessionState, readSession, writeSession } from "./session.ts"`
 
 ---
 
 ## Phase 2 — `relic init` infrastructure
 
-- [ ] **T-03** Update `packages/core/src/commands/init.ts`
+- [x] **T-03** Update `packages/core/src/commands/init.ts`
   - Change `writeText(join(relicDir, ".gitignore"), "current-spec\n")` → `"session.json\n"`
   - Add `join(relicDir, "fixes")` to the `dirs` array
   - After dirs creation: `writeText(join(relicDir, "fixes", "manifest.json"), "[]\n")`
@@ -54,7 +54,7 @@
 
 ## Phase 3 — `relic scaffold` session.json migration
 
-- [ ] **T-04** Update `packages/core/src/commands/scaffold.ts`
+- [x] **T-04** Update `packages/core/src/commands/scaffold.ts`
   - Add import: `readSession, writeSession` from `@relic/utility`
   - In `resolveExistingSpec`: replace `current-spec` file read with
     `readSession(relicDir).spec ?? null`
@@ -65,7 +65,7 @@
 
 ## Phase 4 — `relic context` session.json + `current_fix` field
 
-- [ ] **T-05** Update `packages/core/src/commands/context.ts`
+- [x] **T-05** Update `packages/core/src/commands/context.ts`
   - Add import: `readSession` from `@relic/utility`
   - Update `ContextResult["active_spec_source"]` type:
     `"arg" | "env" | "session" | "git-branch"` (remove `"current-spec"`)
@@ -79,7 +79,7 @@
 
 ## Phase 5 — `relic fix` stub session.json resolution
 
-- [ ] **T-06** Update `packages/core/src/commands/fix.ts`
+- [x] **T-06** Update `packages/core/src/commands/fix.ts`
   - Add import: `readSession` from `@relic/utility`
   - Replace `current-spec` file read block (lines 17–21) with:
     `specId = readSession(options.relicDir).spec ?? undefined`
@@ -89,7 +89,7 @@
 
 ## Phase 6 — `relic use` `--fix` and `--clear-fix` flags
 
-- [ ] **T-07** Update `packages/core/src/commands/use.ts`
+- [x] **T-07** Update `packages/core/src/commands/use.ts`
   - Add import: `readSession, writeSession, fileExists` from `@relic/utility`
   - Update `UseOptions` interface: add `fix?: string`, `clearFix?: boolean`
   - Replace `writeText(join(relicDir, "current-spec"), specId)` with:
@@ -102,7 +102,7 @@
     - `writeSession(relicDir, { ...readSession(relicDir), fix: null })`
     - `console.log("Fix cleared.")`
 
-- [ ] **T-08** Update `packages/cli-node/src/bin.ts`
+- [x] **T-08** Update `packages/cli-node/src/bin.ts`
   - On the `use` command: add `.option("--fix <fix-id>", "Set active fix")`
   - Add `.option("--clear-fix", "Clear active fix", false)`
   - Update action to pass `fix: opts.fix, clearFix: opts.clearFix` to `runUse`
@@ -113,7 +113,7 @@
 
 ## Phase 7 — Rewrite `templates/prompts/fix.md`
 
-- [ ] **T-09** Rewrite `templates/prompts/fix.md`
+- [x] **T-09** Rewrite `templates/prompts/fix.md`
 
   **Opening preamble block (mandatory):**
   ```
@@ -146,7 +146,7 @@
 
 ## Phase 8 — Write `templates/prompts/solve.md`
 
-- [ ] **T-10** Create `templates/prompts/solve.md`
+- [x] **T-10** Create `templates/prompts/solve.md`
 
   **Opening preamble block (mandatory — same as all Relic prompts):**
   ```
@@ -174,7 +174,7 @@
 
 ## Phase 9 — Update `templates/prompts/use.md`
 
-- [ ] **T-11** Update `templates/prompts/use.md`
+- [x] **T-11** Update `templates/prompts/use.md`
   - Verify opening preamble block is present; add it if missing
   - Add detection branch before existing logic: if argument matches `YYYY-MM-DD-*`
     pattern (fix ID format), call `relic use --fix <fix-id>` instead of
@@ -187,7 +187,7 @@
 
 ## Phase 10 — Embed templates
 
-- [ ] **T-12** Run `bun run build:templates`
+- [x] **T-12** Run `bun run build:templates`
   - Confirm both embed steps complete without error
   - Confirm `fix.md`, `solve.md`, `use.md` appear in `ENGINE_TEMPLATES`
 
@@ -195,14 +195,14 @@
 
 ## Phase 11 — Update tests
 
-- [ ] **T-13** Update `packages/core/src/__tests__/context.test.ts`
+- [x] **T-13** Update `packages/core/src/__tests__/context.test.ts`
   [overlaps spec 001 T-11]
   - Change `active_spec_source: "current-spec"` assertion → `"session"`
   - Update the test that writes `current-spec` to set up session state: write
     `session.json` with `{ spec: "<id>", fix: null }` instead of `current-spec` file
   - Add assertion: `current_fix` field exists in output (null when no fix set)
 
-- [ ] **T-14** Update `packages/core/src/__tests__/use.test.ts`
+- [x] **T-14** Update `packages/core/src/__tests__/use.test.ts`
   [overlaps spec 001 T-08]
   - Change assertion from `current-spec` file existence → `session.json` existence
   - Assert `session.json` contains `{ spec: "<specId>", fix: null }`
@@ -210,13 +210,13 @@
     at `.relic/fixes/<fix-id>.md` first
   - Add test: `--clear-fix` sets `session.fix` to null
 
-- [ ] **T-15** Update `packages/core/src/__tests__/scaffold.test.ts`
+- [x] **T-15** Update `packages/core/src/__tests__/scaffold.test.ts`
   [overlaps spec 001 T-09]
   - Change assertion from `current-spec` file → `session.json` file
   - Assert `session.json` contains `{ spec: "<specId>", fix: null }`
   - Verify `--title` path and `--spec` path both write `session.json`
 
-- [ ] **T-16** Add `packages/utility/src/__tests__/session.test.ts`
+- [x] **T-16** Add `packages/utility/src/__tests__/session.test.ts`
   - `readSession`: returns `{ spec: null, fix: null }` when file absent
   - `readSession`: returns correct values when `session.json` exists
   - `writeSession`: creates `session.json` with both fields
@@ -227,9 +227,9 @@
 
 ## Phase 12 — Verify
 
-- [ ] **T-17** Run `bun run test` — all packages pass (utility, engines, core)
-- [ ] **T-18** Run `relic validate` — `valid: true`
-- [ ] **T-19** Smoke-test the CLI: `relic use 003-fix-solve-workflow` writes
+- [x] **T-17** Run `bun run test` — all packages pass (utility, engines, core)
+- [x] **T-18** Run `relic validate` — `valid: true`
+- [x] **T-19** Smoke-test the CLI: `relic use 003-fix-solve-workflow` writes
   `session.json`; `relic context` reports `active_spec_source: "session"` and
   `current_fix: null`
 

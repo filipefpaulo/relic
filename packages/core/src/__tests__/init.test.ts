@@ -21,6 +21,7 @@ describe("runInit", () => {
     expect(existsSync(join(relic, "shared", "rules"))).toBe(true);
     expect(existsSync(join(relic, "shared", "assumptions"))).toBe(true);
     expect(existsSync(join(relic, "specs"))).toBe(true);
+    expect(existsSync(join(relic, "fixes"))).toBe(true);
   });
 
   test("writes preamble.md, constitution.md, changelog.md and .gitignore", async () => {
@@ -32,10 +33,24 @@ describe("runInit", () => {
     expect(existsSync(join(relic, ".gitignore"))).toBe(true);
   });
 
-  test(".gitignore contains current-spec entry", async () => {
+  test(".gitignore contains session.json entry", async () => {
     await runInit({ dir, force: false, engines: [] });
     const gitignore = readFileSync(join(dir, ".relic", ".gitignore"), "utf8");
-    expect(gitignore).toContain("current-spec");
+    expect(gitignore).toContain("session.json");
+  });
+
+  test("creates session.json with null spec and fix", async () => {
+    await runInit({ dir, force: false, engines: [] });
+    const session = JSON.parse(readFileSync(join(dir, ".relic", "session.json"), "utf8"));
+    expect(session.spec).toBeNull();
+    expect(session.fix).toBeNull();
+  });
+
+  test("creates fixes/manifest.json as empty array", async () => {
+    await runInit({ dir, force: false, engines: [] });
+    const manifest = JSON.parse(readFileSync(join(dir, ".relic", "fixes", "manifest.json"), "utf8"));
+    expect(Array.isArray(manifest)).toBe(true);
+    expect(manifest.length).toBe(0);
   });
 
   test("re-init with --force succeeds and files remain present", async () => {

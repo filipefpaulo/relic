@@ -55,15 +55,17 @@ program
   });
 
 program
-  .command("use <spec-id>")
-  .description("Set the active spec for this session")
-  .action(async (specId: string) => {
+  .command("use [spec-id]")
+  .description("Set the active spec, fix, or clear the active fix")
+  .option("--fix <fix-id>", "Set active fix")
+  .option("--clear-fix", "Clear active fix", false)
+  .action(async (specId: string | undefined, opts: { fix?: string; clearFix: boolean }) => {
     const relicDir = findRelicDir(process.cwd());
     if (!relicDir) {
       console.error("Not in a Relic project. Run: relic init");
       process.exit(1);
     }
-    await runUse({ specId, relicDir });
+    await runUse({ specId, fix: opts.fix, clearFix: opts.clearFix, relicDir });
   });
 
 program
