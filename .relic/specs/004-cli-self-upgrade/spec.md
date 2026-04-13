@@ -28,10 +28,11 @@ single idempotent command.
 
 **Version check:**
 
-- **FR-1:** `relic upgrade --check` checks the npm registry for the latest published
-  version of `relic-cli`, compares it against the running binary's version, and reports
-  whether an update is available. It does not install anything. Output is JSON by default
-  (`{ "current": "0.5.1", "latest": "0.6.0", "update_available": true }`);
+- **FR-1:** `relic upgrade --check` checks the appropriate registry for the latest
+  published version of `relic-cli` (endpoint is channel-specific — see FR-12), compares
+  it against the running binary's version, and reports whether an update is available.
+  It does not install anything. Output is JSON by default
+  (`{ "current": "0.5.1", "latest": "0.6.0", "update_available": true, "channel": "npm" }`);
   `--text` produces a human-readable summary.
 
 - **FR-2:** `relic upgrade` (no flags) performs `--check` first. If already at the latest
@@ -53,9 +54,13 @@ single idempotent command.
   `npm install -g relic-cli@<latest>`. The `npm` command must be available on `PATH`.
   If not found, error with instructions to run it manually.
 
-- **FR-6:** When `INSTALL_CHANNEL` is `"pypi"`, try `uv tool upgrade relic-cli` first;
-  fall back to `pip install --upgrade relic-cli` if `uv` is not on `PATH`. If neither
-  is found, error with instructions.
+- **FR-6:** When `INSTALL_CHANNEL` is `"pypi"`, try `uv tool upgrade relic-cli` first.
+  If `uv` exits with a non-zero code (not on `PATH`, or the package is not in uv's tool
+  registry because it was installed via pip), fall back to `pip install --upgrade
+  relic-cli`. If neither succeeds, error with instructions. This try-first-then-fallback
+  approach handles all PyPI installation scenarios correctly without requiring separate
+  build-time flags for uv vs pip — the same PyPI wheel is installed by either tool, and
+  the runtime fallback correctly identifies which manager owns the installation.
 
 **Engine registry:**
 
@@ -108,9 +113,12 @@ single idempotent command.
 
 **Discovery:**
 
-- **FR-12:** Version information is fetched from the npm registry JSON endpoint:
-  `https://registry.npmjs.org/relic-cli/latest` → `{ "version": "..." }`.
-  Both npm and PyPI channels use this endpoint — they publish from the same version tag.
+- **FR-12:** Version check endpoints are channel-specific, because npm and PyPI can be
+  published independently and may be at different versions:
+  - `"npm"` channel: `GET https://registry.npmjs.org/relic-cli/latest` → response field `version`
+  - `"pypi"` channel: `GET https://pypi.org/pypi/relic-cli/json` → response field `info.version`
+  Using the wrong registry for a channel risks reporting a false "up to date" or triggering
+  an upgrade to a version not yet available on the user's channel.
 
 ### Non-Functional Requirements
 
@@ -172,7 +180,9 @@ single idempotent command.
 - `packages/core/src/commands/init.ts` — write `engines.json` on engine init
 - `packages/core/src/commands/add-engine.ts` — write/update `engines.json` on add
 - `packages/cli-node/src/bin.ts` and `bin.debug.ts` — register upgrade command
-- `INSTALL_CHANNEL` embedding mechanism (one channel per distribution target)
+- `INSTALL_CHANNEL` embedded via `bun build --define` in per-channel build scripts
+- `packages/cli-node/package.json` — add `--define INSTALL_CHANNEL='"npm"'` to `build:npm`
+- `.github/workflows/publish-pypi.yml` — add `--define INSTALL_CHANNEL='"pypi"'` to bun build step
 - Tests in `packages/core/src/__tests__/upgrade.test.ts`
 
 ### Out of Scope
@@ -199,23 +209,36 @@ single idempotent command.
 
 ---
 
+## Decisions
+
+- **INSTALL_CHANNEL embedding via `bun build --define`:** The `--define` flag injects a
+  compile-time constant without requiring separate entry point files or a code-generation
+  step. `packages/cli-node/package.json` adds `--define INSTALL_CHANNEL='"npm"'` to its
+  `build:npm` script; `.github/workflows/publish-pypi.yml` adds
+  `--define INSTALL_CHANNEL='"pypi"'` to the `bun build --compile` step. Local dev builds
+  do not set the flag — `upgrade.ts` treats a missing or `"dev"` value as FR-4 (warn +
+  manual instructions).
+
+- **No separate `pypi-uv` / `pypi-pip` channels:** The same PyPI wheel is installed by
+  either `uv` or `pip` — it is impossible to know at build time which tool the user will
+  use. At runtime, `uv tool upgrade relic-cli` is tried first; uv exits non-zero when it
+  did not install the package (pip-managed installation), causing the fallback to
+  `pip install --upgrade relic-cli`. This correctly handles all PyPI scenarios without
+  additional build-time complexity.
+
+- **Per-channel version registries:** npm and PyPI are published independently and can be
+  at different versions. Using the wrong registry endpoint risks a false "up to date"
+  report or an upgrade attempt to a version not yet available on the user's channel.
+  Each channel queries its own authoritative registry (FR-12).
+
 ## Open Questions
 
-- **OQ-1 (INSTALL_CHANNEL mechanism):** Should `INSTALL_CHANNEL` be embedded via separate
-  entry point files (`bin-npm.ts` / `bin-pypi.ts` each exporting the constant), via a
-  `bun build --define` flag in the build script, or via a generated constant file at
-  build time? Blocking for planning. The spec requires build-time embedding but defers
-  the mechanism to `/relic.plan`.
+- **OQ-2 (spawn):** `child_process.spawnSync` works in both the Node.js npm bundle and
+  the Bun PyPI binary (Bun polyfills Node.js builtins). Non-blocking — noting for plan.
 
-- **OQ-2 (spawn vs Bun.spawn):** `child_process.spawnSync` is available in both the
-  Node.js npm bundle and the Bun PyPI binary (Bun polyfills Node.js builtins). This is
-  the recommended approach and is non-blocking — noting for the plan.
+- **OQ-3 (fetch):** Two HTTP GETs are needed (channel-specific registry endpoint). `fetch`
+  is available globally in Bun and Node.js 18+. No new dependency. Non-blocking.
 
-- **OQ-3 (version fetch):** Fetching from the npm registry requires an HTTP client.
-  `fetch` is available globally in both Bun and Node.js 18+. No new dependency needed.
-  Non-blocking.
-
-- **OQ-4 (engines.json and init.ts/add-engine.ts intersections):** `init.ts` was last
-  touched by spec 003; `add-engine.ts` was last touched by spec 002. Both are fully
-  implemented and released — no live conflict. The plan must note these as intersections
-  and confirm no concurrent spec is modifying those files.
+- **OQ-4 (init.ts/add-engine.ts intersections):** `init.ts` was last touched by spec 003;
+  `add-engine.ts` by spec 002. Both released — no live conflict. Plan must confirm no
+  concurrent spec modifies those files.

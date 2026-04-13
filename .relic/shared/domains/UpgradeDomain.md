@@ -12,9 +12,11 @@ knowledge is never modified during an upgrade.
 
 ## Key Entities
 
-- **`INSTALL_CHANNEL`** — build-time constant embedded in each distribution target.
-  Values: `"npm"` | `"pypi"` | `"dev"` (local builds). Determines which package manager
-  to invoke during upgrade.
+- **`INSTALL_CHANNEL`** — build-time constant embedded via `bun build --define` in each
+  distribution target's build script. Values: `"npm"` | `"pypi"` | `"dev"` (local builds).
+  Determines which package manager to invoke and which registry to query.
+  There is no `"pypi-uv"` / `"pypi-pip"` distinction — the same PyPI wheel is installed
+  by either tool; the upgrade command tries `uv` first and falls back to `pip` at runtime.
 
 - **Binary upgrade** — invokes the appropriate package manager as a child process:
   - `npm`: `npm install -g relic-cli@<latest>`
@@ -32,8 +34,10 @@ knowledge is never modified during an upgrade.
   Example: `["claude", "copilot"]`
   Absent in projects predating this spec — upgrade warns and skips hook refresh.
 
-- **Version check** — fetches `https://registry.npmjs.org/relic-cli/latest` for the
-  latest version. Both npm and PyPI use this endpoint (same version tag).
+- **Version check** — fetches the channel-specific registry endpoint for the latest version:
+  - `npm`: `https://registry.npmjs.org/relic-cli/latest` → `.version`
+  - `pypi`: `https://pypi.org/pypi/relic-cli/json` → `.info.version`
+  Using the wrong endpoint risks a false "up to date" when channels are at different versions.
 
 ## Protected Files (MUST NOT be modified by upgrade)
 

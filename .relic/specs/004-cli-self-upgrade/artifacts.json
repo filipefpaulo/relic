@@ -13,6 +13,7 @@
     "packages/core/src/__tests__/upgrade.test.ts",
     "packages/cli-node/src/bin.ts",
     "packages/cli-node/src/bin.debug.ts",
-    "packages/cli-node/package.json"
+    "packages/cli-node/package.json",
+    ".github/workflows/publish-pypi.yml"
   ]
 }

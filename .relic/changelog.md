@@ -2,6 +2,16 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 004-cli-self-upgrade (2)
+
+Two corrections: (1) FR-12 replaced — npm and PyPI channels each query their own registry
+(npmjs.org vs pypi.org); using a single npm endpoint risks false "up to date" when channels
+are published independently. (2) OQ-1 resolved — INSTALL_CHANNEL embedded via
+`bun build --define` (no separate entry points or code gen needed); no `pypi-uv`/`pypi-pip`
+split is needed — the same PyPI wheel is installed by either tool; runtime try-uv-then-pip
+fallback correctly identifies the managing tool. Decisions section added to spec.md.
+artifacts.json adds `.github/workflows/publish-pypi.yml` to touches_files.
+
 ## [2026-04-13] clarify — 004-cli-self-upgrade
 
 FR-7 replaced: engine detection no longer relies on presence of `.github/copilot-instructions.md`
