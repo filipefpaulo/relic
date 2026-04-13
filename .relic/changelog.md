@@ -2,6 +2,15 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] tasks — 004-cli-self-upgrade
+
+14 atomic tasks across 6 phases. Phase 0: INSTALL_CHANNEL defines in package.json and
+publish-pypi.yml (T-01–T-03). Phase 1: engines-registry.ts utility + export (T-04–T-05).
+Phase 2: engines.json writes in init.ts, bin.ts, bin.debug.ts (T-06–T-08). Phase 3: full
+upgrade.ts implementation (T-09). Phase 4: @relic/core export (T-10). Phase 5: register
+upgrade command in both binaries (T-11–T-12). Phase 6: tests (T-13–T-14).
+No live task overlaps — all intersecting specs (002, 003) are fully released.
+
 ## [2026-04-13] clarify — 004-cli-self-upgrade (2)
 
 Two corrections: (1) FR-12 replaced — npm and PyPI channels each query their own registry
