@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, rmSync, mkdirSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { slugify, nextSpecId, inferSpecFromBranch, availableSpecs } from "../utils/spec-id.ts";
+import { slugify, nextSpecId, inferSpecFromBranch, availableSpecs } from "../spec-id.ts";
 
 describe("slugify", () => {
   test("lowercases and hyphenates spaces", () => {

@@ -13,11 +13,15 @@ const ROOT = join(import.meta.dir, "..");
 const TEMPLATES_DIR = join(ROOT, "templates");
 const OUT_FILE = join(ROOT, "packages/core/src/generated/templates.ts");
 
+const PROMPTS_DIR = join(TEMPLATES_DIR, "prompts");
+
 function collectFiles(dir: string): string[] {
   const results: string[] = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
+      // prompts/ are owned by embed-engine-templates.ts
+      if (full === PROMPTS_DIR) continue;
       results.push(...collectFiles(full));
     } else if (entry.endsWith(".md") || entry.endsWith(".sh")) {
       results.push(full);

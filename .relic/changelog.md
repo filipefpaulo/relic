@@ -2,6 +2,28 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 002-agent-permission-config (2)
+
+Correction: the gitignore for `packages/engines/src/generated/` must live in
+`packages/engines/.gitignore` (package-level), not in the root `.gitignore`. Root gitignore
+is not touched by this spec. Spec NFR-4, plan Phase 3 step 4, file changes table, and
+task T-14b all updated to reflect this.
+
+## [2026-04-13] clarify — 002-agent-permission-config
+
+`packages/engines/src/generated/engine-templates.ts` was committed to git — this is a bug.
+The plan already marked it "(generated)" but omitted the `.gitignore` entry. NFR-4 updated
+to make the gitignore requirement explicit. Plan updated with a step to add the entry and
+untrack the file. Task T-14b added.
+
+## [2026-04-13] implement — 002-agent-permission-config
+
+Implementation complete. Created `@relic/utility` and `@relic/engines` packages; all import sites
+in `packages/core` updated to use workspace packages; added permission configs for Claude
+(`settings.json` Bash allow rule) and Codex (`config.toml` prefix_rules); deleted
+`templates/engines/` duplication (Copilot/Codex now assembled at runtime from ENGINE_TEMPLATES);
+all 95 tests pass across 3 packages; `relic validate` reports `valid: true`.
+
 ## [2026-04-12T00:00:00.000Z] scan — bootstrap
 
 [scan] Initial artifact scan: generated 14 artifacts from existing codebase.
@@ -46,3 +68,86 @@
   context.test.ts, search.test.ts, scan.test.ts, .github/workflows/test.yml.
   One test corrected during implementation: inferSpecFromBranch returns the full greedy
   NNN-slug match (not a truncated prefix) — test updated to reflect actual behaviour.
+
+## [2026-04-12] specify — 002-agent-permission-config
+
+[specify] 002-agent-permission-config: Spec created. Eliminate per-command relic approval prompts by
+  writing committed permission configs during engine setup. Claude: .claude/settings.json with
+  Bash(relic *) allow rule (merge, not overwrite). Codex: .codex/config.toml (pending CLI
+  verification). Copilot: no equivalent mechanism — out of scope. Intersections: none.
+
+## [2026-04-12] clarify — 002-agent-permission-config
+
+[clarify] 002-agent-permission-config: Scope significantly expanded. Original scope was
+  only permission config writes (settings.json, config.toml). New scope adds a full engine
+  package refactor: introduce packages/engines (@relic/engines) as a dedicated workspace
+  package owning all engine logic and templates. Each engine gets an isolated directory.
+  Claude prompts move from templates/prompts/ into the engines package. Copilot and Codex
+  single-file outputs are assembled from shared prompt sources, eliminating the duplication
+  that currently makes prompt updates a 3-file change. Permission configs (FR-6/7/8) become
+  part of each engine's write output. Two open questions block planning: Codex config schema
+  and embed strategy (single script vs separate).
+
+## [2026-04-12] clarify — 002-agent-permission-config (2)
+
+[clarify] 002-agent-permission-config: All three open questions resolved. Codex config
+  schema confirmed: .codex/config.toml with [rules] prefix_rules, pattern ["relic"],
+  decision "allow". String-based idempotency check (no TOML parser). Embed strategy:
+  new scripts/embed-engine-templates.ts reads from root templates/ (source of truth) and
+  produces packages/engines/src/generated/engine-templates.ts; @relic/core TEMPLATES map
+  stripped of prompts/* and engines/* keys. Copilot/Codex output: runtime composition from
+  ENGINE_TEMPLATES map — cheap, no build-time concatenation needed. No blocking open
+  questions remain. Spec status: ready for /relic.plan.
+
+## [2026-04-12] clarify — 002-agent-permission-config (3)
+
+[clarify] 002-agent-permission-config: Two final clarifications applied. (1) Templates
+  single-update-point confirmed: templates/prompts/ and templates/engines/ never move —
+  scripts/embed-engine-templates.ts reads from them and produces ENGINE_TEMPLATES in the
+  engines package generated/ dir. No templates live in packages/engines/ source. (2) Testing
+  requirements added: NFR-5 — packages/engines needs its own test suite (src/__tests__/,
+  test script, covered by root --filter); NFR-6 — packages/core init.test.ts must be
+  reviewed post-refactor since init calls runAddEngine. No blocking questions remain.
+  Spec fully resolved — ready for /relic.plan.
+
+## [2026-04-12] clarify — 002-agent-permission-config (4)
+
+[clarify] 002-agent-permission-config: Corrected source-of-truth definition. templates/engines/
+  is NOT a source of truth — it is deleted entirely as part of this spec (it was the root
+  of the duplication problem). Only two sources of truth exist: templates/prompts/ (10 prompt
+  files, sole input to embed-engine-templates.ts) and the 5 root scaffold files (preamble.md,
+  constitution.md, spec.md, plan.md, tasks.md — stay in @relic/core TEMPLATES, untouched).
+  All references to templates/engines/ as an input have been removed from the spec.
+
+## [2026-04-12] clarify — 002-agent-permission-config (5)
+
+[clarify] 002-agent-permission-config: Added packages/utility (@relic/utils) as the
+  dependency floor. fs.ts and spec-id.ts move from packages/core/src/utils/ to
+  packages/utility/src/ — not copied, moved. Both @relic/core and @relic/engines import
+  from @relic/utils. Dep graph: utils <- engines, utils <- core, engines <- core. No
+  cycles possible. fs.test.ts and spec-id.test.ts move to packages/utility/src/__tests__/.
+  Decision: new package per lifecycle boundary, new file per new utility within a concern.
+  All three new packages (utils, engines, plus engines tests) covered by CI --filter.
+
+## [2026-04-12] clarify — 002-agent-permission-config (6)
+
+[clarify] 002-agent-permission-config: Package renamed from @relic/utils / packages/utility
+  to @relic/utility / packages/utility throughout spec and artifacts.json.
+
+## [2026-04-12] plan — 002-agent-permission-config
+
+[plan] 002-agent-permission-config: Plan created. 6 phases, 36 file changes.
+  Touches: packages/utility/ (new), packages/engines/ (new), scripts/embed-engine-templates.ts
+  (new), packages/core/src/commands/add-engine.ts (delete), packages/core/src/utils/ (delete),
+  12 core import sites (modify), package.json (modify).
+  Deletes: templates/engines/ entirely.
+  Intersections: spec 001 created fs.test.ts and spec-id.test.ts (moved, not conflicting);
+  package.json build scripts are additive.
+
+## [2026-04-12] cross-spec — 001-workflow-test-suite / 002-agent-permission-config
+
+[cross-spec] 002-agent-permission-config will move packages/core/src/__tests__/fs.test.ts
+  and spec-id.test.ts to packages/utility/src/__tests__/ (tasks T-05, T-06). Test logic
+  unchanged; import paths adjusted. Ownership of those files transfers to spec 002 at move
+  time. Spec 001 retains ownership of shared/rules/TestingRules.md. Note added to spec
+  001 Open Questions section for implementer awareness.

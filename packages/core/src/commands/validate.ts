@@ -1,6 +1,6 @@
 import { join } from "path";
 import { readdirSync, statSync } from "fs";
-import { findRelicDir, fileExists, dirExists, readJson } from "../utils/fs.ts";
+import { findRelicDir, fileExists, dirExists, readJson } from "@relic/utility";
 import { loadRegistry } from "../core/artifact-registry.ts";
 import { SHARED_SUBDIRS } from "../types.ts";
 import type { ManifestEntry } from "../types.ts";

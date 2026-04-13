@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import { join } from "path";
-import { findRelicDir, fileExists, dirExists, readText, readJson } from "../utils/fs.ts";
-import { inferSpecFromBranch, availableSpecs } from "../utils/spec-id.ts";
+import { findRelicDir, fileExists, dirExists, readText, readJson } from "@relic/utility";
+import { inferSpecFromBranch, availableSpecs } from "@relic/utility";
 import type { ArtifactsJson } from "../types.ts";
 
 export interface ContextOptions {

@@ -9,6 +9,35 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `@relic/utility` (`packages/utility/`) — new shared utility package exporting `fs.ts`
+  and `spec-id.ts`. Dependency floor for the monorepo; no Relic package dependencies.
+- `@relic/engines` (`packages/engines/`) — new dedicated engine management package owning
+  all write logic for Claude, Copilot, and Codex. Depends on `@relic/utility` only.
+- `relic add-engine claude` now writes `.claude/settings.json` with
+  `{ "permissions": { "allow": ["Bash(relic *)"] } }` — committed permission config
+  eliminates interactive approval prompts for all `relic *` commands in Claude Code.
+  Merge is idempotent; calling `add-engine` twice keeps exactly one entry.
+- `relic add-engine codex` now writes `.codex/config.toml` with
+  `prefix_rules = [{ pattern = ["relic"], decision = "allow" }]`.
+  Idempotent — skipped if `["relic"]` already present.
+
+### Changed
+- Copilot and Codex single-file outputs are now assembled at runtime from `ENGINE_TEMPLATES`
+  (sourced from `templates/prompts/`). A prompt change in `templates/prompts/` now propagates
+  to all three engines automatically on the next build.
+- `build:templates` now runs `build:engine-templates` first (generates `ENGINE_TEMPLATES` in
+  `packages/engines/src/generated/`) before the core scaffold template embed step.
+- `packages/core` imports `fs.ts` and `spec-id.ts` utilities from `@relic/utility`;
+  imports `runAddEngine` from `@relic/engines`. Public API of `@relic/core` is unchanged.
+
+### Removed
+- `templates/engines/` deleted — `templates/prompts/` is now the sole source of truth
+  for all prompt content. No more duplicate maintenance for Copilot and Codex.
+- `packages/core/src/commands/add-engine.ts` removed; logic moved to `@relic/engines`.
+- `packages/core/src/utils/fs.ts` and `packages/core/src/utils/spec-id.ts` removed;
+  moved to `packages/utility/src/`.
+
 ## [0.3.0] — 2026-04-12
 
 ### Added

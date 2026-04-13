@@ -1,7 +1,7 @@
 import { join } from "path";
 import { createInterface } from "readline";
-import { ensureDir, writeText, writeJson } from "../utils/fs.ts";
-import { nextSpecId, slugify } from "../utils/spec-id.ts";
+import { ensureDir, writeText, writeJson } from "@relic/utility";
+import { nextSpecId, slugify } from "@relic/utility";
 import { TEMPLATES } from "../generated/templates.ts";
 
 export interface SpecifyOptions {

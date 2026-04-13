@@ -1,5 +1,5 @@
 import { join } from "path";
-import { writeText, readText, fileExists } from "../utils/fs.ts";
+import { writeText, readText, fileExists } from "@relic/utility";
 
 export interface ChangelogEntry {
   specId: string;

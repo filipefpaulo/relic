@@ -1,7 +1,7 @@
 import { join } from "path";
-import { dirExists, ensureDir, writeText } from "../utils/fs.ts";
+import { dirExists, ensureDir, writeText } from "@relic/utility";
 import { TEMPLATES } from "../generated/templates.ts";
-import { runAddEngine, type Engine } from "./add-engine.ts";
+import { runAddEngine, type Engine } from "@relic/engines";
 
 export interface InitOptions {
   dir: string;

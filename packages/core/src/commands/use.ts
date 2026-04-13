@@ -1,6 +1,6 @@
 import { join } from "path";
-import { writeText, dirExists } from "../utils/fs.ts";
-import { availableSpecs } from "../utils/spec-id.ts";
+import { writeText, dirExists } from "@relic/utility";
+import { availableSpecs } from "@relic/utility";
 
 export interface UseOptions {
   specId: string;

@@ -8,13 +8,13 @@ import {
   readText,
   writeText,
   writeJson,
-} from "../utils/fs.ts";
+} from "@relic/utility";
 import {
   nextSpecId,
   slugify,
   inferSpecFromBranch,
   availableSpecs,
-} from "../utils/spec-id.ts";
+} from "@relic/utility";
 import { TEMPLATES } from "../generated/templates.ts";
 
 export interface ScaffoldOptions {

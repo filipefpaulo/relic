@@ -7,7 +7,8 @@
     "packages/*"
   ],
   "scripts": {
-    "build:templates": "bun run scripts/embed-templates.ts",
+    "build:engine-templates": "bun run scripts/embed-engine-templates.ts",
+    "build:templates": "bun run build:engine-templates && bun run scripts/embed-templates.ts",
     "build:binary": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --outfile dist/relic",
     "build:binary:debug": "bun run build:templates && bun build packages/cli-node/src/bin.debug.ts --compile --outfile dist/relic-debug",
     "build:npm": "bun run build:templates && bun build packages/cli-node/src/bin.ts --target node --outfile packages/cli-node/dist/relic.js && node scripts/fix-shebang.mjs",

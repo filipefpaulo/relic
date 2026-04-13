@@ -1,6 +1,6 @@
 import { join } from "path";
 import { readdirSync, statSync } from "fs";
-import { fileExists, dirExists } from "../utils/fs.ts";
+import { fileExists, dirExists } from "@relic/utility";
 
 export interface ScanOptions {
   projectDir: string;

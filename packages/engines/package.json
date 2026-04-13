@@ -1,8 +1,7 @@
 {
-  "name": "@relic/core",
+  "name": "@relic/engines",
   "version": "0.1.0",
   "type": "module",
-  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -10,8 +9,7 @@
     "test": "bun test src/__tests__"
   },
   "dependencies": {
-    "@relic/utility": "workspace:*",
-    "@relic/engines": "workspace:*"
+    "@relic/utility": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest"

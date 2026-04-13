@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { fileExists, dirExists, findRelicDir } from "../utils/fs.ts";
+import { fileExists, dirExists, findRelicDir } from "../fs.ts";
 
 let dir: string;
 beforeEach(() => {
