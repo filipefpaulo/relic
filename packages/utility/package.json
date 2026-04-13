@@ -1,0 +1,14 @@
+{
+  "name": "@relic/utility",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test src/__tests__"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

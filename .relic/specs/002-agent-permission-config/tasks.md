@@ -7,26 +7,26 @@
 
 ## Phase 1 — Create `packages/utility`
 
-- [ ] **T-01** Create `packages/utility/package.json`
+- [x] **T-01** Create `packages/utility/package.json`
   - name `@relic/utility`, `"type": "module"`, no Relic deps
   - devDep `@types/bun`, scripts `"test": "bun test src/__tests__"`
   - exports `"."`: `"./src/index.ts"`
 
-- [ ] **T-02** Create `packages/utility/src/fs.ts`
+- [x] **T-02** Create `packages/utility/src/fs.ts`
   - Copy verbatim from `packages/core/src/utils/fs.ts`
 
-- [ ] **T-03** Create `packages/utility/src/spec-id.ts`
+- [x] **T-03** Create `packages/utility/src/spec-id.ts`
   - Copy verbatim from `packages/core/src/utils/spec-id.ts`
   - Internal import `./fs.ts` is unchanged
 
-- [ ] **T-04** Create `packages/utility/src/index.ts`
+- [x] **T-04** Create `packages/utility/src/index.ts`
   - Re-export everything from `./fs.ts` and `./spec-id.ts`
 
-- [ ] **T-05** Move `packages/core/src/__tests__/fs.test.ts` → `packages/utility/src/__tests__/fs.test.ts`
+- [x] **T-05** Move `packages/core/src/__tests__/fs.test.ts` → `packages/utility/src/__tests__/fs.test.ts`
   - Update import: `../utils/fs.ts` → `../fs.ts`
   - Delete the original from `packages/core`
 
-- [ ] **T-06** Move `packages/core/src/__tests__/spec-id.test.ts` → `packages/utility/src/__tests__/spec-id.test.ts`
+- [x] **T-06** Move `packages/core/src/__tests__/spec-id.test.ts` → `packages/utility/src/__tests__/spec-id.test.ts`
   - Update import: `../utils/spec-id.ts` → `../spec-id.ts`
   - Delete the original from `packages/core`
 
