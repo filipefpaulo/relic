@@ -61,9 +61,13 @@ relic init
       plan.md
       tasks.md
       artifacts.json   ← declares owns/reads/touches — never stores artifacts
+  fixes/               ← fix documents (committed — team audit trail)
+    manifest.json      ← index of all fix documents
+    2026-04-13-null-session-crash.md
   preamble.md          ← Relic's immutable structural rules
   constitution.md      ← project-specific governance, extracted from your codebase
   changelog.md         ← full audit trail of every plan mutation
+  session.json         ← gitignored — your active spec and fix session state
 ```
 
 **Specs do not depend on each other.** They both depend on shared artifacts. This makes intersections explicit and detectable.
@@ -77,8 +81,10 @@ relic init
 | `relic init [--engine claude\|copilot\|codex]` | Scaffold `.relic/` in your project |
 | `relic add-engine <engine>` | Add AI engine hooks to an existing project |
 | `relic use <spec-id>` | Set the active spec for this session |
+| `relic use --fix <fix-id>` | Set the active fix (validates fix doc exists) |
+| `relic use --clear-fix` | Clear the active fix from session state |
 | `relic scan [--json]` | Output a project manifest for `/relic.scan` |
-| `relic context [--spec id] [--text]` | Resolve active spec and report file/artifact status |
+| `relic context [--spec id] [--text]` | Resolve active spec; report file/artifact status and `current_fix` |
 | `relic scaffold [--title t\|--spec id]` | Ensure spec folder exists; create from templates if new |
 | `relic validate [--text]` | Check artifact integrity and ownership conflicts |
 | `relic search <keywords...>` | Search shared artifact manifests by keyword tags |
@@ -100,8 +106,9 @@ The workflow lives inside your AI agent. After `relic init`, these slash command
 | `/relic.analyse` | Non-destructive consistency check |
 | `/relic.tasks` | Generate tasks from the current plan |
 | `/relic.implement` | Build the plan |
-| `/relic.fix` | Fix a bug using the spec as a living constraint |
-| `/relic.use` | Switch the active spec from inside the AI session |
+| `/relic.fix` | Cross-spec ownership check + diagnosis → writes fix document to `.relic/fixes/` |
+| `/relic.solve` | Apply the active fix document, update knowledge layer, close the fix |
+| `/relic.use` | Switch the active spec or fix from inside the AI session |
 
 ---
 
@@ -116,7 +123,7 @@ relic add-engine copilot                # add to an existing project
 
 | Engine | Hook location | Format |
 |---|---|---|
-| Claude Code | `.claude/commands/relic.*.md` | 10 slash commands |
+| Claude Code | `.claude/commands/relic.*.md` | 11 slash commands |
 | GitHub Copilot | `.github/copilot-instructions.md` | Consolidated workspace instructions |
 | Codex | `.codex/instructions.md` | Agent instructions |
 
@@ -136,7 +143,7 @@ relic init → /relic.scan → /relic.constitution → /relic.specify
 
 **Feedback** (bug fix, keeps the spec alive):
 ```
-/relic.fix → [contract changed?] → /relic.clarify → changelog updated
+/relic.fix → [review fix doc] → /relic.solve → [contract changed?] → /relic.clarify
 ```
 
 ---
