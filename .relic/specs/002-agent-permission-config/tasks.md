@@ -95,7 +95,7 @@
   - Remove `templates/engines/codex/instructions.md`
   - Remove now-empty `templates/engines/copilot/`, `templates/engines/codex/`, `templates/engines/`
 
-- [ ] **T-14b** Gitignore `packages/engines/src/generated/`
+- [x] **T-14b** Gitignore `packages/engines/src/generated/`
   - Create `packages/engines/.gitignore` containing `src/generated/`
     (package-level — root `.gitignore` is NOT modified)
   - Run `git rm --cached packages/engines/src/generated/engine-templates.ts`
