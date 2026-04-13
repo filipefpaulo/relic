@@ -1,0 +1,32 @@
+[
+  {
+    "name": "SpecDomain",
+    "file": "SpecDomain.md",
+    "tldr": "Per-feature spec containers holding intent, plans, tasks, and artifact relationships.",
+    "tags": ["spec", "feature", "plan", "tasks", "artifacts", "scaffold"]
+  },
+  {
+    "name": "SharedArtifactDomain",
+    "file": "SharedArtifactDomain.md",
+    "tldr": "The shared knowledge layer — domains, contracts, rules, assumptions indexed by manifest.json.",
+    "tags": ["artifact", "shared", "manifest", "knowledge", "brain", "owns", "reads"]
+  },
+  {
+    "name": "SpecResolutionDomain",
+    "file": "SpecResolutionDomain.md",
+    "tldr": "Priority chain for resolving the active spec: arg > env > current-spec file > git branch.",
+    "tags": ["spec", "resolution", "current-spec", "git", "branch", "env", "use"]
+  },
+  {
+    "name": "DistributionDomain",
+    "file": "DistributionDomain.md",
+    "tldr": "npm and PyPI packaging, version bumping, and CI publish workflows.",
+    "tags": ["distribution", "npm", "pypi", "publish", "version", "ci", "release"]
+  },
+  {
+    "name": "TemplateDomain",
+    "file": "TemplateDomain.md",
+    "tldr": "Build-time template embedding; runtime template access via the TEMPLATES map.",
+    "tags": ["template", "embed", "scaffold", "prompt", "engine", "init"]
+  }
+]

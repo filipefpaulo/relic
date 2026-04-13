@@ -20,7 +20,8 @@
     "build:pypi:linux-arm64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-linux-arm64 --outfile packages/cli-python/relic/relic",
     "build:pypi:macos-x64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-darwin-x64 --outfile packages/cli-python/relic/relic",
     "build:pypi:macos-arm64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-darwin-arm64 --outfile packages/cli-python/relic/relic",
-    "build:pypi:windows-x64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-windows-x64 --outfile packages/cli-python/relic/relic.exe"
+    "build:pypi:windows-x64": "bun run build:templates && bun build packages/cli-node/src/bin.ts --compile --target bun-windows-x64 --outfile packages/cli-python/relic/relic.exe",
+    "test": "bun run --filter '*' test"
   },
   "devDependencies": {
     "@types/bun": "latest",

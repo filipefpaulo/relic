@@ -1,0 +1,32 @@
+[
+  {
+    "name": "ScanManifestContract",
+    "file": "ScanManifestContract.md",
+    "tldr": "JSON output of `relic scan --json`: tech stack, key files, file tree, and existing artifacts.",
+    "tags": ["scan", "manifest", "json", "key-files", "tech-stack", "file-tree"]
+  },
+  {
+    "name": "ContextResultContract",
+    "file": "ContextResultContract.md",
+    "tldr": "JSON output of `relic context`: active spec, resolution source, file existence, shared artifact refs.",
+    "tags": ["context", "json", "spec", "files", "artifacts", "resolution"]
+  },
+  {
+    "name": "ArtifactsJsonContract",
+    "file": "ArtifactsJsonContract.md",
+    "tldr": "Per-spec artifacts.json declaring owns[], reads[], and touches_files[] relationships.",
+    "tags": ["artifacts", "owns", "reads", "touches-files", "spec", "intersection"]
+  },
+  {
+    "name": "ManifestJsonContract",
+    "file": "ManifestJsonContract.md",
+    "tldr": "shared/<subdir>/manifest.json index of artifact files with name, file, tldr, and tags.",
+    "tags": ["manifest", "json", "index", "tags", "tldr", "search", "validate"]
+  },
+  {
+    "name": "ScaffoldResultContract",
+    "file": "ScaffoldResultContract.md",
+    "tldr": "JSON output of `relic scaffold`: spec_id, spec_dir, was_new, and files_created.",
+    "tags": ["scaffold", "json", "spec", "new", "files-created"]
+  }
+]
