@@ -12,7 +12,7 @@ issue tied to an owning spec, stored as a document pending human review before a
 ## Key Entities
 
 - **Fix**: A diagnosed issue. Has an ID, an owning spec, a root cause classification,
-  a proposed set of changes, and a status (`pending-approval` | `approved` | `solved`).
+  a proposed set of changes, and a status (`pending` | `solved`).
 - **Fix ID**: Format `YYYY-MM-DD-<slug>` (e.g. `2026-04-13-null-session-crash`). Slug is
   derived from the issue description, lowercase, hyphenated, max 6 words.
 - **Fix document**: A markdown file at `.relic/fixes/<fix-id>.md`. Committed to version
