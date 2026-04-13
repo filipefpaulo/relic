@@ -7,7 +7,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [0.4.0] — 2026-04-13
 
 ### Added
 - `@relic/utility` (`packages/utility/`) — new shared utility package exporting `fs.ts`
@@ -37,6 +37,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `packages/core/src/commands/add-engine.ts` removed; logic moved to `@relic/engines`.
 - `packages/core/src/utils/fs.ts` and `packages/core/src/utils/spec-id.ts` removed;
   moved to `packages/utility/src/`.
+
+---
 
 ## [0.3.0] — 2026-04-12
 
