@@ -2,6 +2,22 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] plan — 003-fix-solve-workflow
+
+11-phase implementation plan. Key touches: `packages/utility/src/session.ts` (new — session
+read/write helpers), `packages/core/src/commands/{init,scaffold,context,use,fix}.ts` (session.json
+migration), `packages/cli-node/src/bin.ts` (--fix/--clear-fix flags on `use`), 3 prompt files
+(fix.md rewrite, solve.md new, use.md amendment).
+
+Shared artifact amended: `FixDocumentContract` — status simplified to `pending | solved`
+(removed `approved`; calling `/relic.solve` is now the approval act).
+
+artifacts.json `touches_files` expanded: added `scaffold.ts`, `bin.ts`, and
+`packages/utility/src/{session,index}.ts`.
+
+Intersections: `packages/utility/` and `templates/prompts/` both in spec 002's touches_files;
+002 is implemented and released (v0.4.0) — no live conflict.
+
 ## [2026-04-13] clarify — 003-fix-solve-workflow (3)
 
 Four changes: (1) Removed `current-spec` entirely — resolution chain is now arg > env >

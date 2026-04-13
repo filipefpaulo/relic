@@ -11,11 +11,14 @@
     "shared/rules/ChangelogAppendOnlyRule.md"
   ],
   "touches_files": [
+    "packages/utility/src/session.ts",
+    "packages/utility/src/index.ts",
     "packages/core/src/commands/fix.ts",
     "packages/core/src/commands/use.ts",
     "packages/core/src/commands/init.ts",
     "packages/core/src/commands/context.ts",
-    "packages/core/src/index.ts",
+    "packages/core/src/commands/scaffold.ts",
+    "packages/cli-node/src/bin.ts",
     "templates/prompts/fix.md",
     "templates/prompts/solve.md",
     "templates/prompts/use.md"

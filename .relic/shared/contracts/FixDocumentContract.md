@@ -16,7 +16,7 @@ consumed by `/relic.solve`. These files are committed to version control.
 
 **Date:** YYYY-MM-DD
 **Owning spec:** <spec-id>
-**Status:** pending-approval | approved | solved
+**Status:** pending | solved
 
 ---
 
@@ -49,7 +49,6 @@ and what changes. Identify all specs in reads[] that will be affected.>
 
 ## Status Transition Rules
 
-- `/relic.fix` creates the document with `status: pending-approval`
-- The human reviewer sets `status: approved` to unblock `/relic.solve`
-- `/relic.solve` sets `status: solved` on completion
-- `/relic.solve` will refuse to run if status is not `approved`
+- `/relic.fix` creates the document with `status: pending`
+- The developer reads the document (optionally runs `/relic.clarify` to adjust the diagnosis)
+- `/relic.solve` sets `status: solved` on completion — invoking it is the approval act
