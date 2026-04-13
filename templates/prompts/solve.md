@@ -29,9 +29,9 @@ Read the `current_fix` field.
 
 Read `.relic/fixes/<current_fix>.md` in full. Note:
 - **Owning spec** — which spec governs this fix
-- **Classification** — `code-bug | misspecification | misunderstanding | wrong-spec`
-- **Proposed changes** — the code changes to apply
-- **Contract impact** — which shared artifacts (if any) need updating
+- **Classification** (under `## Root Cause`) — `code-bug | misspecification | misunderstanding | wrong-spec`
+- **Code changes** (under `## Proposed Changes`) — the code changes to apply
+- **Shared artifact changes** (under `## Proposed Changes`) — which shared artifacts (if any) need updating
 
 ---
 

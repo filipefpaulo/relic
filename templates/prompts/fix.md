@@ -59,7 +59,7 @@ Assign exactly one classification:
 | `code-bug` | Implementation error; spec and contracts are correct |
 | `misspecification` | The spec described the wrong behaviour |
 | `misunderstanding` | The implementation diverged from a correct spec |
-| `wrong-spec` | The bug exists in a different spec's code area |
+| `wrong-spec` | The spec's requirement itself is incorrect or has become stale |
 
 ---
 
@@ -68,35 +68,42 @@ Assign exactly one classification:
 Generate a fix ID: `YYYY-MM-DD-<slug>` where slug is max 6 words, hyphen-separated, derived from
 the issue description (e.g. `2026-04-13-null-session-read-on-missing-file`).
 
-Write `.relic/fixes/<fix-id>.md` with the following structure:
+Write `.relic/fixes/<fix-id>.md` using the `FixDocumentContract` schema exactly:
 
 ```markdown
 # Fix: <fix-id>
 
+**Date:** YYYY-MM-DD
 **Owning spec:** <owning-spec-id>
-**Classification:** <code-bug | misspecification | misunderstanding | wrong-spec>
 **Status:** pending
-**Created:** YYYY-MM-DD
+
+---
 
 ## Issue
 
-<verbatim description of the issue as provided by the user>
+<The original issue description as reported by the user — verbatim or paraphrased.>
 
-## Root cause
+## Root Cause
 
-<analysis of why this bug exists, with reference to spec intent and contracts>
+**Classification:** code-bug | misspecification | misunderstanding | wrong-spec
 
-## Proposed changes
+<Explanation of why this classification was chosen, grounded in the spec context.>
 
-<description of the code changes required to resolve the issue>
+## Proposed Changes
 
-## Contract impact
+### Code changes
+<List of files and what changes are needed. Not the actual code — the description.>
 
-<"None" or list each shared artifact that will change and why>
+### Spec amendments
+<Only present if classification is misspecification, misunderstanding, or wrong-spec.
+Describe what needs to change in spec.md and/or plan.md.>
 
-## Changelog draft
+### Shared artifact changes
+<Only present if a contract or domain artifact needs updating. List which artifacts
+and what changes. Identify all specs in reads[] that will be affected.>
 
-<draft changelog entry to be written once the fix is applied>
+## Changelog entry (draft)
+<Draft changelog entry for .relic/changelog.md. /relic.solve will write this verbatim.>
 ```
 
 ---
@@ -115,7 +122,7 @@ Read `.relic/fixes/manifest.json`. Append:
 }
 ```
 
-Write the updated array back to `fixes/manifest.json`.
+Write the updated array back to `.relic/fixes/manifest.json`.
 
 ---
 

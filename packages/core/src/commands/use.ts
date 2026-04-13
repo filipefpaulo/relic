@@ -12,6 +12,16 @@ export interface UseOptions {
 export async function runUse(options: UseOptions): Promise<void> {
   const { relicDir } = options;
 
+  // Guard: conflicting flags
+  if (options.clearFix && options.fix) {
+    console.error("Error: --fix and --clear-fix cannot be used together.");
+    process.exit(1);
+  }
+  if (options.fix && options.specId) {
+    console.error("Error: --fix and a spec ID cannot be used together.");
+    process.exit(1);
+  }
+
   // --clear-fix branch
   if (options.clearFix) {
     writeSession(relicDir, { ...readSession(relicDir), fix: null });

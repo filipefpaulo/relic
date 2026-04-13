@@ -12,7 +12,11 @@ export function readSession(relicDir: string): SessionState {
   const path = join(relicDir, "session.json");
   if (!fileExists(path)) return { ...DEFAULT_SESSION };
   try {
-    return readJson<SessionState>(path);
+    const raw = readJson<Record<string, unknown>>(path);
+    return {
+      spec: typeof raw.spec === "string" ? raw.spec : null,
+      fix: typeof raw.fix === "string" ? raw.fix : null,
+    };
   } catch {
     return { ...DEFAULT_SESSION };
   }
