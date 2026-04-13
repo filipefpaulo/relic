@@ -1,11 +1,10 @@
 {
   "owns": [
-    "shared/domains/UpgradeDomain.md"
-  ],
-  "reads": [
+    "shared/domains/UpgradeDomain.md",
     "shared/domains/DistributionDomain.md",
     "shared/domains/TemplateDomain.md"
   ],
+  "reads": [],
   "touches_files": [
     "packages/utility/src/engines-registry.ts",
     "packages/utility/src/index.ts",

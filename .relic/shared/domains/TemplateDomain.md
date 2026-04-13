@@ -11,7 +11,7 @@ The template embedding and distribution domain. All Markdown and shell templates
 - **`TEMPLATES` map**: Key = relative path under `templates/` (e.g. `spec.md`, `prompts/fix.md`); value = file content string
 - **Template variables**: `{{SPEC_ID}}`, `{{TITLE}}`, `{{DATE}}` — interpolated by `applyTemplate` in `scaffold.ts`
 - **Prompt templates** (`templates/prompts/`): 10 AI slash command definitions (one per Relic command)
-- **Engine templates** (`templates/engines/`): Copilot instructions, Codex instructions
+- **Engine templates**: Copilot instructions, Codex instructions — assembled at runtime from `ENGINE_TEMPLATES` map in `@relic/engines` (the `templates/engines/` directory was removed in spec 002; engine templates live in `packages/engines/src/generated/engine-templates.ts`)
 - **`relic init` templates**: `preamble.md`, `constitution.md` — copied verbatim to `.relic/` on init
 
 ## Relationships
@@ -20,4 +20,4 @@ The template embedding and distribution domain. All Markdown and shell templates
 - Consumed by AddEngineDomain — `runAddEngine` writes engine-specific files from templates
 
 ## Owned by
-(unowned — assign when a spec takes responsibility)
+004-cli-self-upgrade

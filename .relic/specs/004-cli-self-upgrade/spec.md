@@ -202,10 +202,13 @@ single idempotent command.
 **Owns:**
 - `shared/domains/UpgradeDomain.md` — the upgrade lifecycle, install channel concept,
   protected file list, and engine hook refresh rules
+- `shared/domains/DistributionDomain.md` — install channels, package names, registry info
+  (previously unowned scan artifact; claimed here as the spec most directly governing distribution)
+- `shared/domains/TemplateDomain.md` — which engine hook files exist and how they're written
+  (previously unowned scan artifact; claimed here as a consumer of the template map)
 
 **Reads:**
-- `shared/domains/DistributionDomain.md` — install channels, package names, registry info
-- `shared/domains/TemplateDomain.md` — which engine hook files exist and how they're written
+_(none)_
 
 ---
 

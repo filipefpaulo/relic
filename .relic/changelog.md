@@ -2,6 +2,14 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 004-cli-self-upgrade (3)
+
+Ownership claimed for two previously unowned scan artifacts: `DistributionDomain.md`
+and `TemplateDomain.md`. Both moved from `reads` to `owns` in `artifacts.json` and
+`spec.md`. `TemplateDomain.md` stale reference to `templates/engines/` corrected —
+that directory was deleted in spec 002; engine templates now live in
+`packages/engines/src/generated/engine-templates.ts` (ENGINE_TEMPLATES map).
+
 ## [2026-04-13] tasks — 004-cli-self-upgrade
 
 14 atomic tasks across 6 phases. Phase 0: INSTALL_CHANNEL defines in package.json and
