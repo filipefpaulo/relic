@@ -179,10 +179,10 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
 - `packages/core/src/commands/context.ts` — read `session.json`; add `current_fix` to output;
   update `active_spec_source` to report `session` when resolved from `session.json`
 - `templates/prompts/use.md` — support fix ID argument detection
-- `ContextResultContract` amendment — add `current_fix` field
-- New `FixDomain` shared artifact
-- New `FixDocumentContract` shared artifact
-- New `SessionStateContract` — defines `.relic/session.json` schema
+- `ContextResultContract` — ownership claimed; `current_fix` field added
+- `FixDomain` shared artifact
+- `FixDocumentContract` shared artifact
+- `SessionStateContract` — defines `.relic/session.json` schema
 
 ### Out of Scope
 
@@ -200,8 +200,8 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
 **Owns:**
 - `shared/domains/FixDomain.md` — the fix lifecycle, session state, and fix ID conventions
 - `shared/contracts/FixDocumentContract.md` — schema of `.relic/fixes/<fix-id>.md`
-- `shared/contracts/ContextResultContract.md` — claim ownership; amend to add `current_fix`
-  field (currently unowned)
+- `shared/contracts/ContextResultContract.md` — owns; `current_fix` field added
+- `shared/contracts/SessionStateContract.md` — schema of `.relic/session.json`
 
 **Reads:**
 - `shared/domains/SpecResolutionDomain.md` — fix session state extends the resolution chain

@@ -2,6 +2,19 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 003-fix-solve-workflow (6)
+
+Five issues from second /relic.analyse pass resolved:
+(1) spec.md Scope section: stale "New X artifact" phrasing corrected to present tense;
+(2) spec.md Shared Artifacts: SessionStateContract added to Owns list (was missing from prose,
+    correct in artifacts.json);
+(3) plan.md Phase 6 step 5 and Intersection Notes: bin.debug.ts mentioned alongside bin.ts;
+(4) tasks.md: T-17a and T-17b promoted to Phase 0 "DO THIS FIRST" at top of file (were
+    previously misplaced in Phase 12 after all implementation phases, contradicting the
+    ordering requirement); ordering note updated to reflect Phase 0 first;
+(5) tasks.md: init.test.ts note hardened from "review; update if assertions fail" to
+    "WILL break; must update as part of T-03" (confirmed by reading actual test at line 38).
+
 ## [2026-04-13] clarify — 003-fix-solve-workflow (5)
 
 Three gaps found by /relic.analyse resolved: (1) `packages/cli-node/src/bin.debug.ts` added

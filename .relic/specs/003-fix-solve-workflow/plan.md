@@ -80,7 +80,7 @@ is the approval act. Status is now `pending | solved`.
 3. Add `--fix <fix-id>` handling: validate `.relic/fixes/<fix-id>.md` exists, then
    `writeSession(relicDir, { ...readSession(relicDir), fix: fixId })`.
 4. Add `--clear-fix` handling: `writeSession(relicDir, { ...readSession(relicDir), fix: null })`.
-5. Update `bin.ts` `use` command: add `.option("--fix <fix-id>")` and `.option("--clear-fix")`.
+5. Update `bin.ts` and `bin.debug.ts` `use` commands: add `.option("--fix <fix-id>")` and `.option("--clear-fix")`.
 6. Report: `"Now working on: <spec-id>"` or `"Active fix: <fix-id>"` or `"Fix cleared."`.
 
 ### Phase 7 — Rewrite `templates/prompts/fix.md`
@@ -197,7 +197,7 @@ Verify `use.md` already has the standard preamble block; add it if missing.
 - **`packages/core/src/index.ts`** — in spec 002's `touches_files`. Same resolution: 002 complete,
   no live conflict. 003 does not need to modify index.ts (no new exports required).
 - **`templates/prompts/`** — in spec 002's `touches_files`. Same resolution.
-- **`packages/cli-node/src/bin.ts`** — not in any spec's `touches_files` currently. Adding to 003.
+- **`packages/cli-node/src/bin.ts` and `bin.debug.ts`** — neither was in any spec's `touches_files`. Both added to 003; both register the `use` command and need the same `--fix`/`--clear-fix` flags.
 
 ---
 

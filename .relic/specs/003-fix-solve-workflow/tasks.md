@@ -5,6 +5,27 @@
 
 ---
 
+## ⚠️ Phase 0 — Pre-implementation cleanup (DO THIS FIRST — before any TypeScript tasks)
+
+- [ ] **T-17a** Amend `constitution.md` — update the stale `current-spec` principle
+  - Line 81: `".relic/current-spec is gitignored — each team member tracks their own active spec session"`
+    → `".relic/session.json is gitignored — each team member tracks their own active spec and fix session in session.json"`
+  - Append a dated amendment block at the bottom of `constitution.md` documenting the change:
+    `[2026-04-13] session.json replaces current-spec as the single session state file. Priority 3 in spec resolution now reads session.json (session.spec field). Authorised by spec 003-fix-solve-workflow.`
+  - **Must be done before T-03 through T-08** so the constitution accurately describes the
+    system before the behaviour it governs is changed.
+
+- [ ] **T-17b** Update 3 stale manifest entries in `shared/*/manifest.json`
+  - `shared/domains/manifest.json` — `SpecResolutionDomain` entry:
+    - `tldr`: change `"arg > env > current-spec file > git branch"` → `"arg > env > session.json (session.spec) > git branch"`
+    - `tags`: remove `"current-spec"`, add `"session-json"`, `"session"`
+  - `shared/domains/manifest.json` — `FixDomain` entry:
+    - `tags`: remove `"current-fix"`, add `"session-fix"`
+  - `shared/contracts/manifest.json` — `SessionStateContract` entry:
+    - `tags`: remove `"current-spec"` and `"current-fix"`, add `"session-spec"`, `"session-fix"`
+
+---
+
 ## Phase 1 — Session utility in `@relic/utility`
 
 - [ ] **T-01** Create `packages/utility/src/session.ts`
@@ -204,28 +225,7 @@
 
 ---
 
-## Phase 12 — Pre-implementation cleanup
-
-- [ ] **T-17a** Amend `constitution.md` — update the stale `current-spec` principle
-  - Line 81: `".relic/current-spec is gitignored — each team member tracks their own active spec session"`
-    → `".relic/session.json is gitignored — each team member tracks their own active spec and fix session in session.json"`
-  - Append a dated amendment block at the bottom of `constitution.md` documenting the change:
-    `[2026-04-13] session.json replaces current-spec as the single session state file. Priority 3 in spec resolution now reads session.json (session.spec field). Authorised by spec 003-fix-solve-workflow.`
-  - This amendment must be written **before** the TypeScript migration tasks (T-03 through T-08)
-    so the constitution is accurate before the behaviour it describes changes.
-
-- [ ] **T-17b** Update 3 stale manifest entries in `shared/*/manifest.json`
-  - `shared/domains/manifest.json` — `SpecResolutionDomain` entry:
-    - `tldr`: change `"arg > env > current-spec file > git branch"` → `"arg > env > session.json (session.spec) > git branch"`
-    - `tags`: remove `"current-spec"`, add `"session-json"`, `"session"`
-  - `shared/domains/manifest.json` — `FixDomain` entry:
-    - `tags`: remove `"current-fix"`, add `"session-fix"`
-  - `shared/contracts/manifest.json` — `SessionStateContract` entry:
-    - `tags`: remove `"current-spec"` and `"current-fix"`, add `"session-spec"`, `"session-fix"`
-
----
-
-## Phase 13 — Verify
+## Phase 12 — Verify
 
 - [ ] **T-17** Run `bun run test` — all packages pass (utility, engines, core)
 - [ ] **T-18** Run `relic validate` — `valid: true`
@@ -237,11 +237,12 @@
 
 ## Notes
 
-- **Strict ordering:** T-01 and T-02 must complete before T-03 through T-07 (all read
-  `readSession`/`writeSession`). T-03 through T-07 are independent of each other after
-  that. T-08 depends on T-07 (UseOptions changes). T-09 through T-11 (prompts) are
-  independent of all TypeScript tasks. T-12 depends on T-09, T-10, T-11 being done.
-  T-13 through T-16 can run in parallel after their respective TypeScript tasks.
+- **Strict ordering:** T-17a and T-17b (Phase 0) must be done first — before any other
+  task. Then T-01 and T-02 before T-03 through T-07 (all read `readSession`/`writeSession`).
+  T-03 through T-07 are independent of each other. T-08 depends on T-07 (UseOptions changes).
+  T-09 through T-11 (prompts) are independent of all TypeScript tasks. T-12 depends on
+  T-09, T-10, T-11 being done. T-13 through T-16 can run in parallel after their respective
+  TypeScript tasks.
 
 - **`bin.debug.ts` (T-08):** Not in `touches_files` originally; added here because it
   registers the same `use` command. Low risk — purely additive flag registration.
@@ -254,11 +255,12 @@
 - **`FixDocumentContract` Phase 10:** Already applied during planning session.
   No task needed here.
 
-- **No `relic init` test update needed:** The existing `init.test.ts` (spec 001 T-07)
-  checks for `preamble.md`, `constitution.md`, `changelog.md`, and `.gitignore` existence.
-  Our changes to init add new files (`session.json`, `fixes/manifest.json`) and change the
-  `.gitignore` content — but the existing test does not assert gitignore content or check
-  for absent new files. Review before implementing; update only if assertions fail.
+- **`init.test.ts` WILL break and must be updated as part of T-03:** The existing
+  `init.test.ts` (spec 001 T-07) has a test that explicitly asserts
+  `.gitignore` contains `"current-spec"` (confirmed at line 38). T-03 changes the gitignore
+  to `session.json` — this test will fail. As part of T-03, update the assertion to check
+  for `"session.json"` instead. Also add assertions for the new `session.json` and
+  `fixes/manifest.json` files created by init.
 
 - **Constitution Principle II applies:** `fix.md` and `solve.md` contain all workflow logic.
   The TypeScript changes in this spec are session-state plumbing only — no diagnosis,
