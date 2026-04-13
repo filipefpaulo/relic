@@ -89,6 +89,19 @@ Relic currently has no test suite. This spec introduces unit and integration tes
 
 ---
 
+## Cross-Spec Notes
+
+**Impact from spec 002-agent-permission-config:**
+`fs.test.ts` and `spec-id.test.ts` — created by this spec in `packages/core/src/__tests__/` —
+will be moved to `packages/utility/src/__tests__/` as part of spec 002's refactor (tasks T-05
+and T-06). The test logic and assertions are unchanged; only the import paths adjust
+(`../utils/fs.ts` → `../fs.ts`, `../utils/spec-id.ts` → `../spec-id.ts`). Ownership of those
+files passes to spec 002 at the time of the move. This spec retains ownership of
+`shared/rules/TestingRules.md` — the convention documented there (temp-dir pattern, no mock fs)
+applies equally to `packages/utility` tests.
+
+---
+
 ## Decisions
 
 - **Test file location**: `packages/core/src/__tests__/` — single directory, not colocated. Keeps source tree clean given the volume of test files.

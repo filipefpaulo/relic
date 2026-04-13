@@ -1,0 +1,23 @@
+{
+  "owns": [],
+  "reads": [
+    "shared/assumptions/ClaudeAsDefaultEngine.md",
+    "shared/domains/TemplateDomain.md"
+  ],
+  "touches_files": [
+    "packages/utility/",
+    "packages/engines/",
+    "packages/core/src/commands/add-engine.ts",
+    "packages/core/src/index.ts",
+    "packages/core/src/utils/fs.ts",
+    "packages/core/src/utils/spec-id.ts",
+    "packages/core/src/__tests__/fs.test.ts",
+    "packages/core/src/__tests__/spec-id.test.ts",
+    "packages/core/src/__tests__/init.test.ts",
+    "scripts/embed-templates.ts",
+    "scripts/embed-engine-templates.ts",
+    "templates/engines/",
+    "templates/prompts/",
+    "package.json"
+  ]
+}
