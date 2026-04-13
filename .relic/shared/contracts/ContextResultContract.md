@@ -12,7 +12,7 @@ The JSON output of `relic context`. Used by AI agents to determine which spec is
 {
   "relic_dir": "<absolute path>",
   "spec_id": "001-auth",
-  "active_spec_source": "arg|env|session|current-spec|git-branch",
+  "active_spec_source": "arg|env|session|git-branch",
   "spec_dir": "<absolute path>",
   "files": {
     "preamble": true,

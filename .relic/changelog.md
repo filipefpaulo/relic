@@ -2,6 +2,17 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 003-fix-solve-workflow (3)
+
+Four changes: (1) Removed `current-spec` entirely — resolution chain is now arg > env >
+`session.json` > git-branch; `SpecResolutionDomain` updated accordingly. (2) FR-2 corrected —
+when no spec owns the code, user is told to run `/relic.specify` (not `relic scaffold`; scaffold
+is internal to prompts). (3) FR-12 removed — calling `/relic.solve` is itself the approval act;
+no explicit status flag required. (4) NFR-2 promoted — `relic init` now scaffolds `.relic/fixes/`
+and `fixes/manifest.json` (empty `[]`) as a forward investment for future global fix search;
+prompts no longer create this directory at runtime. `SessionStateContract`, `FixDomain`,
+`ContextResultContract` all updated to remove remaining `current-spec` references.
+
 ## [2026-04-13] clarify — 003-fix-solve-workflow
 
 Replaced `.relic/current-fix` flat text file proposal with `.relic/session.json` structured

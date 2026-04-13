@@ -19,20 +19,20 @@ issue tied to an owning spec, stored as a document pending human review before a
   control — it is audit trail. Schema defined in `FixDocumentContract`.
 - **`session.fix`**: The `fix` field in `.relic/session.json`. Holds the active fix ID.
   Session state — personal, gitignored. Part of the unified session state file that also
-  holds `session.spec` (superseding `.relic/current-spec`). Defined in `SessionStateContract`.
+  holds `session.spec`. Defined in `SessionStateContract`.
 - **Root cause classification**: One of `code-bug`, `misspecification`, `misunderstanding`,
   `wrong-spec`.
 
 ## Session State Precedence
 
-When `.relic/current-fix` exists, it takes precedence over `current-spec` for:
+When `session.fix` is non-null, it takes precedence over `session.spec` for:
 - `/relic.clarify` — operates on the owning spec of the fix
 - `/relic.analyse` — operates on the owning spec of the fix
 - `/relic.fix` — uses active fix context
 - `/relic.solve` — applies the active fix
 
-`current-spec` is unaffected and retains its own value. Clearing `current-fix` (done by
-`/relic.solve` on completion) returns all commands to the `current-spec` context.
+`session.spec` is unaffected and retains its own value. Clearing `session.fix` (done by
+`/relic.solve` on completion) returns all commands to the `session.spec` context.
 
 ## Fix Lifecycle
 
@@ -40,16 +40,14 @@ When `.relic/current-fix` exists, it takes precedence over `current-spec` for:
 /relic.fix <issue>
     ↓
 Ownership check (touches_files prefix scan)
-    ↓ no owner found → stop; advise /relic.specify
+    ↓ no owner found → stop; instruct user to run /relic.specify
     ↓ owner found
 Diagnosis (classify root cause)
     ↓
-Write .relic/fixes/<fix-id>.md  (status: pending-approval)
+Write .relic/fixes/<fix-id>.md
 Write session.fix in .relic/session.json
-    ↓  [human review: read fix doc, optionally /relic.clarify]
-Set status: approved in fix doc
-    ↓
-/relic.solve
+    ↓  [human review: read fix doc, optionally /relic.clarify to adjust]
+/relic.solve  ← invoking this IS the approval
     ↓
 Apply code changes + spec amendments + changelog
 Set status: solved in fix doc

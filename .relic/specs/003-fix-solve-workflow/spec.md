@@ -22,9 +22,8 @@ The pipeline has two stages separated by a human review step:
 2. **`/relic.solve`** — applies the approved fix: code changes, spec amendments, changelog
    entry, and clears the fix session state.
 
-To support this, both spec and fix session state are consolidated into a single structured
-file: `.relic/session.json` (gitignored). This supersedes the existing `.relic/current-spec`
-flat text file. `session.json` holds all personal session state in one place and can grow
+Both spec and fix session state live in a single structured file: `.relic/session.json`
+(gitignored). `session.json` holds all personal session state in one place and can grow
 without adding new files to `.relic/`. When a fix is active (`session.fix` is set), it takes
 precedence over `session.spec` for context-sensitive commands (`/relic.clarify`, `/relic.analyse`).
 
@@ -44,11 +43,12 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
 - **FR-2:** If **no spec** owns the relevant code area, the command stops immediately and
   instructs the user:
   ```
-  No spec owns this code area. Run relic scaffold --title "<feature name>"
-  then /relic.specify to create one before running /relic.fix.
+  No spec owns this code area. Run /relic.specify describing the feature this
+  code belongs to in order to create one, then re-run /relic.fix.
   ```
   This is intentional — it is the mechanism that drives spec coverage growth across large
-  codebases. The command MUST NOT attempt a fix without an owning spec.
+  codebases. The command MUST NOT attempt a fix without an owning spec. The user calls
+  `/relic.specify` directly — `relic scaffold` is an internal command called by prompts.
 
 - **FR-3:** If **multiple specs** match via `touches_files`, report all candidates and select
   the most specific match (longest matching path prefix wins). If two specs match equally,
@@ -70,10 +70,10 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
   `YYYY-MM-DD-<slug>` where slug is derived from the issue description (e.g.
   `2026-04-13-null-session-crash`). Document structure is defined in `FixDocumentContract`.
 
-- **FR-7:** After writing the fix document, write the fix ID to `.relic/current-fix`. Report
-  to the user: owning spec, classification, and a summary of the proposed fix. Instruct them
-  to review `.relic/fixes/<fix-id>.md` and run `/relic.solve` to apply, or `/relic.clarify`
-  to adjust the diagnosis.
+- **FR-7:** After writing the fix document, write the fix ID to `session.fix` in
+  `.relic/session.json`. Report to the user: owning spec, classification, and a summary of
+  the proposed fix. Instruct them to review `.relic/fixes/<fix-id>.md` and run `/relic.solve`
+  to apply, or `/relic.clarify` to adjust the diagnosis.
 
 **Fix session state:**
 
@@ -82,12 +82,6 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
   optional and written independently by different commands. When `fix` is non-null, it takes
   precedence over `spec` for `/relic.clarify` and `/relic.analyse`. `/relic.fix` and
   `/relic.solve` always operate on `session.fix` when present.
-
-- **FR-8a:** `.relic/session.json` supersedes the existing `.relic/current-spec` flat text
-  file. `relic use <spec-id>` writes `session.spec`; `relic use --fix <fix-id>` writes
-  `session.fix`. For backwards compatibility, if `session.json` does not exist but
-  `current-spec` does, the spec ID is read from `current-spec` (priority 3 in the resolution
-  chain is unchanged). New writes always go to `session.json`.
 
 - **FR-9:** `relic use --fix <fix-id>` writes `session.fix` in `.relic/session.json`.
   Validates that `.relic/fixes/<fix-id>.md` exists before writing. Errors if not found.
@@ -100,7 +94,7 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
 
 **Apply the fix:**
 
-- **FR-11:** `/relic.solve` reads `current-fix`, loads the fix document, and applies the fix:
+- **FR-11:** `/relic.solve` reads `session.fix` from `.relic/session.json`, loads the fix document, and applies the fix:
   - Makes the code changes described in the fix document
   - If classification is `misspecification`, `misunderstanding`, or `wrong-spec`: amends
     `spec.md` (and `plan.md` if the architecture is affected) in the owning spec
@@ -109,13 +103,11 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
   - Sets fix document status to `solved`
   - Clears `session.fix` in `.relic/session.json` (sets field to null)
 
-- **FR-12:** If the fix document status is not `approved` when `/relic.solve` runs, the
-  command stops and tells the user to set `status: approved` in the fix document first.
-
 **Infrastructure updates:**
 
-- **FR-13:** `relic init` adds `session.json` to `.relic/.gitignore`. `current-spec` remains
-  gitignored for backwards compatibility (existing projects may still have it).
+- **FR-13:** `relic init` adds `session.json` to `.relic/.gitignore`. Creates `.relic/fixes/`
+  directory and `.relic/fixes/manifest.json` (empty `[]`) so the structure is ready from
+  first init — no prompt needs to create it at runtime.
 
 - **FR-14:** `relic context` JSON output gains a `current_fix` field: `session.fix` value
   if set, `null` otherwise. The existing `active_spec_source` field reports `session` when
@@ -127,11 +119,13 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
   logic lives in `templates/prompts/fix.md` and the new `templates/prompts/solve.md`.
   TypeScript stubs exist only for session-state operations (flag parsing, file I/O).
 
-- **NFR-2:** `.relic/fixes/` is created at fix time by the prompt (not by `relic init`).
-  The directory does not exist until the first fix is diagnosed.
+- **NFR-2:** `relic init` creates `.relic/fixes/` and `.relic/fixes/manifest.json` (empty
+  `[]`). The directory and manifest are always present after init. Future global fix search
+  will use `fixes/manifest.json` as its index — entries are added by `/relic.fix` when a
+  fix document is written.
 
-- **NFR-3:** Fix documents are committed — they are audit trail. Only `current-fix`
-  (the session pointer) is gitignored.
+- **NFR-3:** Fix documents are committed — they are audit trail. Only `session.fix`
+  (the session pointer inside `session.json`) is gitignored.
 
 - **NFR-4:** Fix ID slugs are lowercase, hyphenated, max 6 words from the issue description.
 
@@ -155,11 +149,11 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
   write a spec — growing coverage gradually across a large codebase.
 - As a team member, I want fix documents in `.relic/fixes/` so teammates can see the
   diagnosis and rationale before a fix is applied.
-- As a developer, I want a review gate between diagnosis and application so I never
-  auto-apply a fix I haven't read.
+- As a developer, I want diagnosis separated from application so I can read and understand
+  the proposed fix before committing to it — calling `/relic.solve` is my approval act.
 - As a maintainer, I want spec docs amended when the classification is `misspecification`
   or `wrong-spec`, so the spec stays accurate after the fix.
-- As a developer, I want `current-fix` to auto-take precedence for clarify and analyse,
+- As a developer, I want `session.fix` to auto-take precedence for clarify and analyse,
   so those commands operate in fix context without manual switching.
 
 ---
@@ -170,10 +164,10 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
 
 - Full rewrite of `templates/prompts/fix.md`
 - New `templates/prompts/solve.md`
-- New `.relic/fixes/` directory (runtime-created, not scaffolded)
+- `.relic/fixes/` directory and `fixes/manifest.json` — scaffolded by `relic init`
 - `packages/core/src/commands/fix.ts` — add `--fix` flag; read/write `session.json`
 - `packages/core/src/commands/use.ts` — add `--fix <fix-id>` flag; write `session.json`
-- `packages/core/src/commands/init.ts` — gitignore `session.json` (keep `current-spec` too)
+- `packages/core/src/commands/init.ts` — gitignore `session.json`; scaffold `fixes/` and `fixes/manifest.json`
 - `packages/core/src/commands/context.ts` — read `session.json`; add `current_fix` to output;
   update `active_spec_source` to report `session` when resolved from `session.json`
 - `templates/prompts/use.md` — support fix ID argument detection
@@ -216,34 +210,37 @@ precedence over `session.spec` for context-sensitive commands (`/relic.clarify`,
 
 ## Decisions
 
-- **Two-stage pipeline with human gate:** Separating diagnosis (`/relic.fix`) from application
-  (`/relic.solve`) is non-negotiable. Misclassifying root cause and auto-applying can corrupt
-  specs permanently. The review gate costs one step and prevents irreversible damage.
+- **Two-stage pipeline, `/relic.solve` is the approval act:** Separating diagnosis
+  (`/relic.fix`) from application (`/relic.solve`) is non-negotiable. Misclassifying root
+  cause and auto-applying can corrupt specs permanently. The developer reads the fix document,
+  then calls `/relic.solve` — that invocation IS the approval. No explicit status flag is
+  needed; the act of running the command signals intent.
 
 - **Ownership refusal as a forcing function:** Refusing to fix unowned code is the spec's
   most important property. On a large codebase every fix attempt either succeeds (spec exists)
   or results in a new spec. Coverage grows monotonically without a migration project.
 
-- **`current-fix` takes precedence over `current-spec` for clarify/analyse:** When in a
+- **`session.fix` takes precedence over `session.spec` for clarify/analyse:** When in a
   debugging session the developer is thinking in fix context. Automatic context switching
   removes the mental overhead of manually switching sessions.
 
 - **Fix documents are committed, not gitignored:** The fix document is team audit trail.
-  Teammates should see the diagnosis. Only the session pointer (`current-fix`) is personal.
+  Teammates should see the diagnosis. Only the session pointer (`session.fix` inside
+  `session.json`) is personal and gitignored.
 
 - **`relic use --fix` as the API:** A flag on the existing `relic use` keeps the API surface
   minimal. The pattern is: `relic use` manages all active session state.
 
-- **`session.json` not another flat text file:** Adding `.relic/current-fix` as a second
-  flat text file alongside `current-spec` produces a proliferation of opaque, single-purpose
-  files. A single `.relic/session.json` holds all personal session state in one readable,
-  extensible place. Future session concerns (e.g. active branch override, last search query)
-  can be added as fields without creating new files. JSON was chosen over TOML because Relic
-  already has `readJson`/`writeJson` utilities in `@relic/utility` — no new parser dependency.
+- **`session.json` as the single session state file:** A single `.relic/session.json` holds
+  all personal session state in one readable, extensible place. Future session concerns (e.g.
+  active branch override, last search query) can be added as fields without creating new files.
+  JSON was chosen over TOML because Relic already has `readJson`/`writeJson` utilities in
+  `@relic/utility` — no new parser dependency.
 
-- **Backwards compatibility via read fallback:** `current-spec` is kept gitignored and
-  readable as a fallback so existing users don't break on upgrade. New writes always go to
-  `session.json`.
+- **`fixes/manifest.json` scaffolded at init:** Creating `.relic/fixes/manifest.json` as an
+  empty `[]` at `relic init` time means prompts never need to create directories at runtime.
+  The manifest is a forward investment — it will be populated by `/relic.fix` and consumed
+  by a future global fix search command.
 
 - **`wrong-spec` classification requires spec amendment:** When the spec itself is wrong,
   fixing only the code produces a codebase that contradicts its spec. `/relic.solve` must

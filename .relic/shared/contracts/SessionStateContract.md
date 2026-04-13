@@ -7,8 +7,8 @@
 ## Description
 
 Schema for `.relic/session.json` — the single gitignored file that holds all personal
-session state for a Relic workspace. Supersedes `.relic/current-spec` (plain text).
-Both fields are always present; null when not set.
+session state for a Relic workspace. Both fields are always present; null when not set.
+File is created by `relic init`.
 
 ## Shape
 
@@ -29,13 +29,7 @@ Both fields are always present; null when not set.
 - Writes are always read-merge: load existing `session.json` (or default `{spec:null,fix:null}`),
   update only the relevant field, write back.
 - Never overwrite the entire file in a single write — preserve unrelated fields.
-- File is created on first write if it does not exist.
-
-## Backwards Compatibility
-
-If `session.json` does not exist, `relic context` falls back to reading `.relic/current-spec`
-(plain text, spec ID only) for the `spec` field. New writes always go to `session.json`.
-`current-spec` remains gitignored for users upgrading from older Relic versions.
+- File is initialised by `relic init`. All reads may assume it exists.
 
 ## Gitignore
 
