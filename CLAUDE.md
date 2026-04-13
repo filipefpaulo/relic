@@ -242,11 +242,24 @@ Every spec must declare its relationship to shared artifacts. This is what enabl
 
 ```
 packages/
-  core/                     ← TypeScript, all business logic
+  utility/                  ← Shared utility package (@relic/utility) — dependency floor
+    src/
+      fs.ts                 ← File I/O utilities (moved from core/src/utils/)
+      spec-id.ts            ← Spec ID generation and inference (moved from core/src/utils/)
+      index.ts              ← Re-exports fs + spec-id
+  engines/                  ← Engine write logic (@relic/engines) — depends on @relic/utility
+    src/
+      engines/
+        claude/index.ts     ← Write .claude/commands/ + .claude/settings.json
+        copilot/index.ts    ← Write .github/copilot-instructions.md (runtime composition)
+        codex/index.ts      ← Write .codex/instructions.md + .codex/config.toml
+      generated/
+        engine-templates.ts ← ENGINE_TEMPLATES map embedded at build time (gitignored)
+      index.ts              ← runAddEngine, SUPPORTED_ENGINES, Engine type
+  core/                     ← TypeScript, all business logic (@relic/core)
     src/
       commands/
         init.ts             ← Scaffold .relic/ into user's project
-        add-engine.ts       ← Write AI engine hooks (Claude/Copilot/Codex)
         use.ts              ← Write .relic/current-spec
         scan.ts             ← Walk project and output manifest JSON
         specify.ts          ← Create new spec folder
@@ -262,10 +275,7 @@ packages/
         changelog.ts
         context-builder.ts  ← Assembles and renders spec context for LLM
       generated/
-        templates.ts        ← All templates embedded at build time (gitignored)
-      utils/
-        fs.ts               ← File I/O utilities
-        spec-id.ts          ← Spec ID generation and inference
+        templates.ts        ← 5 scaffold templates embedded at build time (gitignored)
   cli-node/                 ← npm package (relic-cli)
     src/
       bin.ts                ← Production binary: init, add-engine, use, scan
@@ -280,7 +290,7 @@ templates/
   spec.md
   plan.md
   tasks.md
-  prompts/                  ← AI slash command prompt files (9 commands)
+  prompts/                  ← AI slash command prompt files (10 commands) — sole source of truth
     specify.md
     clarify.md
     plan.md
@@ -290,18 +300,10 @@ templates/
     fix.md
     use.md
     scan.md
-  scripts/                  ← Bash utilities copied verbatim to .relic/scripts/
-    common.sh
-    check-context.sh
-    scaffold-spec.sh
-    validate-artifacts.sh
-  engines/                  ← Engine-specific instruction files
-    copilot/
-      copilot-instructions.md   → .github/copilot-instructions.md
-    codex/
-      instructions.md           → .codex/instructions.md
+    constitution.md
 scripts/
-  embed-templates.ts        ← Bakes all templates into generated/templates.ts
+  embed-templates.ts        ← Bakes 5 scaffold templates into core/generated/templates.ts
+  embed-engine-templates.ts ← Bakes prompts/ into engines/generated/engine-templates.ts
   fix-shebang.mjs           ← Post-build: replaces Bun shebang with #!/usr/bin/env node
   publish.ts                ← Unified publish script (bumps versions, tags, pushes)
 .github/
@@ -327,7 +329,7 @@ docs/
 | Distribution (npm) | `relic-cli` on npm | 186 KB Node.js bundle; requires Node.js 18+ |
 | Distribution (PyPI) | `relic-cli` on PyPI | Platform-specific wheels with pre-compiled binaries; no runtime required |
 | macOS binary signing | `codesign --sign -` (ad-hoc) | Unsigned Bun binaries are SIGKILL'd by Gatekeeper; ad-hoc signing satisfies the requirement |
-| Template embedding | `scripts/embed-templates.ts` | All `.md`/`.sh` files baked into `generated/templates.ts` at build time |
+| Template embedding | `scripts/embed-templates.ts` + `scripts/embed-engine-templates.ts` | Scaffold templates baked into `core/generated/templates.ts`; prompt templates baked into `engines/generated/engine-templates.ts` |
 | Storage format | Markdown + JSON | Human-readable, AI-native, git-friendly |
 | AI engine hooks | Prompt files per engine | Claude → `.claude/commands/`, Copilot → `.github/`, Codex → `.codex/` |
 
@@ -367,11 +369,11 @@ All of the above plus: `specify`, `clarify`, `plan`, `analyse`, `tasks`, `implem
 
 `relic init --engine <name>` (or `relic add-engine <name>`) writes engine-specific files:
 
-| Engine | File written | How the AI picks it up |
-|---|---|---|
-| Claude | `.claude/commands/relic.*.md` (9 files) | Claude Code slash commands |
-| Copilot | `.github/copilot-instructions.md` | GitHub Copilot workspace instructions |
-| Codex | `.codex/instructions.md` | OpenAI Codex agent instructions |
+| Engine | Files written | Permission config | How the AI picks it up |
+|---|---|---|---|
+| Claude | `.claude/commands/relic.*.md` (10 files) | `.claude/settings.json` — `Bash(relic *)` allow rule | Claude Code slash commands |
+| Copilot | `.github/copilot-instructions.md` | none (N/A for Copilot) | GitHub Copilot workspace instructions |
+| Codex | `.codex/instructions.md` | `.codex/config.toml` — `prefix_rules` allow | OpenAI Codex agent instructions |
 
 Default engine is `claude`. Multiple engines can be specified: `--engine claude,copilot`.
 

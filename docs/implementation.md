@@ -193,6 +193,68 @@ Projects that upgraded from an earlier version can safely delete those folders.
 **All AI prompt templates and engine instructions** (`copilot-instructions.md`, `instructions.md`)
 updated to invoke `relic <command>` directly.
 
+### Phase 10 — Monorepo restructure: `@relic/utility`, `@relic/engines`, permission configs
+
+**Problems solved together:**
+
+1. `fs.ts` and `spec-id.ts` lived in `packages/core/src/utils/` — the only package that
+   needed them. When `@relic/engines` was introduced, those utilities would have been
+   duplicated or required a circular dependency.
+2. All engine write logic (`add-engine.ts`) lived in `@relic/core`, coupling the core
+   package to concerns it shouldn't own.
+3. Running any `relic *` command in an AI agent workflow triggered an interactive approval
+   prompt — there was no committed, team-shared permission config.
+4. Copilot and Codex each had a single giant template file under `templates/engines/` that
+   duplicated all workflow documentation. Any prompt change required updating three files.
+
+**Solution — dependency graph after this phase:**
+
+```
+@relic/utility   (no Relic deps — fs.ts, spec-id.ts)
+      ↑
+@relic/engines   (depends on @relic/utility only — all engine write logic)
+      ↑
+@relic/core      (depends on @relic/utility + @relic/engines)
+      ↑
+packages/cli-node / packages/cli-python   (unchanged)
+```
+
+**`@relic/utility`** — the dependency floor. Contains `fs.ts` and `spec-id.ts`, moved
+verbatim from `packages/core/src/utils/`. Both `@relic/core` and `@relic/engines` import
+from here. New utility functions go in new files in this package — no new package needed.
+
+**`@relic/engines`** — owns all engine write logic. Each engine is an isolated directory
+`packages/engines/src/engines/<name>/index.ts`. Adding a new engine requires only creating
+that directory and adding the name to `SUPPORTED_ENGINES` — nothing else changes.
+
+**Permission configs written by `relic add-engine`:**
+
+| Engine | File | Mechanism |
+|---|---|---|
+| Claude | `.claude/settings.json` | `{ "permissions": { "allow": ["Bash(relic *)"] } }` — JSON merge, idempotent |
+| Copilot | (none) | No permission mechanism exists for Copilot |
+| Codex | `.codex/config.toml` | `prefix_rules = [{ pattern = ["relic"], decision = "allow" }]` — string idempotency check, no TOML parser |
+
+Both permission files are committed (not local) so the whole team gets zero-prompt behaviour
+after `git pull` — no manual setup per developer.
+
+**Template flow after this phase:**
+
+```
+templates/prompts/  (10 files — sole source of truth for all prompt content)
+        ↓  scripts/embed-engine-templates.ts
+packages/engines/src/generated/engine-templates.ts  (ENGINE_TEMPLATES, gitignored)
+        ↓  runtime, per-engine write function
+.claude/commands/*.md  |  .github/copilot-instructions.md  |  .codex/instructions.md
+```
+
+`templates/engines/` was deleted. Copilot and Codex outputs are assembled at runtime from
+`ENGINE_TEMPLATES` with section headers — a change to any prompt in `templates/prompts/`
+propagates to all three engines on the next `bun run build:engine-templates`.
+
+`packages/core/src/generated/templates.ts` now contains only the 5 scaffold templates
+(`preamble.md`, `constitution.md`, `spec.md`, `plan.md`, `tasks.md`).
+
 ---
 
 ## What Changed from the Original Design
@@ -311,7 +373,11 @@ before the changelog step.
 ## Build Commands Reference
 
 ```bash
-# Embed templates into generated/templates.ts
+# Embed engine prompt templates into engines/generated/engine-templates.ts
+bun run build:engine-templates
+
+# Embed scaffold templates into core/generated/templates.ts
+# (also runs build:engine-templates first)
 bun run build:templates
 
 # Build cross-platform npm bundle (what gets published)
@@ -333,5 +399,5 @@ bun run typecheck
 ---
 
 *Document created: April 10, 2026.*
-*Updated: April 12, 2026 — Phase 9: manifest-based knowledge indexing.*
-*Covers: Phase 1–9.*
+*Updated: April 13, 2026 — Phase 10: @relic/utility, @relic/engines, permission configs.*
+*Covers: Phase 1–10.*
