@@ -2,6 +2,17 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] implement — 004-cli-self-upgrade
+
+Implementation complete. 127 tests pass (39 utility + 9 engines + 79 core).
+New files: `engines-registry.ts`, `engines-registry.test.ts`, `upgrade.ts`,
+`upgrade.test.ts`. Modified: `utility/src/index.ts`, `core/src/index.ts`,
+`core/src/commands/init.ts`, `bin.ts`, `bin.debug.ts`, `cli-node/package.json`,
+`publish-pypi.yml`. One plan deviation: added `_channel?: string` to `UpgradeOptions`
+for test injection (module-level `channel` const cannot be overridden without it).
+Introduced `const VERSION` in both bin files to avoid Commander `.version()` return-value
+trap. `relic validate` passes. `relic upgrade` is now a fully functional production command.
+
 ## [2026-04-13] clarify — 004-cli-self-upgrade (3)
 
 Ownership claimed for two previously unowned scan artifacts: `DistributionDomain.md`

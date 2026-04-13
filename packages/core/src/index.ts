@@ -14,6 +14,8 @@ export { runPlan } from "./commands/plan.ts";
 export { runAnalyse } from "./commands/analyse.ts";
 export { runTasks } from "./commands/tasks.ts";
 export { runImplement } from "./commands/implement.ts";
+export { runUpgrade } from "./commands/upgrade.ts";
+export type { UpgradeOptions, UpgradeCheckResult, UpgradeResult } from "./commands/upgrade.ts";
 
 export { loadRegistry, buildOwnershipMap } from "./core/artifact-registry.ts";
 export { detectIntersections, formatIntersectionReport } from "./core/intersection.ts";
