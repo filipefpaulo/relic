@@ -1,0 +1,16 @@
+{
+  "owns": [
+    "shared/domains/UpgradeDomain.md"
+  ],
+  "reads": [
+    "shared/domains/DistributionDomain.md",
+    "shared/domains/TemplateDomain.md"
+  ],
+  "touches_files": [
+    "packages/core/src/commands/upgrade.ts",
+    "packages/core/src/__tests__/upgrade.test.ts",
+    "packages/cli-node/src/bin.ts",
+    "packages/cli-node/src/bin.debug.ts",
+    "packages/cli-node/package.json"
+  ]
+}

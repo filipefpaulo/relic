@@ -2,6 +2,16 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] specify — 004-cli-self-upgrade
+
+New spec: `relic upgrade` command for self-updating the CLI and refreshing engine hook
+files. Two distribution channels supported (npm, pypi) via build-time `INSTALL_CHANNEL`
+constant. Protected file list enforces that the shared brain, specs, fixes, constitution,
+and changelog are never touched during upgrade. New shared artifact: `UpgradeDomain.md`.
+Touches: `packages/core/src/commands/upgrade.ts` (new), `bin.ts`, `bin.debug.ts`,
+`packages/cli-node/package.json`. Reads: `DistributionDomain`, `TemplateDomain`.
+Open question blocking plan: OQ-1 (INSTALL_CHANNEL embedding mechanism).
+
 ## [2026-04-13] implement — 003-fix-solve-workflow
 
 [implement] 003-fix-solve-workflow: Implementation complete. session.json replaces current-spec as

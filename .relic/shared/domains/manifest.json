@@ -34,5 +34,11 @@
     "file": "FixDomain.md",
     "tldr": "Two-stage fix pipeline: /relic.fix diagnoses and proposes; /relic.solve applies after human review.",
     "tags": ["fix", "solve", "diagnosis", "session-fix", "session", "ownership", "cross-spec"]
+  },
+  {
+    "name": "UpgradeDomain",
+    "file": "UpgradeDomain.md",
+    "tldr": "Self-upgrade lifecycle: install channel detection, version check, binary upgrade, and engine hook refresh without touching project knowledge.",
+    "tags": ["upgrade", "install", "npm", "pypi", "channel", "engine", "hooks", "version", "refresh"]
   }
 ]
