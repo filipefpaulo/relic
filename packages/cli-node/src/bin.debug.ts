@@ -18,17 +18,20 @@ import {
   runValidate,
   runSearch,
   runDeepSearch,
+  runUpgrade,
   findRelicDir,
   SUPPORTED_ENGINES,
   type Engine,
 } from "@relic/core";
+import { readEnginesRegistry, writeEnginesRegistry } from "@relic/utility";
 
+const VERSION = "0.5.1";
 const program = new Command();
 
 program
   .name("relic")
   .description("Spec-driven development with a shared artifact layer")
-  .version("0.5.1");
+  .version(VERSION);
 
 program
   .command("init")
@@ -59,6 +62,8 @@ program
     }
     const projectDir = join(relicDir, "..");
     await runAddEngine({ engine: engine as Engine, projectDir });
+    const engines = readEnginesRegistry(relicDir);
+    writeEnginesRegistry(relicDir, [...engines, engine]);
   });
 
 program
@@ -233,6 +238,23 @@ program
       process.exit(1);
     }
     await runDeepSearch({ relicDir });
+  });
+
+program
+  .command("upgrade")
+  .description("Upgrade relic-cli and refresh AI engine hook files")
+  .option("--check", "Check for updates only, do not install", false)
+  .option("--prompts", "Refresh engine hook files only, skip binary upgrade", false)
+  .option("--text", "Human-readable output instead of JSON", false)
+  .action(async (opts: { check: boolean; prompts: boolean; text: boolean }) => {
+    const relicDir = findRelicDir(process.cwd()) ?? undefined;
+    await runUpgrade({
+      check: opts.check,
+      promptsOnly: opts.prompts,
+      text: opts.text,
+      currentVersion: VERSION,
+      relicDir,
+    });
   });
 
 program.parse(process.argv);

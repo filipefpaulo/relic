@@ -1,0 +1,21 @@
+{
+  "owns": [
+    "shared/domains/UpgradeDomain.md",
+    "shared/domains/DistributionDomain.md",
+    "shared/domains/TemplateDomain.md"
+  ],
+  "reads": [],
+  "touches_files": [
+    "packages/utility/src/engines-registry.ts",
+    "packages/utility/src/index.ts",
+    "packages/utility/src/__tests__/engines-registry.test.ts",
+    "packages/core/src/commands/upgrade.ts",
+    "packages/core/src/index.ts",
+    "packages/core/src/__tests__/upgrade.test.ts",
+    "packages/core/src/commands/init.ts",
+    "packages/cli-node/src/bin.ts",
+    "packages/cli-node/src/bin.debug.ts",
+    "packages/cli-node/package.json",
+    ".github/workflows/publish-pypi.yml"
+  ]
+}

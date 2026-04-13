@@ -52,7 +52,8 @@ jobs:
           bun build packages/cli-node/src/bin.ts \
             --compile \
             --target ${{ matrix.bun_target }} \
-            --outfile packages/cli-python/relic/${{ matrix.binary }}
+            --outfile packages/cli-python/relic/${{ matrix.binary }} \
+            --define 'INSTALL_CHANNEL="pypi"'
 
       - name: Ad-hoc sign binary (macOS only)
         if: startsWith(matrix.bun_target, 'bun-darwin')

@@ -1,5 +1,5 @@
 import { join } from "path";
-import { dirExists, ensureDir, writeText, writeJson } from "@relic/utility";
+import { dirExists, ensureDir, writeText, writeJson, writeEnginesRegistry } from "@relic/utility";
 import { TEMPLATES } from "../generated/templates.ts";
 import { runAddEngine, type Engine } from "@relic/engines";
 
@@ -56,6 +56,11 @@ export async function runInit(options: InitOptions): Promise<void> {
   // Write engine-specific hook files
   for (const engine of options.engines) {
     await runAddEngine({ engine, projectDir: options.dir });
+  }
+
+  if (options.engines.length > 0) {
+    writeEnginesRegistry(relicDir, options.engines.map(String));
+    console.log(`  .relic/engines.json  (registered engines: ${options.engines.join(", ")})`);
   }
 
   console.log("");

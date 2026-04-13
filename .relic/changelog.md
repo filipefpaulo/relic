@@ -2,6 +2,65 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] implement — 004-cli-self-upgrade
+
+Implementation complete. 127 tests pass (39 utility + 9 engines + 79 core).
+New files: `engines-registry.ts`, `engines-registry.test.ts`, `upgrade.ts`,
+`upgrade.test.ts`. Modified: `utility/src/index.ts`, `core/src/index.ts`,
+`core/src/commands/init.ts`, `bin.ts`, `bin.debug.ts`, `cli-node/package.json`,
+`publish-pypi.yml`. One plan deviation: added `_channel?: string` to `UpgradeOptions`
+for test injection (module-level `channel` const cannot be overridden without it).
+Introduced `const VERSION` in both bin files to avoid Commander `.version()` return-value
+trap. `relic validate` passes. `relic upgrade` is now a fully functional production command.
+
+## [2026-04-13] clarify — 004-cli-self-upgrade (3)
+
+Ownership claimed for two previously unowned scan artifacts: `DistributionDomain.md`
+and `TemplateDomain.md`. Both moved from `reads` to `owns` in `artifacts.json` and
+`spec.md`. `TemplateDomain.md` stale reference to `templates/engines/` corrected —
+that directory was deleted in spec 002; engine templates now live in
+`packages/engines/src/generated/engine-templates.ts` (ENGINE_TEMPLATES map).
+
+## [2026-04-13] tasks — 004-cli-self-upgrade
+
+14 atomic tasks across 6 phases. Phase 0: INSTALL_CHANNEL defines in package.json and
+publish-pypi.yml (T-01–T-03). Phase 1: engines-registry.ts utility + export (T-04–T-05).
+Phase 2: engines.json writes in init.ts, bin.ts, bin.debug.ts (T-06–T-08). Phase 3: full
+upgrade.ts implementation (T-09). Phase 4: @relic/core export (T-10). Phase 5: register
+upgrade command in both binaries (T-11–T-12). Phase 6: tests (T-13–T-14).
+No live task overlaps — all intersecting specs (002, 003) are fully released.
+
+## [2026-04-13] clarify — 004-cli-self-upgrade (2)
+
+Two corrections: (1) FR-12 replaced — npm and PyPI channels each query their own registry
+(npmjs.org vs pypi.org); using a single npm endpoint risks false "up to date" when channels
+are published independently. (2) OQ-1 resolved — INSTALL_CHANNEL embedded via
+`bun build --define` (no separate entry points or code gen needed); no `pypi-uv`/`pypi-pip`
+split is needed — the same PyPI wheel is installed by either tool; runtime try-uv-then-pip
+fallback correctly identifies the managing tool. Decisions section added to spec.md.
+artifacts.json adds `.github/workflows/publish-pypi.yml` to touches_files.
+
+## [2026-04-13] clarify — 004-cli-self-upgrade
+
+FR-7 replaced: engine detection no longer relies on presence of `.github/copilot-instructions.md`
+or `.codex/instructions.md` — those files can exist for non-Relic reasons. Engine detection
+now uses `.relic/engines.json`, a committed JSON array written by `relic init --engine` and
+`relic add-engine`. FR-13 added: both commands must write/update engines.json (idempotent, no
+duplicates). FR-14 added: graceful degradation when engines.json is absent (warn + skip refresh).
+UpgradeDomain.md updated with engines.json schema and Engine Registry section.
+artifacts.json touches_files expanded: `init.ts` and `add-engine.ts` added.
+OQ-4 added noting the intersection with specs 003 and 002 (both released, no live conflict).
+
+## [2026-04-13] specify — 004-cli-self-upgrade
+
+New spec: `relic upgrade` command for self-updating the CLI and refreshing engine hook
+files. Two distribution channels supported (npm, pypi) via build-time `INSTALL_CHANNEL`
+constant. Protected file list enforces that the shared brain, specs, fixes, constitution,
+and changelog are never touched during upgrade. New shared artifact: `UpgradeDomain.md`.
+Touches: `packages/core/src/commands/upgrade.ts` (new), `bin.ts`, `bin.debug.ts`,
+`packages/cli-node/package.json`. Reads: `DistributionDomain`, `TemplateDomain`.
+Open question blocking plan: OQ-1 (INSTALL_CHANNEL embedding mechanism).
+
 ## [2026-04-13] implement — 003-fix-solve-workflow
 
 [implement] 003-fix-solve-workflow: Implementation complete. session.json replaces current-spec as

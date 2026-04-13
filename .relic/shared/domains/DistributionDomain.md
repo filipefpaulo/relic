@@ -19,4 +19,4 @@ The packaging, versioning, and publishing domain. Manages the two distribution c
 - Governed by the release workflow: `bun run publish <version>` is the single entry point
 
 ## Owned by
-(unowned — assign when a spec takes responsibility)
+004-cli-self-upgrade
