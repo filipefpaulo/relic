@@ -34,13 +34,13 @@
 
 ## Phase 2 — Create `packages/engines`
 
-- [ ] **T-07** Create `packages/engines/package.json`
+- [x] **T-07** Create `packages/engines/package.json`
   - name `@relic/engines`, `"type": "module"`
   - dep `@relic/utility: "workspace:*"`, devDep `@types/bun`
   - scripts `"test": "bun test src/__tests__"`
   - exports `"."`: `"./src/index.ts"`
 
-- [ ] **T-08** Create `packages/engines/src/engines/claude/index.ts`
+- [x] **T-08** Create `packages/engines/src/engines/claude/index.ts`
   - Port `writeClaude()` from `packages/core/src/commands/add-engine.ts`
   - Import `ENGINE_TEMPLATES` from `../../generated/engine-templates.ts`
   - Import file I/O from `@relic/utility`
@@ -48,14 +48,14 @@
     — read existing JSON if present, merge `allow` array, write back; skip if `Bash(relic *)` already present
   - Update console output to list `settings.json` alongside the command files
 
-- [ ] **T-09** Create `packages/engines/src/engines/copilot/index.ts`
+- [x] **T-09** Create `packages/engines/src/engines/copilot/index.ts`
   - Port `writeCopilot()` from `add-engine.ts`
   - Replace single-template read with runtime composition: iterate all 10 `prompts/*.md` keys
     from `ENGINE_TEMPLATES` in order, prepend a `## <CommandName>` header per section, concatenate
   - Write result to `.github/copilot-instructions.md`
   - No permission file; console output notes `(no permission config for Copilot)`
 
-- [ ] **T-10** Create `packages/engines/src/engines/codex/index.ts`
+- [x] **T-10** Create `packages/engines/src/engines/codex/index.ts`
   - Port `writeCodex()` from `add-engine.ts`
   - Replace single-template read with runtime composition (same as T-09)
   - Write result to `.codex/instructions.md`
@@ -69,7 +69,7 @@
     Idempotency: if file exists and already contains the string `["relic"]`, skip; otherwise
     create fresh or append the block
 
-- [ ] **T-11** Create `packages/engines/src/index.ts`
+- [x] **T-11** Create `packages/engines/src/index.ts`
   - Export `runAddEngine(options: { engine: Engine; projectDir: string }): Promise<void>`
   - Export `SUPPORTED_ENGINES: Engine[]` and `Engine` type
   - Dispatch to the correct engine `index.ts` based on the `engine` argument
