@@ -45,7 +45,7 @@ relic context --spec <owning-spec-id>
 Read the following files in full:
 - `specs/<owning-spec-id>/spec.md` — original intent
 - `specs/<owning-spec-id>/plan.md` — architecture decisions
-- All artifacts listed in `owned` and `reads` from `artifacts.json`
+- All artifacts listed in `owns` and `reads` from `artifacts.json`
 - `.relic/constitution.md` (already loaded)
 
 ---
