@@ -81,7 +81,11 @@ Phase 3 (build scripts) must run before Phase 5 (engines tests need `ENGINE_TEMP
    `TEMPLATES` no longer contains `prompts/*` keys. (After `templates/engines/` is deleted,
    only the 5 root scaffold files remain in scope.)
 3. Delete `templates/engines/` (both `copilot/copilot-instructions.md` and `codex/instructions.md`).
-4. Update root `package.json`:
+4. Create `packages/engines/.gitignore` containing `src/generated/`. This is a package-level
+   gitignore — the root `.gitignore` is not modified. Remove `packages/engines/src/generated/engine-templates.ts`
+   from git tracking (`git rm --cached`). The committed placeholder is replaced by the real
+   generated file at build time — it must never be in version control.
+5. Update root `package.json`:
    - Add `"build:engine-templates": "bun run scripts/embed-engine-templates.ts"`
    - Update `"build:templates"` to run both: `bun run build:engine-templates && bun run scripts/embed-templates.ts`
      (engine templates first, since engines tests depend on them)
@@ -150,7 +154,8 @@ Phase 3 (build scripts) must run before Phase 5 (engines tests need `ENGINE_TEMP
 | `packages/engines/src/engines/copilot/index.ts` | create | runtime composition + N/A note |
 | `packages/engines/src/engines/codex/index.ts` | create | runtime composition + config.toml |
 | `packages/engines/src/__tests__/add-engine.test.ts` | create | per-engine output + idempotency |
-| `packages/engines/src/generated/engine-templates.ts` | create (generated) | output of embed-engine-templates.ts |
+| `packages/engines/src/generated/engine-templates.ts` | create (generated, gitignored) | output of embed-engine-templates.ts — must NOT be committed |
+| `packages/engines/.gitignore` | create | package-level gitignore: `src/generated/` |
 | `scripts/embed-engine-templates.ts` | create | reads `templates/prompts/` → `ENGINE_TEMPLATES` |
 | `scripts/embed-templates.ts` | modify | filter out `prompts/` subdirectory |
 | `templates/engines/codex/instructions.md` | delete | replaced by runtime composition |

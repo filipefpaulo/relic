@@ -114,6 +114,11 @@ by composing from that map. Permission configs are part of each engine's write o
   needed in CLI packages.
 - **NFR-4:** `bun run build:templates` in `package.json` is updated to also run the engine
   embed step. Both embeds must run before any binary build target.
+  `packages/engines/src/generated/` is a build output — it MUST be excluded from version
+  control via a package-level `packages/engines/.gitignore` (not the root `.gitignore`).
+  The root `.gitignore` is not modified by this spec. A placeholder `engine-templates.ts`
+  with an empty map may be committed only if needed to satisfy TypeScript at import time;
+  the real file is always rebuilt by `bun run build:engine-templates`.
 - **NFR-5:** Adding a new engine requires only: create `packages/engines/src/engines/<name>/`,
   write its `index.ts`, add the name to `SUPPORTED_ENGINES`. Nothing else changes.
   Adding a new shared utility requires only: create a new file in `packages/utility/src/`.

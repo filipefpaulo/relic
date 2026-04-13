@@ -2,6 +2,20 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 002-agent-permission-config (2)
+
+Correction: the gitignore for `packages/engines/src/generated/` must live in
+`packages/engines/.gitignore` (package-level), not in the root `.gitignore`. Root gitignore
+is not touched by this spec. Spec NFR-4, plan Phase 3 step 4, file changes table, and
+task T-14b all updated to reflect this.
+
+## [2026-04-13] clarify — 002-agent-permission-config
+
+`packages/engines/src/generated/engine-templates.ts` was committed to git — this is a bug.
+The plan already marked it "(generated)" but omitted the `.gitignore` entry. NFR-4 updated
+to make the gitignore requirement explicit. Plan updated with a step to add the entry and
+untrack the file. Task T-14b added.
+
 ## [2026-04-13] implement — 002-agent-permission-config
 
 Implementation complete. Created `@relic/utility` and `@relic/engines` packages; all import sites

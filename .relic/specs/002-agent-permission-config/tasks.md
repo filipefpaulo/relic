@@ -95,6 +95,12 @@
   - Remove `templates/engines/codex/instructions.md`
   - Remove now-empty `templates/engines/copilot/`, `templates/engines/codex/`, `templates/engines/`
 
+- [ ] **T-14b** Gitignore `packages/engines/src/generated/`
+  - Create `packages/engines/.gitignore` containing `src/generated/`
+    (package-level — root `.gitignore` is NOT modified)
+  - Run `git rm --cached packages/engines/src/generated/engine-templates.ts`
+  - Commit: "chore: gitignore engines/src/generated/ at package level"
+
 - [x] **T-15** Update root `package.json` build scripts
   - Add `"build:engine-templates": "bun run scripts/embed-engine-templates.ts"`
   - Update `"build:templates"`: `"bun run build:engine-templates && bun run scripts/embed-templates.ts"`
