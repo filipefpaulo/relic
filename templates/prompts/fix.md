@@ -1,78 +1,145 @@
 # /relic.fix
 
-> **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
-> Violating those rules cannot be undone by a changelog entry.
+> **Before proceeding:** Read `.relic/preamble.md` and `.relic/constitution.md` in full.
+> The preamble defines structural invariants that cannot be bypassed.
+> If this prompt deviates from a constitution principle, a constitution amendment
+> authorising the deviation must exist before you proceed.
 
-## Before you begin — run this first
+`/relic.fix` is the **diagnosis stage** of the two-stage fix pipeline. It identifies the owning
+spec, classifies the root cause, creates a fix document, and sets the active fix. It does **not**
+apply code changes. Run `/relic.solve` after reviewing the fix document.
+
+---
+
+## Step 1 — Read session state
 
 ```bash
-relic context --spec <your-spec-id>
+relic context
 ```
 
-This returns all file paths and loaded context. Use it to know exactly which shared artifacts apply to this spec.
+Note the `current_fix` field. If a fix is already active, ask the user whether to proceed with the
+existing fix or discard it.
 
-You are fixing a bug in code that was built from a spec. The spec context has been assembled
-for you by `relic fix`. Use it as a **constraint** — not just background reading.
+---
 
-## Context already loaded
+## Step 2 — Identify the owning spec
 
-The following context has been assembled and is in your context window:
-- **Constitution** — the governing rules for this project
-- **Spec** — the original intent for the feature
-- **Plan** — the architectural decisions that led to this implementation
-- **Shared artifacts** — the contracts and domains the fix must respect
-- **Changelog** — why things are the way they are
+Scan all `specs/*/artifacts.json` files and read the `touches_files` arrays. Do prefix matching
+against the file path or code area mentioned in the issue.
 
-## Your process
+**Resolution rules:**
+- **No match** → Stop. Report: *"This area is not owned by any spec. Run `/relic.specify` to
+  create a spec for this feature before filing a fix."*
+- **Single match** → Use that spec.
+- **Multiple matches** → Longest prefix wins. If two prefixes are equal length, list them and ask
+  the user to confirm.
 
-### 1. Understand the bug in spec context
-Do not just read the error and the code. Ask:
-- What was this code supposed to do, according to the spec?
-- Does the bug represent a gap in the spec, a wrong assumption, or a pure code error?
-- Does the bug suggest a shared artifact is stale or wrong?
+---
 
-### 2. Check the fix against contracts
-Before applying a fix, verify:
-- Does the fix respect every contract in the loaded shared artifacts?
-- Does the fix contradict any requirement in the spec?
-- Does the fix violate any rule in the loaded shared rules?
+## Step 3 — Load spec context
 
-If any of the above is violated, flag it before fixing. The fix may require a `clarify` first.
-
-### 3. Apply the fix
-Constrained by the above. If the fix requires a small deviation from the plan, document it.
-
-### 4. Determine if a contract changed
-
-**If NO contract changed:**
-Write a brief entry to `.relic/changelog.md`:
-```
-[fix] {{SPEC_ID}}: Fixed [brief description]. No contract changes required.
+```bash
+relic context --spec <owning-spec-id>
 ```
 
-**If a contract DID change:**
-1. Update the relevant file in `shared/contracts/` or `shared/domains/`.
-2. Write a detailed entry to `.relic/changelog.md` describing what changed and why.
-3. Identify all specs whose `artifacts.json` has the changed artifact in `reads`.
-4. For each affected spec, add a note in their `spec.md` Open Questions:
-   `[!] Shared artifact [name] was changed by fix in {{SPEC_ID}}. Review required.`
-5. Tell the user: *"This fix changed [artifact]. Run /relic.clarify on [affected specs]."*
+Read the following files in full:
+- `specs/<owning-spec-id>/spec.md` — original intent
+- `specs/<owning-spec-id>/plan.md` — architecture decisions
+- All artifacts listed in `owns` and `reads` from `artifacts.json`
+- `.relic/constitution.md` (already loaded)
 
-### 5. Check for stale assumptions
-If the fix reveals that an entry in `shared/assumptions/` is now outdated, flag it explicitly.
+---
 
-## What you must NOT do
+## Step 4 — Classify the root cause
 
-- Do not fix the bug in a way that silently violates a contract.
-- Do not modify a shared artifact without a changelog entry.
-- Do not modify a shared artifact owned by a different spec without explicit flagging.
-- Do not assume the spec is wrong — if spec and code disagree, raise it.
+Assign exactly one classification:
 
-## Output format
+| Classification | Meaning |
+|---|---|
+| `code-bug` | Implementation error; spec and contracts are correct |
+| `misspecification` | The spec described the wrong behaviour |
+| `misunderstanding` | The implementation diverged from a correct spec |
+| `wrong-spec` | The spec's requirement itself is incorrect or has become stale |
 
-After fixing, report:
-1. **Root cause** — what caused the bug.
-2. **Fix applied** — what was changed and why.
-3. **Contract impact** — yes/no, and which artifacts if yes.
-4. **Affected specs** — any other specs that need review.
-5. **Changelog entry** — paste the entry you wrote.
+---
+
+## Step 5 — Generate a fix ID and write the fix document
+
+Generate a fix ID: `YYYY-MM-DD-<slug>` where slug is max 6 words, hyphen-separated, derived from
+the issue description (e.g. `2026-04-13-null-session-read-on-missing-file`).
+
+Write `.relic/fixes/<fix-id>.md` using the `FixDocumentContract` schema exactly:
+
+```markdown
+# Fix: <fix-id>
+
+**Date:** YYYY-MM-DD
+**Owning spec:** <owning-spec-id>
+**Status:** pending
+
+---
+
+## Issue
+
+<The original issue description as reported by the user — verbatim or paraphrased.>
+
+## Root Cause
+
+**Classification:** code-bug | misspecification | misunderstanding | wrong-spec
+
+<Explanation of why this classification was chosen, grounded in the spec context.>
+
+## Proposed Changes
+
+### Code changes
+<List of files and what changes are needed. Not the actual code — the description.>
+
+### Spec amendments
+<Only present if classification is misspecification, misunderstanding, or wrong-spec.
+Describe what needs to change in spec.md and/or plan.md.>
+
+### Shared artifact changes
+<Only present if a contract or domain artifact needs updating. List which artifacts
+and what changes. Identify all specs in reads[] that will be affected.>
+
+## Changelog entry (draft)
+<Draft changelog entry for .relic/changelog.md. /relic.solve will write this verbatim.>
+```
+
+---
+
+## Step 6 — Register the fix in `fixes/manifest.json`
+
+Read `.relic/fixes/manifest.json`. Append:
+
+```json
+{
+  "id": "<fix-id>",
+  "owning_spec": "<owning-spec-id>",
+  "classification": "<classification>",
+  "file": "<fix-id>.md",
+  "tldr": "<one-sentence summary of the issue>"
+}
+```
+
+Write the updated array back to `.relic/fixes/manifest.json`.
+
+---
+
+## Step 7 — Activate the fix
+
+```bash
+relic use --fix <fix-id>
+```
+
+---
+
+## Step 8 — Report to the user
+
+Output:
+1. **Owning spec:** which spec owns the affected code area
+2. **Classification:** one of the four categories with a brief rationale
+3. **Fix document:** path to the created fix doc (`.relic/fixes/<fix-id>.md`)
+4. **Next step:** *"Review the fix document, then run `/relic.solve` to apply the changes. If the
+   classification is `misspecification` or `misunderstanding`, run `/relic.clarify` after solving
+   to update the spec."*

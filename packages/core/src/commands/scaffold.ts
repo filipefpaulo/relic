@@ -5,9 +5,10 @@ import {
   fileExists,
   dirExists,
   ensureDir,
-  readText,
   writeText,
   writeJson,
+  readSession,
+  writeSession,
 } from "@relic/utility";
 import {
   nextSpecId,
@@ -37,11 +38,8 @@ function resolveExistingSpec(relicDir: string, specArg?: string): string | null 
   if (specArg) return specArg;
   const envSpec = process.env["RELIC_SPEC"];
   if (envSpec) return envSpec;
-  const currentSpecPath = join(relicDir, "current-spec");
-  if (fileExists(currentSpecPath)) {
-    const id = readText(currentSpecPath).trim();
-    if (id) return id;
-  }
+  const sessionSpec = readSession(relicDir).spec ?? null;
+  if (sessionSpec) return sessionSpec;
   try {
     const branch = execSync("git branch --show-current", { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }).trim();
     const inferred = inferSpecFromBranch(branch);
@@ -127,8 +125,8 @@ export async function runScaffold(options: ScaffoldOptions): Promise<void> {
     filesCreated.push("artifacts.json");
   }
 
-  // Update current-spec
-  writeText(join(relicDir, "current-spec"), specId + "\n");
+  // Update session.json with active spec
+  writeSession(relicDir, { ...readSession(relicDir), spec: specId });
 
   const result: ScaffoldResult = {
     spec_id: specId,

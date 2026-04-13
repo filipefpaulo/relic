@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import { join } from "path";
-import { findRelicDir, fileExists, dirExists, readText, readJson } from "@relic/utility";
+import { findRelicDir, fileExists, dirExists, readJson, readSession } from "@relic/utility";
 import { inferSpecFromBranch, availableSpecs } from "@relic/utility";
 import type { ArtifactsJson } from "../types.ts";
 
@@ -19,8 +19,9 @@ interface SharedArtifactRef {
 interface ContextResult {
   relic_dir: string;
   spec_id: string;
-  active_spec_source: "arg" | "env" | "current-spec" | "git-branch";
+  active_spec_source: "arg" | "env" | "session" | "git-branch";
   spec_dir: string;
+  current_fix: string | null;
   files: {
     preamble: boolean;
     constitution: boolean;
@@ -44,12 +45,9 @@ function resolveSpec(
   const envSpec = process.env["RELIC_SPEC"];
   if (envSpec) return { specId: envSpec, source: "env" };
 
-  // 3. .relic/current-spec file
-  const currentSpecPath = join(relicDir, "current-spec");
-  if (fileExists(currentSpecPath)) {
-    const id = readText(currentSpecPath).trim();
-    if (id) return { specId: id, source: "current-spec" };
-  }
+  // 3. session.json
+  const sessionSpec = readSession(relicDir).spec;
+  if (sessionSpec) return { specId: sessionSpec, source: "session" };
 
   // 4. Git branch inference
   try {
@@ -79,6 +77,7 @@ export async function runContext(options: ContextOptions): Promise<void> {
   }
 
   const { specId, source } = resolved;
+  const currentFix = readSession(relicDir).fix ?? null;
   const specDir = join(relicDir, "specs", specId);
 
   if (!dirExists(specDir)) {
@@ -110,6 +109,7 @@ export async function runContext(options: ContextOptions): Promise<void> {
     spec_id: specId,
     active_spec_source: source,
     spec_dir: specDir,
+    current_fix: currentFix,
     files: {
       preamble: fileExists(join(relicDir, "preamble.md")),
       constitution: fileExists(join(relicDir, "constitution.md")),
@@ -124,6 +124,7 @@ export async function runContext(options: ContextOptions): Promise<void> {
 
   if (options.text) {
     console.log(`Spec:    ${specId}  (resolved from: ${source})`);
+    console.log(`Fix:     ${currentFix ?? "(none)"}`);
     console.log(`Dir:     ${specDir}`);
     console.log(`Relic:   ${relicDir}`);
     console.log("");

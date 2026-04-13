@@ -78,7 +78,7 @@ Bun monorepo. `packages/core` — all TypeScript business logic, exported as `@r
 - Templates embedded at build time via `scripts/embed-templates.ts` — no runtime path resolution
 - Bash scripts were deliberately removed (Phase 8) — all CLI utilities are TypeScript
 - Production binary (`bin.ts`) exposes only user-facing and AI-utility commands; workflow stubs are debug-only
-- `.relic/current-spec` is gitignored — each team member tracks their own active spec session
+- `.relic/session.json` is gitignored — each team member tracks their own active spec and fix session in session.json
 
 **Layer boundaries:**
 `packages/cli-node` and `packages/cli-python` must not contain business logic. All logic lives in `packages/core/src/`. CLI packages import from `@relic/core` only.
@@ -108,10 +108,14 @@ No section may be removed — only superseded by a dated amendment.
 If spec and constitution conflict, constitution wins.
 Run `/relic.constitution` again to update this document as the codebase evolves.
 
-**Version**: 1.0 | **Ratified**: 2026-04-12 | **Last Amended**: —
+**Version**: 1.0 | **Ratified**: 2026-04-12 | **Last Amended**: 2026-04-13
 
 ---
 
 ## Amendments
 
-*No amendments yet.*
+### [2026-04-13] session.json replaces current-spec
+
+`session.json` replaces `current-spec` as the single session state file. Priority 3 in spec resolution now reads `session.json` (via the `session.spec` field). The file also carries `session.fix` for the active fix ID, enabling the two-stage fix pipeline introduced by spec 003-fix-solve-workflow. The Architecture section bullet updated from `.relic/current-spec` to `.relic/session.json`.
+
+Authorised by spec 003-fix-solve-workflow.

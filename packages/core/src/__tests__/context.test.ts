@@ -45,13 +45,14 @@ describe("runContext — spec resolved from --spec arg", () => {
     const result = JSON.parse(logs.join(""));
     expect(result.spec_id).toBe("001-auth");
     expect(result.active_spec_source).toBe("arg");
+    expect("current_fix" in result).toBe(true);
   });
 });
 
-describe("runContext — spec resolved from current-spec file", () => {
-  test("returns active_spec_source: current-spec", async () => {
+describe("runContext — spec resolved from session.json", () => {
+  test("returns active_spec_source: session", async () => {
     makeSpec("001-auth");
-    writeFileSync(join(relicDir, "current-spec"), "001-auth");
+    writeFileSync(join(relicDir, "session.json"), JSON.stringify({ spec: "001-auth", fix: null }));
 
     const { logs, restore } = captureOutput();
     await runContext({ relicDir });
@@ -59,7 +60,31 @@ describe("runContext — spec resolved from current-spec file", () => {
 
     const result = JSON.parse(logs.join(""));
     expect(result.spec_id).toBe("001-auth");
-    expect(result.active_spec_source).toBe("current-spec");
+    expect(result.active_spec_source).toBe("session");
+  });
+
+  test("current_fix is null when no fix active", async () => {
+    makeSpec("001-auth");
+    writeFileSync(join(relicDir, "session.json"), JSON.stringify({ spec: "001-auth", fix: null }));
+
+    const { logs, restore } = captureOutput();
+    await runContext({ relicDir });
+    restore();
+
+    const result = JSON.parse(logs.join(""));
+    expect(result.current_fix).toBeNull();
+  });
+
+  test("current_fix is populated when fix is active in session.json", async () => {
+    makeSpec("001-auth");
+    writeFileSync(join(relicDir, "session.json"), JSON.stringify({ spec: "001-auth", fix: "2026-04-13-some-bug" }));
+
+    const { logs, restore } = captureOutput();
+    await runContext({ relicDir });
+    restore();
+
+    const result = JSON.parse(logs.join(""));
+    expect(result.current_fix).toBe("2026-04-13-some-bug");
   });
 });
 

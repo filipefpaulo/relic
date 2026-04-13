@@ -14,8 +14,8 @@
   {
     "name": "SpecResolutionDomain",
     "file": "SpecResolutionDomain.md",
-    "tldr": "Priority chain for resolving the active spec: arg > env > current-spec file > git branch.",
-    "tags": ["spec", "resolution", "current-spec", "git", "branch", "env", "use"]
+    "tldr": "Priority chain for resolving the active spec: arg > env > session.json (session.spec) > git branch.",
+    "tags": ["spec", "resolution", "session-json", "session", "git", "branch", "env", "use"]
   },
   {
     "name": "DistributionDomain",
@@ -28,5 +28,11 @@
     "file": "TemplateDomain.md",
     "tldr": "Build-time template embedding; runtime template access via the TEMPLATES map.",
     "tags": ["template", "embed", "scaffold", "prompt", "engine", "init"]
+  },
+  {
+    "name": "FixDomain",
+    "file": "FixDomain.md",
+    "tldr": "Two-stage fix pipeline: /relic.fix diagnoses and proposes; /relic.solve applies after human review.",
+    "tags": ["fix", "solve", "diagnosis", "session-fix", "session", "ownership", "cross-spec"]
   }
 ]

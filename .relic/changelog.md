@@ -2,6 +2,97 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] implement — 003-fix-solve-workflow
+
+[implement] 003-fix-solve-workflow: Implementation complete. session.json replaces current-spec as
+the single gitignored session state file (spec + fix fields). New packages/utility/src/session.ts
+provides readSession/writeSession. relic init now scaffolds fixes/ dir and fixes/manifest.json.
+relic use gains --fix <id> and --clear-fix flags. relic context gains current_fix field and
+reports active_spec_source: "session". fix.md rewritten as two-stage diagnosis prompt; solve.md
+created as apply stage; use.md updated with fix-ID detection branch. All 109 tests pass;
+relic validate: valid. Claude engine PROMPT_NAMES updated to include "solve" (11 slash commands).
+
+## [2026-04-13] clarify — 003-fix-solve-workflow (6)
+
+Five issues from second /relic.analyse pass resolved:
+(1) spec.md Scope section: stale "New X artifact" phrasing corrected to present tense;
+(2) spec.md Shared Artifacts: SessionStateContract added to Owns list (was missing from prose,
+    correct in artifacts.json);
+(3) plan.md Phase 6 step 5 and Intersection Notes: bin.debug.ts mentioned alongside bin.ts;
+(4) tasks.md: T-17a and T-17b promoted to Phase 0 "DO THIS FIRST" at top of file (were
+    previously misplaced in Phase 12 after all implementation phases, contradicting the
+    ordering requirement); ordering note updated to reflect Phase 0 first;
+(5) tasks.md: init.test.ts note hardened from "review; update if assertions fail" to
+    "WILL break; must update as part of T-03" (confirmed by reading actual test at line 38).
+
+## [2026-04-13] clarify — 003-fix-solve-workflow (5)
+
+Three gaps found by /relic.analyse resolved: (1) `packages/cli-node/src/bin.debug.ts` added
+to `artifacts.json` touches_files and plan File Changes table — it registers the same `use`
+command as `bin.ts` and needs the same `--fix`/`--clear-fix` flags. (2) Task T-17b added:
+update 3 stale manifest entries (SpecResolutionDomain tldr/tags, FixDomain tags, SessionStateContract
+tags) that still reference `current-spec`/`current-fix`. (3) Task T-17a added: amend
+`constitution.md` to replace the stale `current-spec` principle line and append a dated
+amendment block — must be done before TypeScript migration tasks begin.
+
+## [2026-04-13] clarify — 003-fix-solve-workflow (4)
+
+Added NFR-8: all prompts (`solve.md`, `fix.md`, and all future prompts) must open with the
+standard preamble/constitution block — the AI must read both files in full before acting.
+The preamble is non-negotiable. If a prompt behaviour deviates from a constitution principle,
+a constitution amendment authorising the deviation must be written first and referenced in
+the prompt. Plan Phases 7, 8, and 9 updated to include the mandatory preamble block
+specification for each prompt file written or modified by this spec.
+
+## [2026-04-13] plan — 003-fix-solve-workflow
+
+11-phase implementation plan. Key touches: `packages/utility/src/session.ts` (new — session
+read/write helpers), `packages/core/src/commands/{init,scaffold,context,use,fix}.ts` (session.json
+migration), `packages/cli-node/src/bin.ts` (--fix/--clear-fix flags on `use`), 3 prompt files
+(fix.md rewrite, solve.md new, use.md amendment).
+
+Shared artifact amended: `FixDocumentContract` — status simplified to `pending | solved`
+(removed `approved`; calling `/relic.solve` is now the approval act).
+
+artifacts.json `touches_files` expanded: added `scaffold.ts`, `bin.ts`, and
+`packages/utility/src/{session,index}.ts`.
+
+Intersections: `packages/utility/` and `templates/prompts/` both in spec 002's touches_files;
+002 is implemented and released (v0.4.0) — no live conflict.
+
+## [2026-04-13] clarify — 003-fix-solve-workflow (3)
+
+Four changes: (1) Removed `current-spec` entirely — resolution chain is now arg > env >
+`session.json` > git-branch; `SpecResolutionDomain` updated accordingly. (2) FR-2 corrected —
+when no spec owns the code, user is told to run `/relic.specify` (not `relic scaffold`; scaffold
+is internal to prompts). (3) FR-12 removed — calling `/relic.solve` is itself the approval act;
+no explicit status flag required. (4) NFR-2 promoted — `relic init` now scaffolds `.relic/fixes/`
+and `fixes/manifest.json` (empty `[]`) as a forward investment for future global fix search;
+prompts no longer create this directory at runtime. `SessionStateContract`, `FixDomain`,
+`ContextResultContract` all updated to remove remaining `current-spec` references.
+
+## [2026-04-13] clarify — 003-fix-solve-workflow
+
+Replaced `.relic/current-fix` flat text file proposal with `.relic/session.json` structured
+JSON. A single gitignored file now holds all personal session state (`spec` + `fix` fields),
+replacing both `current-spec` and the proposed `current-fix`. Backwards compat: if
+`session.json` absent, `relic context` falls back to reading `current-spec`. New writes
+always go to `session.json`.
+
+New shared artifact: `SessionStateContract` — defines the `session.json` schema, write rules
+(read-merge semantics), and gitignore requirement. Added to `artifacts.json` `owns`.
+`FixDomain` and `ContextResultContract` updated to reference `session.fix`/`session.json`.
+
+## [2026-04-13] specify — 003-fix-solve-workflow
+
+New spec: full cross-spec fix and solve pipeline. `/relic.fix` becomes a cross-spec command
+that enforces spec ownership as a gate: unowned code cannot be fixed until a spec is written.
+Two-stage pipeline (diagnose → human review → solve) with fix session state in
+`.relic/current-fix`. New `/relic.solve` command applies approved fixes.
+
+New shared artifacts: `FixDomain`, `FixDocumentContract`. Ownership claimed for
+`ContextResultContract` (previously unowned); amended to add `current_fix` field.
+
 ## [2026-04-13] clarify — 002-agent-permission-config (2)
 
 Correction: the gitignore for `packages/engines/src/generated/` must live in

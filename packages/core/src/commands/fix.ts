@@ -2,7 +2,7 @@ import { join } from "path";
 import { execSync } from "child_process";
 import { buildContext, renderContext } from "../core/context-builder.ts";
 import { inferSpecFromBranch, availableSpecs } from "@relic/utility";
-import { dirExists, fileExists, readText } from "@relic/utility";
+import { dirExists, readSession } from "@relic/utility";
 
 export interface FixOptions {
   spec?: string;
@@ -14,10 +14,7 @@ export async function runFix(options: FixOptions): Promise<void> {
   let specId = options.spec ?? process.env["RELIC_SPEC"];
 
   if (!specId) {
-    const currentSpecFile = join(options.relicDir, "current-spec");
-    if (fileExists(currentSpecFile)) {
-      specId = readText(currentSpecFile).trim() || undefined;
-    }
+    specId = readSession(options.relicDir).spec ?? undefined;
   }
 
   if (!specId) {

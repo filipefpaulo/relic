@@ -17,3 +17,6 @@ export {
   slugify,
   availableSpecs,
 } from "./spec-id.ts";
+
+export type { SessionState } from "./session.ts";
+export { readSession, writeSession } from "./session.ts";
