@@ -2,6 +2,14 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] implement — 002-agent-permission-config
+
+Implementation complete. Created `@relic/utility` and `@relic/engines` packages; all import sites
+in `packages/core` updated to use workspace packages; added permission configs for Claude
+(`settings.json` Bash allow rule) and Codex (`config.toml` prefix_rules); deleted
+`templates/engines/` duplication (Copilot/Codex now assembled at runtime from ENGINE_TEMPLATES);
+all 95 tests pass across 3 packages; `relic validate` reports `valid: true`.
+
 ## [2026-04-12T00:00:00.000Z] scan — bootstrap
 
 [scan] Initial artifact scan: generated 14 artifacts from existing codebase.

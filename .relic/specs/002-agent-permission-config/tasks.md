@@ -145,7 +145,7 @@
 
 ## Phase 5 — Tests for `packages/engines`
 
-- [ ] **T-23** Create `packages/engines/src/__tests__/add-engine.test.ts`
+- [x] **T-23** Create `packages/engines/src/__tests__/add-engine.test.ts`
   - Use `mkdtempSync` / `afterEach rmSync` pattern (same as all other tests)
   - Must run `bun run build:engine-templates` before this test suite can import `ENGINE_TEMPLATES`
     (handled by CI `build:templates` step; locally run `bun run build:templates` first)
@@ -160,9 +160,9 @@
 
 ## Phase 6 — Verify
 
-- [ ] **T-24** Run `bun run build:templates` and confirm both embed steps complete without error
-- [ ] **T-25** Run `bun run test` and confirm all packages pass (utility, engines, core)
-- [ ] **T-26** Run `relic validate` and confirm output is `valid: true`
+- [x] **T-24** Run `bun run build:templates` and confirm both embed steps complete without error
+- [x] **T-25** Run `bun run test` and confirm all packages pass (utility, engines, core)
+- [x] **T-26** Run `relic validate` and confirm output is `valid: true`
 
 ---
 
