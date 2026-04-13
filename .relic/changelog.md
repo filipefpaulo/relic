@@ -2,6 +2,17 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] clarify — 004-cli-self-upgrade
+
+FR-7 replaced: engine detection no longer relies on presence of `.github/copilot-instructions.md`
+or `.codex/instructions.md` — those files can exist for non-Relic reasons. Engine detection
+now uses `.relic/engines.json`, a committed JSON array written by `relic init --engine` and
+`relic add-engine`. FR-13 added: both commands must write/update engines.json (idempotent, no
+duplicates). FR-14 added: graceful degradation when engines.json is absent (warn + skip refresh).
+UpgradeDomain.md updated with engines.json schema and Engine Registry section.
+artifacts.json touches_files expanded: `init.ts` and `add-engine.ts` added.
+OQ-4 added noting the intersection with specs 003 and 002 (both released, no live conflict).
+
 ## [2026-04-13] specify — 004-cli-self-upgrade
 
 New spec: `relic upgrade` command for self-updating the CLI and refreshing engine hook

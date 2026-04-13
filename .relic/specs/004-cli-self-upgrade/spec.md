@@ -57,20 +57,36 @@ single idempotent command.
   fall back to `pip install --upgrade relic-cli` if `uv` is not on `PATH`. If neither
   is found, error with instructions.
 
+**Engine registry:**
+
+- **FR-7:** Engine detection uses `.relic/engines.json` — a committed JSON file that
+  records which engines were registered via `relic init --engine` or `relic add-engine`.
+  The upgrade command reads this file to know which engines to refresh. It does NOT rely
+  on the presence of `.github/copilot-instructions.md`, `.codex/instructions.md`, or any
+  other file outside `.relic/` — those files may exist for non-Relic reasons.
+
+- **FR-13:** `relic init --engine <name>` and `relic add-engine <name>` must write or
+  update `.relic/engines.json` after successfully writing engine hook files. Schema:
+  a JSON array of engine name strings (e.g. `["claude", "copilot"]`). Adding the same
+  engine twice must be idempotent (no duplicates). The file is committed — it is
+  team-shared state, not personal session state.
+
+- **FR-14:** If `.relic/engines.json` is absent (existing projects that predate this
+  spec), `relic upgrade --prompts` and the hook-refresh step of `relic upgrade` must
+  warn the user and skip the refresh:
+  ```
+  Warning: .relic/engines.json not found. Run `relic add-engine <engine>` to
+  register your engines, then re-run upgrade.
+  ```
+  `relic upgrade --check` and the binary upgrade step are unaffected by this absence.
+
 **Engine hook refresh:**
 
-- **FR-7:** After a successful binary upgrade (or when run as `relic upgrade --prompts`),
-  the command detects which AI engines are installed in the current project by checking
-  for the presence of their hook directories/files:
-  - Claude: `.claude/commands/` directory exists
-  - Copilot: `.github/copilot-instructions.md` exists
-  - Codex: `.codex/instructions.md` exists
-
-- **FR-8:** For each detected engine, re-run the engine write function (same logic as
-  `relic add-engine`) to overwrite the hook files with the versions embedded in the new
-  binary. Permission config files (`.claude/settings.json`, `.codex/config.toml`) are
-  written with the same idempotent merge logic as `add-engine` — never overwritten
-  destructively.
+- **FR-8:** For each engine listed in `.relic/engines.json`, re-run the engine write
+  function (same logic as `relic add-engine`) to overwrite the hook files with the
+  versions embedded in the new binary. Permission config files (`.claude/settings.json`,
+  `.codex/config.toml`) are written with the same idempotent merge logic as `add-engine`
+  — never overwritten destructively.
 
 - **FR-9:** `relic upgrade --prompts` refreshes engine hook files only, without upgrading
   the binary. Useful when the binary is already current but hook files are stale from a
@@ -151,7 +167,10 @@ single idempotent command.
 - Binary upgrade via npm / uv / pip (spawned as child process)
 - Engine hook refresh (Claude, Copilot, Codex) reusing `@relic/engines` write logic
 - `.relic/preamble.md` refresh on upgrade
+- `.relic/engines.json` — new committed registry file written by `init` and `add-engine`
 - `packages/core/src/commands/upgrade.ts` — new command
+- `packages/core/src/commands/init.ts` — write `engines.json` on engine init
+- `packages/core/src/commands/add-engine.ts` — write/update `engines.json` on add
 - `packages/cli-node/src/bin.ts` and `bin.debug.ts` — register upgrade command
 - `INSTALL_CHANNEL` embedding mechanism (one channel per distribution target)
 - Tests in `packages/core/src/__tests__/upgrade.test.ts`
@@ -195,3 +214,8 @@ single idempotent command.
 - **OQ-3 (version fetch):** Fetching from the npm registry requires an HTTP client.
   `fetch` is available globally in both Bun and Node.js 18+. No new dependency needed.
   Non-blocking.
+
+- **OQ-4 (engines.json and init.ts/add-engine.ts intersections):** `init.ts` was last
+  touched by spec 003; `add-engine.ts` was last touched by spec 002. Both are fully
+  implemented and released — no live conflict. The plan must note these as intersections
+  and confirm no concurrent spec is modifying those files.
