@@ -79,23 +79,23 @@
 
 ## Phase 3 — Build scripts and template cleanup
 
-- [ ] **T-12** Create `scripts/embed-engine-templates.ts`
+- [x] **T-12** Create `scripts/embed-engine-templates.ts`
   - Read all `.md` files under `templates/prompts/` (recursive)
   - Produce `packages/engines/src/generated/engine-templates.ts` as `ENGINE_TEMPLATES` map
   - Key format: `prompts/<filename>` (e.g. `prompts/specify.md`)
   - Same backtick/escape logic as `scripts/embed-templates.ts`
   - Log: `Embedded N engine templates → packages/engines/src/generated/engine-templates.ts`
 
-- [ ] **T-13** Modify `scripts/embed-templates.ts`
+- [x] **T-13** Modify `scripts/embed-templates.ts`
   - Add filter: skip any file whose path falls under `templates/prompts/`
   - After `templates/engines/` is deleted, the 5 root scaffold files are all that remain
 
-- [ ] **T-14** Delete `templates/engines/` directory
+- [x] **T-14** Delete `templates/engines/` directory
   - Remove `templates/engines/copilot/copilot-instructions.md`
   - Remove `templates/engines/codex/instructions.md`
   - Remove now-empty `templates/engines/copilot/`, `templates/engines/codex/`, `templates/engines/`
 
-- [ ] **T-15** Update root `package.json` build scripts
+- [x] **T-15** Update root `package.json` build scripts
   - Add `"build:engine-templates": "bun run scripts/embed-engine-templates.ts"`
   - Update `"build:templates"`: `"bun run build:engine-templates && bun run scripts/embed-templates.ts"`
   - Verify all existing `build:*` targets that call `build:templates` still compose correctly
