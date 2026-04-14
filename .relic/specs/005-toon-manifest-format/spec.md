@@ -88,19 +88,25 @@ The `path` is derived at query time — it is not stored in the `.toon` file:
 
 **Toon library:**
 
-- **FR-1:** Create `packages/utility/src/toon.ts`. Exports **only the codec and its input type**:
-  - `ManifestEntry` type: `{ name: string; file: string; tags: string[]; tldr: string }`.
-    This is the shape of a stored toon record — nothing more. It is the codec's input/output
-    type and lives here because `encodeToon`/`decodeToon` cannot function without it. It is
-    not a search type, not a domain type — it is a format type.
-  - `encodeToon(entries: ManifestEntry[], header?: string): string` — serialise entries
-    to toon format. Each entry becomes one line: `name | file | tags.join(" ") | tldr`.
-    Prepend a `# <header>` comment line (default: `# manifest`).
-  - `decodeToon(content: string): ManifestEntry[]` — parse a toon string back to
-    `ManifestEntry[]`. Skip blank lines and `#` comment lines.
-  - Export all from `packages/utility/src/index.ts`.
-  - **Do NOT export `SearchResultEntry` or any other search/domain types from this file.**
-    The toon codec is format infrastructure — it must not accumulate business types.
+- **FR-1:** Create `packages/utility/src/toon.ts`. Exports **pure format functions and the field primitive type — no domain types**:
+  - `type ToonField = string | number | boolean | string[]` — the union of types that can appear
+    as a field in a toon row. Exported from `@relic/utility`. This is a format infrastructure
+    type, not a domain type.
+  - `encodeToon<T extends ToonField[]>(rows: T[], header?: string): string` — serialise a table
+    of typed rows to toon format. First line: `# <header>` (default: `# manifest`). Each row
+    becomes one line by serialising each field and joining with ` | `. Serialisation per field type:
+    - `string` → verbatim; sanitise ` | ` → ` - `
+    - `number | boolean` → `.toString()`; cannot contain ` | `, no sanitise needed
+    - `string[]` → `.join(" ")`; sanitise result if it contains ` | `
+    The generic `T` captures the exact tuple shape — callers pass typed rows directly without
+    pre-converting to `string[]`. The codec has no knowledge of `ManifestEntry` or any domain type.
+  - `decodeToon(content: string): string[][]` — parse a toon string to a table of string rows.
+    Skip blank lines and `#` comment lines. Split each line on ` | `; skip malformed lines
+    (wrong field count) with a `console.warn`. Trim whitespace on each field. Tolerate `\r\n`.
+    Returns raw `string[][]` — the caller interprets the field meaning and converts to domain types.
+  - Export all three from `packages/utility/src/index.ts`.
+  - **Only `ToonField` is exported as a type** — it is a format constraint, not a domain type.
+    Domain types (`ManifestEntry`, `SearchResultEntry`) live in `@relic/core`.
 
 **Migration:**
 
@@ -322,16 +328,20 @@ The `path` is derived at query time — it is not stored in the `.toon` file:
 - **NFR-6:** `packages/core` gets tests for `toon-migrate.ts` (including `buildSpecIndex`,
   `buildFixIndex`), and the new `--deep`, `--spec`, `--fix` modes of `search.ts` using
   temp directories. No separate spec-index or fix-index test files.
-- **NFR-7:** Type ownership is split by responsibility:
+- **NFR-7:** All domain types live in `@relic/core`. The only type exported from `@relic/utility/toon.ts` is `ToonField` — a format infrastructure type, not a domain type.
+  - `ToonField = string | number | boolean | string[]` — the primitive union for toon field values.
+    Lives in `@relic/utility/toon.ts`. Exported from `@relic/utility/index.ts`.
   - `ManifestEntry = { name: string; file: string; tags: string[]; tldr: string }` — the
-    stored toon record type. Lives in `@relic/utility/toon.ts` because it is the codec's
-    input/output type. Re-exported from `@relic/core` for consumers. There are no separate
-    `SpecIndexEntry` or `FixIndexEntry` types — the unified schema covers all three spaces.
+    stored index record shape. Lives in `@relic/core/commands/toon-migrate.ts` (where it is
+    first created and used). Re-exported from `@relic/core/index.ts`. Not in `@relic/utility`.
+    There are no separate `SpecIndexEntry` or `FixIndexEntry` types — the unified 4-field
+    schema covers all three spaces.
   - `SearchResultEntry = { source: "knowledge"|"spec"|"fix"; name: string; path: string; tags: string[]; tldr: string; score: number }` — the 6-field CLI output type. Lives in
-    `@relic/core` (in `commands/search.ts` or `core/types.ts`) because it is a search
-    business type, not a format type. It must NOT be exported from `@relic/utility`.
-  The rule: `@relic/utility/toon.ts` exports only what the toon codec requires to function.
-  All business/domain types that happen to use `ManifestEntry` as input belong in `@relic/core`.
+    `@relic/core/commands/search.ts`. Re-exported from `@relic/core/index.ts`.
+  The rule: `@relic/utility/toon.ts` is a pure format utility. Domain types never live here.
+  `ToonField` is the format's primitive constraint — analogous to how a CSV library might export
+  a `CsvCell` type without knowing what the cells mean. New consumers can use toon encoding
+  without importing any Relic domain type.
 - **NFR-8 (Constitution amendment required):** Toon output by default for list-returning
   commands conflicts with **Constitution Principle V** ("All Utility Commands Output JSON
   by Default"). The existing 2026-04-14 amendment carved out only `relic search` and
@@ -469,12 +479,20 @@ The `path` is derived at query time — it is not stored in the `.toon` file:
   The `score` field is always present: a positive integer for scored results, `0` for unscored
   (`--deep` with no keywords). This lets the LLM prioritise reading order without a separate
   sort step. Scoped output is a subset of the same format — never a different format.
-- **`SearchResultEntry` lives in `@relic/core`, not `@relic/utility`:** The toon codec
-  (`toon.ts`) exports only what it needs to encode and decode: `ManifestEntry`, `encodeToon`,
-  `decodeToon`. Search result shapes are a search business concern. Putting them in utility
-  would force utility to grow as new search contexts emerge — violating the single-responsibility
-  of the codec layer. New consumers of toon (future commands, future formats) must not be
-  burdened with search types they do not need.
+- **`toon.ts` is a typed field serialiser — no domain types, no domain knowledge:**
+  `encodeToon<T extends ToonField[]>(rows: T[], header?)` accepts typed tuples directly — callers
+  pass `[string, string[], string, number]` rows without pre-converting every field to a string.
+  The encoder serialises per type: strings → verbatim, numbers/booleans → `.toString()`,
+  `string[]` → `.join(" ")`. `decodeToon(content: string): string[][]` returns raw string arrays;
+  the caller (in `@relic/core`) maps to domain types. `ToonField` is the only exported type —
+  it is a format constraint, not a domain type. The codec has no concept of `ManifestEntry`,
+  `SearchResultEntry`, or any Relic domain. New consumers (future commands, output formats)
+  can use toon encoding without importing domain types or touching the utility layer.
+- **All domain types (`ManifestEntry`, `SearchResultEntry`) live in `@relic/core`:**
+  `ManifestEntry` is defined in `toon-migrate.ts` (where index building lives);
+  `SearchResultEntry` is defined in `search.ts` (where the search command lives).
+  Both are re-exported from `@relic/core/index.ts`. Neither is defined in or re-exported
+  from `@relic/utility`.
 - **Mixed scoring in no-flag mode:** Knowledge entries score by tag-overlap; spec/fix
   entries score by substring match on name and tldr fields. Merged results are ranked
   globally by score — the best matches bubble up regardless of source.

@@ -2,6 +2,47 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-14] clarify — 005-toon-manifest-format (9)
+
+**Generic encoder signature; `ToonField` type exported from `@relic/utility`.**
+
+`encodeToon` signature changed from `encodeToon(rows: string[][], ...)` to
+`encodeToon<T extends ToonField[]>(rows: T[], header?: string): string` where
+`type ToonField = string | number | boolean | string[]`.
+
+Callers now pass typed tuples directly — e.g. `[source, name, path, tags, tldr, score]`
+where `tags` is `string[]` and `score` is `number` — without pre-converting every field to
+a string. The encoder handles serialisation per type: strings verbatim, numbers/booleans
+via `.toString()`, string arrays via `.join(" ")`. All string values (including joined arrays)
+are sanitised against ` | `.
+
+`ToonField` is exported from `@relic/utility` as a format infrastructure type — it is the
+codec's primitive constraint, analogous to a CSV library's `CsvCell` type. It is NOT a domain
+type. Domain types (`ManifestEntry`, `SearchResultEntry`) remain in `@relic/core`.
+
+`decodeToon` is unchanged — it returns `string[][]`; callers map to domain types.
+
+Files updated: `spec.md` (FR-1, NFR-7, Decisions), `ToonFormatContract.md` (new ToonField
+section, encoder contract), `plan.md` (Phase 1 impl + Phase 2 tests), `tasks.md` (T-01, T-02, T-03).
+
+## [2026-04-14] clarify — 005-toon-manifest-format (8)
+
+**`ManifestEntry` moved to `@relic/core`; toon codec becomes fully generic.**
+
+`@relic/utility/toon.ts` now exports ONLY `encodeToon(rows: string[][], header?: string): string`
+and `decodeToon(content: string): string[][]`. No types at all. The codec is a pure string-row
+serialiser — it has no knowledge of domains, manifests, or entries.
+
+`ManifestEntry` is defined and exported from `@relic/core/commands/toon-migrate.ts`. It is
+re-exported from `@relic/core/index.ts`. Callers in `toon-migrate.ts` are responsible for
+mapping `string[][]` ↔ `ManifestEntry[]`; callers in `search.ts` for mapping to `SearchResultEntry`.
+
+This makes `toon.ts` reusable for any future pipe-delimited output — not just manifests.
+
+Files updated: `spec.md` (FR-1, NFR-7, Decisions), `ToonFormatContract.md` (Types, Consumers,
+encoder/decoder contracts), `plan.md` (Phase 1, 2, 3, 10, architecture overview), `tasks.md`
+(T-01, T-02, T-03, T-04, T-11).
+
 ## [2026-04-14] clarify — 005-toon-manifest-format (7)
 
 Two changes applied after plan review:

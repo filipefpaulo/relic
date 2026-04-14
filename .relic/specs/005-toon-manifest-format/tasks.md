@@ -8,38 +8,40 @@
 ## Phase 1 — `@relic/utility`: toon codec
 
 - [ ] **T-01** Create `packages/utility/src/toon.ts`
-  - Export `ManifestEntry` type: `{ name: string; file: string; tags: string[]; tldr: string }`
-  - Export `encodeToon(entries: ManifestEntry[], header?: string): string`
+  - Export `type ToonField = string | number | boolean | string[]` — format constraint, not a domain type
+  - Export `encodeToon<T extends ToonField[]>(rows: T[], header?: string): string`
     - First line: `# <header>` (default: `# manifest`)
-    - Each entry: `name | file | tags.join(" ") | tldr`
-    - Sanitise any field containing ` | ` → replace with ` - ` before encoding
-  - Export `decodeToon(content: string): ManifestEntry[]`
+    - Per-field serialisation: `string` → verbatim + sanitise; `number|boolean` → `.toString()`;
+      `string[]` → `.join(" ")` + sanitise result
+    - Sanitise: any string value containing ` | ` → replace with ` - `
+    - Empty input → header-only string
+  - Export `decodeToon(content: string): string[][]`
     - Skip blank lines and lines starting with `#`
     - Split on ` | ` — expect exactly 4 fields; skip malformed lines with `console.warn`
-    - `tags` field: `field.split(/\s+/).filter(Boolean)`; empty string → `[]`
     - Trim leading/trailing whitespace on each field; tolerate `\r\n` line endings
-  - **Do NOT export `SearchResultEntry` or any search/domain types here**
+    - Returns raw `string[][]` — caller maps to domain types
+  - **`ToonField` is the only exported type** — no domain types (`ManifestEntry`, `SearchResultEntry`)
 
 - [ ] **T-02** Update `packages/utility/src/index.ts`
-  - Add: `export type { ManifestEntry } from "./toon.ts";`
+  - Add: `export type { ToonField } from "./toon.ts";`
   - Add: `export { encodeToon, decodeToon } from "./toon.ts";`
+  - No domain type exports from utility
 
 ---
 
 ## Phase 2 — `@relic/utility`: toon tests
 
 - [ ] **T-03** Create `packages/utility/src/__tests__/toon.test.ts`
-  - `encodeToon`: empty array → header-only string
-  - `encodeToon`: single entry → correct 4-field pipe-delimited line
-  - `encodeToon`: tags array → space-joined in output
-  - `encodeToon`: field containing ` | ` → sanitised to ` - `
+  - `encodeToon`: empty rows array → header-only string
+  - `encodeToon`: `string` field → verbatim; field containing ` | ` → sanitised to ` - `
+  - `encodeToon`: `number` field → `.toString()` in output
+  - `encodeToon`: `string[]` field → space-joined in output; ` | ` in joined result → sanitised
   - `encodeToon`: custom `header` arg → used as first comment line
-  - `decodeToon`: round-trip — `decodeToon(encodeToon(entries))` deep-equals `entries`
+  - `decodeToon`: round-trip with all-string rows — `decodeToon(encodeToon(rows))` deep-equals `rows`
   - `decodeToon`: blank lines ignored
   - `decodeToon`: `#` comment lines ignored
   - `decodeToon`: `\r\n` line endings tolerated
-  - `decodeToon`: long `tldr` preserved without truncation
-  - `decodeToon`: empty tags field → `tags: []`
+  - `decodeToon`: long field preserved without truncation
   - `decodeToon`: malformed line (wrong field count) → skipped, no throw, `console.warn` called
 
 ---
@@ -48,9 +50,14 @@
 
 - [ ] **T-04** Create `packages/core/src/commands/toon-migrate.ts`
 
+  **Define and export `ManifestEntry`** — lives here, not in `@relic/utility`:
+  ```ts
+  export interface ManifestEntry { name: string; file: string; tags: string[]; tldr: string }
+  ```
+
   **`readManifestToon(subdirPath, header)`** — single read entry point for all manifest consumers:
-  - If `manifest.toon` exists → `readText` + `decodeToon`, return entries
-  - Else if `manifest.json` exists → `readJson`, `encodeToon(entries, header)`, `writeText` the
+  - If `manifest.toon` exists → `readText` + `decodeToon` → map `string[][]` → `ManifestEntry[]`, return
+  - Else if `manifest.json` exists → `readJson`, map to `string[][]`, `encodeToon(rows, header)`, `writeText` the
     `.toon` file, emit `console.warn("Auto-migrating <path>/manifest.json → manifest.toon")`, return entries
   - Else return `[]`
 
@@ -201,12 +208,12 @@
   - Add:
     ```ts
     export { runToonMigrate, buildSpecIndex, buildFixIndex, readManifestToon } from "./commands/toon-migrate.ts";
-    export type { MigrateResult } from "./commands/toon-migrate.ts";
+    export type { MigrateResult, ManifestEntry } from "./commands/toon-migrate.ts";
     export type { SearchResultEntry } from "./commands/search.ts";
-    export type { ManifestEntry } from "@relic/utility";
     ```
   - Remove `runDeepSearch` from exports
   - Remove old `SearchResult` type from public exports in `types.ts` (superseded by `SearchResultEntry`)
+  - **Do NOT re-export `ManifestEntry` from `@relic/utility`** — it is no longer defined there
 
 ---
 

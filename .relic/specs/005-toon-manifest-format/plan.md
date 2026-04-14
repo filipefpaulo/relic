@@ -12,13 +12,13 @@ The implementation is strictly layered. Each layer depends only on the one below
 ```
 templates/          ← preamble.md + 11 prompt files updated last
 packages/cli-node/  ← bin.ts / bin.debug.ts rewired in the final step
-packages/core/      ← commands rewritten to use toon; no new dependencies
-packages/utility/   ← toon.ts added here first; ManifestEntry + SearchResultEntry land here
+packages/core/      ← commands rewritten to use toon; ManifestEntry + SearchResultEntry live here
+packages/utility/   ← toon.ts added here first; pure string-row codec, no types
 ```
 
 **Key architectural decisions:**
 
-1. **`toon.ts` lives in `@relic/utility`** — pure encode/decode, zero filesystem access. The canonical `ManifestEntry` and `SearchResultEntry` types live here. `packages/core/src/types.ts` re-exports `ManifestEntry` from `@relic/utility` for backward compatibility; the old `SearchResult` type (with `score`) is kept as an internal type.
+1. **`toon.ts` lives in `@relic/utility`** — pure encode/decode, zero filesystem access, no domain types. `ManifestEntry` lives in `@relic/core/commands/toon-migrate.ts`. `SearchResultEntry` lives in `@relic/core/commands/search.ts`. Neither type is exported from `@relic/utility`.
 
 2. **`toon-migrate.ts` is the orchestration hub** — it exports `buildSpecIndex`, `buildFixIndex`, `runToonMigrate`, and the shared toon read helper `readManifestToon`. All consumers that need to read a manifest go through `readManifestToon`, which transparently falls back from `.toon` → `.json` and auto-writes `.toon` on first access.
 
@@ -26,61 +26,69 @@ packages/utility/   ← toon.ts added here first; ManifestEntry + SearchResultEn
 
 4. **Init writes empty files; migrate/upgrade writes content** — `runInit` writes six header-only `.toon` files with no logic dependency on migration. `runUpgrade` calls `runToonMigrate` + `buildSpecIndex` + `buildFixIndex` to populate. These are independent paths.
 
-5. **Toon output is default for `relic search`; `--json` is opt-in** — the output format is 5-field toon lines, not JSON. The `--json` flag returns a flat array of `SearchResultEntry` objects.
+5. **Toon output is default for `relic search`; `--json` is opt-in** — the output format is 6-field toon lines, not JSON. The `--json` flag returns a flat array of `SearchResultEntry` objects.
 
 ---
 
 ## Implementation Phases
 
-### Phase 1 — `@relic/utility`: toon library + canonical types
+### Phase 1 — `@relic/utility`: toon codec
 
 **Files:** `packages/utility/src/toon.ts`, `packages/utility/src/index.ts`
 
-1. Create `packages/utility/src/toon.ts` — **codec only, no business types**:
-   - Export `ManifestEntry = { name: string; file: string; tags: string[]; tldr: string }` type.
-     This is the codec's input/output shape. It lives here because the codec cannot function
-     without it. It is not a search type. Do not add any other types to this file.
-   - Export `encodeToon(entries: ManifestEntry[], header?: string): string`
+1. Create `packages/utility/src/toon.ts` — **typed field codec; no domain types**:
+   - Export `type ToonField = string | number | boolean | string[]` — format constraint type
+   - Export `encodeToon<T extends ToonField[]>(rows: T[], header?: string): string`
      - First line: `# <header>` (default: `# manifest`)
-     - Each entry: `name | file | tags.join(" ") | tldr`
-     - Sanitise: replace ` | ` in any field with ` - ` before encoding
-   - Export `decodeToon(content: string): ManifestEntry[]`
+     - Each row: serialise each field per type, then join with ` | `
+       - `string` → verbatim; sanitise ` | ` → ` - `
+       - `number | boolean` → `.toString()`
+       - `string[]` → `.join(" ")`; sanitise result
+     - Empty input → header-only string
+   - Export `decodeToon(content: string): string[][]`
      - Skip blank lines and `#` lines
      - Split on ` | ` — expect exactly 4 fields; skip malformed lines with `console.warn`
-     - `tags` field: `field.split(/\s+/).filter(Boolean)` → `string[]`
-     - Trim leading/trailing whitespace on each field
+     - Trim leading/trailing whitespace on each field; tolerate `\r\n` endings
+     - Returns raw string arrays — the caller maps to domain types
+   - `ToonField` is the only type exported — it is a format constraint, not a domain type.
 2. Add exports to `packages/utility/src/index.ts`:
    ```ts
-   export type { ManifestEntry } from "./toon.ts";
+   export type { ToonField } from "./toon.ts";
    export { encodeToon, decodeToon } from "./toon.ts";
    ```
-   `SearchResultEntry` is NOT exported from utility — it lives in `@relic/core`.
+   Domain types (`ManifestEntry`, `SearchResultEntry`) are not exported from utility.
 
 ### Phase 2 — `@relic/utility`: toon tests
 
 **File:** `packages/utility/src/__tests__/toon.test.ts`
 
-1. Test `encodeToon`:
+1. Test `encodeToon<T extends ToonField[]>(rows: T[], header?)`:
    - Empty array → string with comment header only
-   - Single entry → correct pipe-delimited line
-   - Tags array → space-joined string in output
-   - Field containing ` | ` → sanitised to ` - `
-2. Test `decodeToon`:
-   - Round-trip: `decodeToon(encodeToon(entries))` equals `entries`
+   - `string` fields → verbatim; ` | ` sanitised to ` - `
+   - `number` field → `.toString()` in output
+   - `string[]` field → space-joined in output
+   - Custom header → used as first comment line
+2. Test `decodeToon(content: string): string[][]`:
+   - Round-trip: `decodeToon(encodeToon(rows))` deep-equals rows (all-string rows only)
    - Blank lines ignored
    - `#` comment lines ignored
    - `\r\n` line endings tolerated
-   - Long `tldr` preserved without truncation
-   - Empty tags field → `tags: []`
-   - Malformed line (wrong field count) → skipped, no throw
+   - Long field preserved without truncation
+   - Malformed line (wrong field count) → skipped, no throw, `console.warn` called
 
 ### Phase 3 — `@relic/core`: `toon-migrate.ts`
 
 **File:** `packages/core/src/commands/toon-migrate.ts`
 
+0. **Define and export `ManifestEntry`** in this file:
+   ```ts
+   export interface ManifestEntry { name: string; file: string; tags: string[]; tldr: string }
+   ```
+   This is the domain type for stored manifest entries. It does NOT live in `@relic/utility`.
+
 1. Export `readManifestToon(subdirPath: string, header: string): ManifestEntry[]`:
-   - Check for `manifest.toon` first — if exists, read and `decodeToon`, return
-   - Else check for `manifest.json` — if exists, `readJson`, write `manifest.toon` via `encodeToon` with `header`, emit `console.warn("Auto-migrating ...")`, return entries
+   - Check for `manifest.toon` first — if exists, read and `decodeToon`, map `string[][]` → `ManifestEntry[]`
+   - Else check for `manifest.json` — if exists, `readJson`, encode via `encodeToon(rows, header)`, write `manifest.toon`, emit `console.warn("Auto-migrating ...")`, return entries
    - Else return `[]`
    - This function is the **single read entry point** for all manifest consumers
 
@@ -247,14 +255,13 @@ This is a full rewrite. The existing `runSearch` and `runDeepSearch` are replace
 1. Add exports:
    ```ts
    export { runToonMigrate, buildSpecIndex, buildFixIndex, readManifestToon } from "./commands/toon-migrate.ts";
-   export type { MigrateResult } from "./commands/toon-migrate.ts";
-   export type { SearchResultEntry } from "./commands/search.ts";  // business type lives in core
+   export type { MigrateResult, ManifestEntry } from "./commands/toon-migrate.ts";
+   export type { SearchResultEntry } from "./commands/search.ts";
    ```
 2. Change `runSearch` export — same name, new signature
 3. Remove `runDeepSearch` export
-4. Re-export `ManifestEntry` from `@relic/utility` (codec type, available to all core consumers)
-5. Keep old `SearchResult` (with score) as internal in `types.ts` or remove it — it is
-   superseded by `SearchResultEntry`; no public consumers rely on it from outside core
+4. Remove old `SearchResult` type from public exports in `types.ts` (superseded by `SearchResultEntry`)
+5. **Do NOT re-export `ManifestEntry` from `@relic/utility`** — it is no longer defined there
 
 ### Phase 11 — `packages/cli-node`: rewrite `bin.ts` and `bin.debug.ts`
 
@@ -295,7 +302,7 @@ Targeted changes per FR-13:
 | File | Change needed |
 |---|---|
 | `specify.md` | Replace `relic deep-search` fallback with `relic search --deep`; add post-creation step: run `relic search --deep --spec`, append new spec's entry with populated tags+tldr to `specs/manifest.toon` |
-| `plan.md` | Replace `relic deep-search` with `relic search --deep`; already uses `relic search` for Step A |
+| `plan.md` (prompt) | Replace `relic deep-search` with `relic search --deep`; already uses `relic search` for Step A |
 | `fix.md` | Replace `manifest.json` registration steps with `manifest.toon` append via toon format; replace any deep-search refs |
 | `scan.md` | Replace `shared/*/manifest.json` write instructions with `manifest.toon` append instructions |
 | `clarify.md`, `analyse.md`, `tasks.md`, `implement.md`, `solve.md`, `use.md`, `constitution.md` | Audit for any `deep-search` or `manifest.json` direct-read references; replace with `relic search --deep` |

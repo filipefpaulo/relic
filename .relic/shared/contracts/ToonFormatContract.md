@@ -38,23 +38,47 @@ Empty fields are written as empty strings between pipes: `Name | file | | ` (sti
 - Leading/trailing whitespace on each field is trimmed by parsers
 - Fields must never contain the literal string ` | ` — sanitise input when encoding
 
+## Field primitive type
+
+```typescript
+type ToonField = string | number | boolean | string[];
+```
+
+Exported from `@relic/utility`. This is a format constraint, not a domain type. It defines what
+can appear as a field value in a toon row. Callers pass typed tuples directly — no pre-serialization
+to `string[]` needed.
+
 ## Encoder contract (`encodeToon`)
 
-Input: `ManifestEntry[]`
+```typescript
+encodeToon<T extends ToonField[]>(rows: T[], header?: string): string
+```
+
+Input: `T[]` where `T extends ToonField[]` — typed rows. The codec has no knowledge of domain types.
 Output: UTF-8 string
-- First line: `# manifest` (comment header)
-- Each subsequent line: fields joined by ` | ` in the order: `name | file | tags.join(" ") | tldr`
-- Empty input produces a string containing only the comment header line
-- Fields are written verbatim — no truncation, no length enforcement
+- First line: `# <header>` (default: `# manifest`)
+- Each row: serialise each field then join with ` | `
+- Per-field serialisation:
+  - `string` → verbatim; sanitise ` | ` → ` - `
+  - `number | boolean` → `.toString()` (cannot contain ` | `; no sanitise needed)
+  - `string[]` → `.join(" ")`; sanitise result if it contains ` | `
+- Empty input produces a string with only the header comment line
+- No truncation, no length enforcement
+- **Field ordering and field meaning are the caller's responsibility.**
 
 ## Decoder contract (`decodeToon`)
 
+```typescript
+decodeToon(content: string): string[][]
+```
+
 Input: UTF-8 string
-Output: `ManifestEntry[]`
+Output: `string[][]` — one inner array per valid data line. The codec returns raw strings.
 - Skip lines that are blank or start with `#`
-- Split on ` | ` (exactly 4 fields expected); malformed lines are skipped with a console warning
-- `tags` field: split on whitespace → `string[]` (empty string → `[]`)
-- Result count must equal non-comment, non-blank line count of valid input
+- Split each line on ` | `; malformed lines (unexpected field count) skipped with `console.warn`
+- Trim leading/trailing whitespace on each field
+- Tolerate `\r\n` line endings
+- **The caller is responsible for mapping string arrays to domain types.**
 
 ## CLI output line format (relic search)
 
@@ -87,11 +111,15 @@ A comment header line is always the first line of output:
 
 ## Types
 
+`@relic/utility/toon.ts` exports **no types**. The codec is a pure string-row serialiser.
+
+Domain types live in `@relic/core`:
+
 ```typescript
-// @relic/utility — codec type only; lives here because encodeToon/decodeToon require it
+// @relic/core/commands/toon-migrate.ts — universal stored entry for all three index spaces
 type ManifestEntry = { name: string; file: string; tags: string[]; tldr: string };
 
-// @relic/core — search business type; must NOT be exported from @relic/utility
+// @relic/core/commands/search.ts — search result; returned by relic search --json
 type SearchResultEntry = {
   source: "knowledge" | "spec" | "fix";
   name: string;
@@ -103,16 +131,12 @@ type SearchResultEntry = {
 ```
 
 `ManifestEntry` is the universal stored type for all three index spaces — no separate
-`SpecIndexEntry` or `FixIndexEntry` types.
+`SpecIndexEntry` or `FixIndexEntry` types. It is exported from `@relic/core`.
 
-`ManifestEntry` is exported from `@relic/utility`. `SearchResultEntry` is exported from
-`@relic/core` — it is the type returned by `relic search --json`.
-
-**The toon codec (`toon.ts`) must not export search or domain types.** It exports only
-what it needs: `ManifestEntry`, `encodeToon`, `decodeToon`.
+`SearchResultEntry` is exported from `@relic/core` — it is the type returned by `relic search --json`.
 
 ## Consumers
-- `relic search` — reads `manifest.toon` files (scored or `--deep`); outputs 5-field toon lines
+- `relic search` — reads `manifest.toon` files (scored or `--deep`); outputs 6-field toon lines
 - `relic validate` — reads `manifest.toon` as the authoritative index; warns if json-only
 - `relic toon-migrate` — writes all `manifest.toon` files from `manifest.json` sources;
   also generates `specs/manifest.toon` and `fixes/manifest.toon` via internal builders
