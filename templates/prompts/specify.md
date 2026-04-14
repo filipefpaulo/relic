@@ -37,9 +37,9 @@ You are helping create a new spec for this project.
 
    **Step B — full brain scan (fallback, only if Step A is insufficient):**
    ```bash
-   relic deep-search
+   relic search --deep
    ```
-   Read only the `tldr` field of each entry. Identify which artifacts are relevant to this spec,
+   Read only the `tldr` field of each result. Identify which artifacts are relevant to this spec,
    then read those full files. Do not read all files indiscriminately.
 
 ## Your task
@@ -68,6 +68,23 @@ Before writing `artifacts.json`, check:
 - Do any existing `specs/*/artifacts.json` files claim `owns` of the same files or artifacts?
 - If yes, flag the conflict in **Open Questions** — do NOT claim conflicting ownership.
 
+## After spec is written — register in spec index
+
+Run:
+```bash
+relic search --deep --spec
+```
+
+This returns the current `specs/manifest.toon` content. Append the new spec's entry to
+`specs/manifest.toon` using the toon format:
+
+```
+<spec title> | <spec-id>/ | <tags from Overview> | <one-sentence tldr from Overview>
+```
+
+Populate `tags` (4–8 lowercase keywords from the spec domain) and `tldr` (one sentence from
+the Overview). You do not need to read other specs — only add your own entry.
+
 ## What NOT to do
 
 - Do not create a `plan.md` — that is the `plan` step.
@@ -78,4 +95,5 @@ Before writing `artifacts.json`, check:
 
 - `spec.md` is complete and clear.
 - `artifacts.json` is populated with correct `owns`, `reads`, `touches_files`.
+- New spec entry has been appended to `specs/manifest.toon`.
 - Any intersection concerns are flagged in Open Questions.

@@ -29,7 +29,19 @@ export async function runInit(options: InitOptions): Promise<void> {
   ];
   for (const d of dirs) ensureDir(d);
 
-  writeText(join(relicDir, "fixes", "manifest.json"), "[]\n");
+  // Write empty toon index files for each index space
+  const TOON_INIT_FILES: Array<[string, string]> = [
+    ["shared/domains/manifest.toon", "# domains manifest\n"],
+    ["shared/contracts/manifest.toon", "# contracts manifest\n"],
+    ["shared/rules/manifest.toon", "# rules manifest\n"],
+    ["shared/assumptions/manifest.toon", "# assumptions manifest\n"],
+    ["specs/manifest.toon", "# specs index\n"],
+    ["fixes/manifest.toon", "# fixes index\n"],
+  ];
+  for (const [rel, content] of TOON_INIT_FILES) {
+    writeText(join(relicDir, rel), content);
+  }
+
   writeJson(join(relicDir, "session.json"), { spec: null, fix: null });
   writeText(join(relicDir, ".gitignore"), "session.json\n");
   writeText(join(relicDir, "preamble.md"), TEMPLATES["preamble.md"] ?? "");
@@ -48,7 +60,12 @@ export async function runInit(options: InitOptions): Promise<void> {
   console.log("  .relic/shared/  (domains/, contracts/, rules/, assumptions/)");
   console.log("  .relic/specs/");
   console.log("  .relic/fixes/");
-  console.log("  .relic/fixes/manifest.json");
+  console.log("  .relic/shared/domains/manifest.toon");
+  console.log("  .relic/shared/contracts/manifest.toon");
+  console.log("  .relic/shared/rules/manifest.toon");
+  console.log("  .relic/shared/assumptions/manifest.toon");
+  console.log("  .relic/specs/manifest.toon");
+  console.log("  .relic/fixes/manifest.toon");
   console.log("  .relic/session.json  (gitignored — personal session state)");
   console.log("  .relic/.gitignore  (ignores session.json — personal session state)");
   console.log("");

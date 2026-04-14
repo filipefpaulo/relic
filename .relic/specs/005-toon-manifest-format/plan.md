@@ -210,7 +210,7 @@ This is a full rewrite. The existing `runSearch` and `runDeepSearch` are replace
      writeText(join(relicDir, rel), content);
    }
    ```
-2. Keep `fixes/manifest.json` write (backward compat) — or decide to drop it. Keep it for now since `manifest.json` coexistence is in scope.
+2. Do NOT write `fixes/manifest.json` — fresh init is toon-only. JSON coexistence applies to existing projects (upgrade path), not to fresh installs. (fix: 2026-04-14-init-must-not-write-manifest-json)
 3. Update console output to list the new toon files created.
 
 ### Phase 7 — `@relic/core`: update `upgrade.ts`

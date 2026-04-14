@@ -7,7 +7,7 @@
 
 ## Phase 1 — `@relic/utility`: toon codec
 
-- [ ] **T-01** Create `packages/utility/src/toon.ts`
+- [x] **T-01** Create `packages/utility/src/toon.ts`
   - Export `type ToonField = string | number | boolean | string[]` — format constraint, not a domain type
   - Export `encodeToon<T extends ToonField[]>(rows: T[], header?: string): string`
     - First line: `# <header>` (default: `# manifest`)
@@ -22,7 +22,7 @@
     - Returns raw `string[][]` — caller maps to domain types
   - **`ToonField` is the only exported type** — no domain types (`ManifestEntry`, `SearchResultEntry`)
 
-- [ ] **T-02** Update `packages/utility/src/index.ts`
+- [x] **T-02** Update `packages/utility/src/index.ts`
   - Add: `export type { ToonField } from "./toon.ts";`
   - Add: `export { encodeToon, decodeToon } from "./toon.ts";`
   - No domain type exports from utility
@@ -31,7 +31,7 @@
 
 ## Phase 2 — `@relic/utility`: toon tests
 
-- [ ] **T-03** Create `packages/utility/src/__tests__/toon.test.ts`
+- [x] **T-03** Create `packages/utility/src/__tests__/toon.test.ts`
   - `encodeToon`: empty rows array → header-only string
   - `encodeToon`: `string` field → verbatim; field containing ` | ` → sanitised to ` - `
   - `encodeToon`: `number` field → `.toString()` in output
@@ -48,7 +48,7 @@
 
 ## Phase 3 — `@relic/core`: `toon-migrate.ts`
 
-- [ ] **T-04** Create `packages/core/src/commands/toon-migrate.ts`
+- [x] **T-04** Create `packages/core/src/commands/toon-migrate.ts`
 
   **Define and export `ManifestEntry`** — lives here, not in `@relic/utility`:
   ```ts
@@ -87,7 +87,7 @@
 
 ## Phase 4 — `@relic/core`: rewrite `search.ts`
 
-- [ ] **T-05** Rewrite `packages/core/src/commands/search.ts`
+- [x] **T-05** Rewrite `packages/core/src/commands/search.ts`
 
   **Define and export `SearchResultEntry`** in this file (business type, not utility):
   ```ts
@@ -131,7 +131,7 @@
 
 ## Phase 5 — `@relic/core`: update `validate.ts`
 
-- [ ] **T-06** Modify `packages/core/src/commands/validate.ts`
+- [x] **T-06** Modify `packages/core/src/commands/validate.ts`
   - Add `warnings: string[]` to `ValidateResult` interface
   - In the shared subdir loop, prefer `manifest.toon` over `manifest.json`:
     - If `manifest.toon` exists → `decodeToon(readText(...))` → use as registered entry set
@@ -145,7 +145,7 @@
 
 ## Phase 6 — `@relic/core`: update `init.ts`
 
-- [ ] **T-07** Modify `packages/core/src/commands/init.ts`
+- [x] **T-07** Modify `packages/core/src/commands/init.ts`
   - After creating all dirs, write 6 empty toon index files:
     - `shared/domains/manifest.toon` → `"# domains manifest\n"`
     - `shared/contracts/manifest.toon` → `"# contracts manifest\n"`
@@ -153,14 +153,14 @@
     - `shared/assumptions/manifest.toon` → `"# assumptions manifest\n"`
     - `specs/manifest.toon` → `"# specs index\n"`
     - `fixes/manifest.toon` → `"# fixes index\n"`
-  - Keep existing `fixes/manifest.json` write (coexistence — both formats on init)
+  - Do NOT write `fixes/manifest.json` — fresh init is toon-only (fix: 2026-04-14-init-must-not-write-manifest-json)
   - Update console output to list the 6 new toon files
 
 ---
 
 ## Phase 7 — `@relic/core`: update `upgrade.ts`
 
-- [ ] **T-08** Modify `packages/core/src/commands/upgrade.ts`
+- [x] **T-08** Modify `packages/core/src/commands/upgrade.ts`
   - Add `toon_migrated: boolean` and `toon_warnings: string[]` to `UpgradeResult`
   - Inside the existing `if (relicDir)` block (after `refreshHooks`), call:
     1. `const migrateResult = await runToonMigrate(relicDir)`
@@ -172,7 +172,7 @@
 
 ## Phase 8 — `@relic/core`: toon-migrate tests
 
-- [ ] **T-09** Create `packages/core/src/__tests__/toon-migrate.test.ts` (temp dirs)
+- [x] **T-09** Create `packages/core/src/__tests__/toon-migrate.test.ts` (temp dirs)
   - `readManifestToon`: returns entries from `.toon` when it exists
   - `readManifestToon`: falls back to `.json` when `.toon` absent; writes `.toon`; warns
   - `readManifestToon`: returns `[]` when neither format exists
@@ -188,7 +188,7 @@
 
 ## Phase 9 — `@relic/core`: search tests
 
-- [ ] **T-10** Create `packages/core/src/__tests__/search.test.ts` (temp dirs)
+- [x] **T-10** Create `packages/core/src/__tests__/search.test.ts` (temp dirs)
   - No keywords + no `--deep` → exits with error
   - `--deep` no keywords → all entries returned, `score: 0` on every entry
   - `--knowledge` → knowledge entries only
@@ -204,7 +204,7 @@
 
 ## Phase 10 — `@relic/core`: update `core/index.ts`
 
-- [ ] **T-11** Modify `packages/core/src/index.ts`
+- [x] **T-11** Modify `packages/core/src/index.ts`
   - Add:
     ```ts
     export { runToonMigrate, buildSpecIndex, buildFixIndex, readManifestToon } from "./commands/toon-migrate.ts";
@@ -219,21 +219,21 @@
 
 ## Phase 11 — `packages/cli-node`: rewrite bin files
 
-- [ ] **T-12** Modify `packages/cli-node/src/bin.ts`
+- [x] **T-12** Modify `packages/cli-node/src/bin.ts`
   - Add `runToonMigrate` to imports from `@relic/core`; remove `runDeepSearch`
   - **Rewrite `search` command** with all new flags:
     `[keywords...]`, `--deep`, `--knowledge`, `--spec`, `--fix`, `--json`
   - **Delete** the `deep-search` command block entirely
   - **Add `toon-migrate` command**: calls `runToonMigrate({ relicDir })`
 
-- [ ] **T-13** Modify `packages/cli-node/src/bin.debug.ts`
+- [x] **T-13** Modify `packages/cli-node/src/bin.debug.ts`
   - Mirror T-12 exactly
 
 ---
 
 ## Phase 12 — `templates/preamble.md`
 
-- [ ] **T-14** Modify `templates/preamble.md`
+- [x] **T-14** Modify `templates/preamble.md`
   - Add `## relic search — Mandatory Context Entry Point` section after `## Relic Operational Rules`
   - Include: command reference table (9 invocation forms), 6-field output format reminder,
     6 numbered enforcement rules (see plan FR-11 for full content)
@@ -242,26 +242,26 @@
 
 ## Phase 13 — `templates/prompts/*.md` audit
 
-- [ ] **T-15** Modify `templates/prompts/plan.md`
+- [x] **T-15** Modify `templates/prompts/plan.md`
   - Replace `relic deep-search` (Step B fallback) with `relic search --deep`
 
-- [ ] **T-16** Modify `templates/prompts/specify.md`
+- [x] **T-16** Modify `templates/prompts/specify.md`
   - Replace `relic deep-search` fallback with `relic search --deep`
   - Add post-creation step: run `relic search --deep --spec`, then append the new spec's
     entry (with `tags` and `tldr` populated from the spec's Overview) to `specs/manifest.toon`
 
-- [ ] **T-17** Modify `templates/prompts/fix.md`
+- [x] **T-17** Modify `templates/prompts/fix.md`
   - Replace Step 6 (`fixes/manifest.json` read/write) with toon equivalent:
     read `fixes/manifest.toon` via `decodeToon`, append new fix entry, write back via
     `encodeToon("# fixes index")`
   - Replace any `relic deep-search` references with `relic search --deep`
 
-- [ ] **T-18** Modify `templates/prompts/scan.md`
+- [x] **T-18** Modify `templates/prompts/scan.md`
   - Replace all four `shared/*/manifest.json` write instructions with toon append instructions:
     read existing `manifest.toon` via `decodeToon` (or start from `[]`), append new entry,
     write back via `encodeToon("# <subdir> manifest")`
 
-- [ ] **T-19** Audit remaining 7 prompt files:
+- [x] **T-19** Audit remaining 7 prompt files:
   `clarify.md`, `analyse.md`, `tasks.md`, `implement.md`, `solve.md`, `use.md`, `constitution.md`
   - Replace any `relic deep-search` occurrences with `relic search --deep`
   - Replace any direct `manifest.json` read/write instructions with toon equivalents

@@ -10,6 +10,7 @@ import {
 } from "@relic/utility";
 import { runAddEngine, SUPPORTED_ENGINES } from "@relic/engines";
 import { TEMPLATES } from "../generated/templates.ts";
+import { runToonMigrate } from "./toon-migrate.ts";
 
 // Injected at build time by bun build --define. Undefined in dev builds.
 declare const INSTALL_CHANNEL: string | undefined;
@@ -37,6 +38,8 @@ export interface UpgradeResult {
   binary_upgraded: boolean;
   hooks_refreshed: string[];
   preamble_updated: boolean;
+  toon_migrated: boolean;
+  toon_warnings: string[];
   warnings: string[];
 }
 
@@ -217,6 +220,8 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
       binary_upgraded: false,
       hooks_refreshed: [],
       preamble_updated: false,
+      toon_migrated: false,
+      toon_warnings: [],
       warnings: [],
     };
     await refreshHooks(relicDir, projectDir, result);
@@ -253,6 +258,8 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
       binary_upgraded: false,
       hooks_refreshed: [],
       preamble_updated: false,
+      toon_migrated: false,
+      toon_warnings: [],
       warnings: [],
     };
     if (options.text) {
@@ -268,6 +275,8 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
     binary_upgraded: false,
     hooks_refreshed: [],
     preamble_updated: false,
+    toon_migrated: false,
+    toon_warnings: [],
     warnings: [],
   };
 
@@ -277,6 +286,8 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
   if (relicDir) {
     const projectDir = join(relicDir, "..");
     await refreshHooks(relicDir, projectDir, result);
+    await runToonMigrate({ relicDir });
+    result.toon_migrated = true;
   } else {
     result.warnings.push(
       "Not in a Relic project — engine hooks were not refreshed. " +
@@ -289,6 +300,8 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
     if (result.hooks_refreshed.length > 0)
       console.log(`Hooks refreshed: ${result.hooks_refreshed.join(", ")}`);
     if (result.preamble_updated) console.log("preamble.md updated.");
+    if (result.toon_migrated) console.log("Toon indexes migrated/rebuilt.");
+    if (result.toon_warnings.length > 0) result.toon_warnings.forEach((w) => console.log(w));
     if (result.warnings.length > 0) result.warnings.forEach((w) => console.log(w));
   } else {
     console.log(JSON.stringify(result, null, 2));

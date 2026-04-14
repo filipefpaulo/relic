@@ -233,9 +233,7 @@ The `path` is derived at query time — it is not stored in the `.toon` file:
   2. Write `fixes/manifest.toon` with a comment header only (`# fixes index`).
   3. Write `shared/domains/manifest.toon`, `shared/contracts/manifest.toon`,
      `shared/rules/manifest.toon`, and `shared/assumptions/manifest.toon` — each with
-     a comment header only (`# <subdir> manifest`). These are the four subdirs that
-     `relic init` already creates; each gets an empty `.toon` alongside the existing
-     empty `manifest.json`.
+     a comment header only (`# <subdir> manifest`).
   All six files are always created empty. `relic init` does not call `buildSpecIndex`,
   `buildFixIndex`, or `runToonMigrate` — it has no dependency on migration logic.
   If the project already has content (re-init with `--force`), files are still written

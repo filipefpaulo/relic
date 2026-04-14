@@ -2,6 +2,35 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-14] fix — 005-toon-manifest-format / 2026-04-14-init-must-not-write-manifest-json
+
+Remove `fixes/manifest.json` write from `init.ts`. Fresh installs are toon-only; JSON coexistence applies only to upgrade paths where JSON already exists. Classification: misspecification — spec FR-10 and T-07 incorrectly preserved the JSON write for fresh init, conflating "coexistence for existing projects" with "coexistence from first init". Code changes: removed `writeText(…"manifest.json"…)` and its console log line. Knowledge layer: spec FR-10, plan Phase 6 step 2, and tasks T-07 updated to reflect toon-only init. Contract changes: none.
+
+## [2026-04-14] implement — 005-toon-manifest-format
+
+Implementation complete. All 19 tasks done (T-01 through T-19). 154 tests pass (16 new).
+
+**New files:**
+- `packages/utility/src/toon.ts` — generic toon codec; exports `ToonField`, `encodeToon<T>`, `decodeToon`
+- `packages/core/src/commands/toon-migrate.ts` — defines `ManifestEntry`; exports `readManifestToon`, `buildSpecIndex`, `buildFixIndex`, `runToonMigrate`
+- `packages/utility/src/__tests__/toon.test.ts` — 16 codec tests
+- `packages/core/src/__tests__/toon-migrate.test.ts` — 10 migration tests
+- (rewritten) `packages/core/src/__tests__/search.test.ts` — 11 search tests for new interface
+
+**Modified files:**
+- `packages/utility/src/index.ts` — exports `ToonField`, `encodeToon`, `decodeToon`
+- `packages/core/src/commands/search.ts` — full rewrite; `SearchResultEntry` defined here; `--deep`/`--knowledge`/`--spec`/`--fix`/`--json` flags; 6-field toon output; `runDeepSearch` deleted
+- `packages/core/src/commands/validate.ts` — prefers `manifest.toon`; JSON fallback warns; `warnings[]` in result
+- `packages/core/src/commands/init.ts` — writes 6 empty `.toon` index files on init
+- `packages/core/src/commands/upgrade.ts` — calls `runToonMigrate` after hooks refresh; `toon_migrated`/`toon_warnings` in result
+- `packages/core/src/index.ts` — exports new types and functions; removes `runDeepSearch`/`SearchResult`/`ManifestEntry` from types.ts
+- `packages/cli-node/src/bin.ts` + `bin.debug.ts` — `search` rewritten with all flags; `deep-search` deleted; `toon-migrate` command added
+- `templates/preamble.md` — `relic search` mandatory entry point section added
+- `templates/prompts/plan.md`, `specify.md`, `fix.md`, `scan.md` — `deep-search` → `search --deep`; manifest writes updated to toon
+- `.relic/preamble.md` — synced from updated template
+
+**One architectural decision during implementation:** `runToonMigrate` does not call `console.log` internally — the CLI bin command prints its own output. This allows upgrade.ts to call the function without polluting its own JSON output.
+
 ## [2026-04-14] clarify — 005-toon-manifest-format (9)
 
 **Generic encoder signature; `ToonField` type exported from `@relic/utility`.**
