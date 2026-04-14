@@ -73,10 +73,15 @@ by composing from that map. Permission configs are part of each engine's write o
   `prompts/specify.md`) and writes them as individual slash command files. Same content,
   new source.
 
-- **FR-6 (Runtime composition):** Copilot and Codex write functions assemble their
-  single-file output at runtime by reading multiple prompt keys from `ENGINE_TEMPLATES`
-  and concatenating them with appropriate headers. No duplication — a prompt change in
-  `templates/prompts/` propagates to all three engines via the shared map.
+- **FR-6 (Per-command files):** Copilot and Codex write functions write individual files —
+  one per prompt — by reading each key from `ENGINE_TEMPLATES`. This mirrors the Claude
+  pattern. No duplication — a prompt change in `templates/prompts/` propagates to all
+  three engines via the shared map.
+  - **Copilot:** writes `.github/prompts/relic.<name>.prompt.md` for each prompt name.
+    Each file includes a YAML frontmatter block (`description: Relic <name> command`)
+    followed by the prompt body. These appear as slash commands in Copilot Chat.
+  - **Codex:** writes `.codex/commands/relic.<name>.md` for each prompt name.
+    No frontmatter — prompt body written directly. These appear as slash commands in Codex.
 
 **Permission configs:**
 
@@ -163,7 +168,7 @@ by composing from that map. Permission configs are part of each engine's write o
 - New `scripts/embed-engine-templates.ts` — reads `templates/prompts/` only, writes `ENGINE_TEMPLATES` into `packages/engines/src/generated/`
 - `@relic/core` TEMPLATES map stripped of prompt keys (retains 5 scaffold templates)
 - `@relic/core` utils imports updated to point to `@relic/utility`
-- Runtime composition of Copilot and Codex single-file outputs from `ENGINE_TEMPLATES`
+- Per-command file output for Copilot (`.github/prompts/relic.*.prompt.md`) and Codex (`.codex/commands/relic.*.md`) from `ENGINE_TEMPLATES`
 - Permission configs: `.claude/settings.json` (FR-7), `.codex/config.toml` (FR-8)
 - `packages/core/src/commands/add-engine.ts` removed; `packages/core/src/index.ts` re-exports from `@relic/engines`
 - `package.json` `build:templates` updated to run both embed steps
@@ -216,8 +221,10 @@ by composing from that map. Permission configs are part of each engine's write o
 - **The 5 scaffold templates stay in `@relic/core`:** `preamble.md`, `constitution.md`,
   `spec.md`, `plan.md`, `tasks.md` are used by `init.ts` and `scaffold.ts` in core — they
   remain in `TEMPLATES` and are not touched by this spec.
-- **Runtime composition for Copilot/Codex:** Cheaper than a build-time concatenation step.
-  The write function reads N keys from `ENGINE_TEMPLATES` and concatenates — no extra tooling.
+- **Per-command file output for Copilot/Codex:** Each write function iterates PROMPT_NAMES,
+  reads the corresponding key from `ENGINE_TEMPLATES`, and writes one file per prompt — exactly
+  mirroring the Claude pattern. Copilot files get a YAML frontmatter block; Codex files are
+  written directly. No concatenation, no extra tooling.
 - **Codex TOML merge without a parser:** A string-contains check for `["relic"]` is
   sufficient for idempotency. Avoids adding a TOML dependency.
 - **Wildcard `Bash(relic *)` for Claude:** Covers all current and future subcommands.

@@ -2,24 +2,22 @@ import { join } from "path";
 import { ensureDir, writeText } from "@relic/utility";
 import { ENGINE_TEMPLATES } from "../../generated/engine-templates.ts";
 
-const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "use", "scan", "constitution"];
+const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "solve", "use", "scan", "constitution"];
 
 export function writeCopilot(projectDir: string): void {
-  const githubDir = join(projectDir, ".github");
-  ensureDir(githubDir);
+  const promptsDir = join(projectDir, ".github", "prompts");
+  ensureDir(promptsDir);
 
-  const sections = PROMPT_NAMES
-    .map((name) => {
-      const content = ENGINE_TEMPLATES[`prompts/${name}.md`];
-      if (!content) return null;
-      const heading = name.charAt(0).toUpperCase() + name.slice(1);
-      return `## ${heading}\n\n${content}`;
-    })
-    .filter((s): s is string => s !== null);
-
-  writeText(join(githubDir, "copilot-instructions.md"), sections.join("\n\n---\n\n"));
+  const written: string[] = [];
+  for (const name of PROMPT_NAMES) {
+    const content = ENGINE_TEMPLATES[`prompts/${name}.md`];
+    if (!content) continue;
+    const frontmatter = `---\ndescription: Relic ${name} command\n---\n\n`;
+    writeText(join(promptsDir, `relic.${name}.prompt.md`), frontmatter + content);
+    written.push(`.github/prompts/relic.${name}.prompt.md`);
+  }
 
   console.log("Added Copilot engine hooks:");
-  console.log("  .github/copilot-instructions.md");
+  for (const f of written) console.log(`  ${f}`);
   console.log("  (no permission config for Copilot)");
 }

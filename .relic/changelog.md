@@ -2,6 +2,24 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-13] fix — 002-agent-permission-config / 2026-04-13-copilot-codex-per-command-files
+
+Corrected Copilot engine to write individual `.github/prompts/relic.<name>.prompt.md` files (one per command, with YAML frontmatter) instead of a single `.github/copilot-instructions.md`. Corrected Codex engine to write individual `.codex/commands/relic.<name>.md` files instead of a single `.codex/instructions.md`. Also fixed both engines' PROMPT_NAMES to include "solve" (11 commands, matching Claude). Classification: misspecification — the implementation wrote single-file output despite FR-6 specifying per-file output; Decisions section incorrectly described "concatenation". No contract changes.
+
+## [2026-04-13] clarify — 002-agent-permission-config
+
+**Copilot and Codex engine output changed from single-file to per-command files.**
+
+FR-6 revised: both engines now write one file per prompt command, matching the Claude pattern.
+- Copilot: `.github/prompts/relic.<name>.prompt.md` with YAML frontmatter (`description: Relic <name> command`) — these appear as slash commands in Copilot Chat.
+- Codex: `.codex/commands/relic.<name>.md` with prompt body written directly — these appear as slash commands in Codex.
+
+Neither engine writes a single monolithic instruction file anymore. The template flow diagram in `plan.md` updated to reflect the new output paths. Phase 2 steps 3 & 4 and Phase 5 test assertions updated accordingly.
+
+Root cause: FR-6 originally specified "runtime composition into a single file" based on the incorrect assumption that Copilot and Codex only support monolithic instruction files. Both engines support native per-command slash command files.
+
+Fix reference: `2026-04-13-copilot-codex-per-command-files` (misspecification).
+
 ## [2026-04-13] implement — 004-cli-self-upgrade
 
 Implementation complete. 127 tests pass (39 utility + 9 engines + 79 core).

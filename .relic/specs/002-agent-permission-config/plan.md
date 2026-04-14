@@ -27,7 +27,7 @@ templates/prompts/  (10 files, only source of truth for prompts)
         ↓  embed-engine-templates.ts
 packages/engines/src/generated/engine-templates.ts  (ENGINE_TEMPLATES map)
         ↓  runtime, per-engine write function
-.claude/commands/*.md  |  .github/copilot-instructions.md  |  .codex/instructions.md
+.claude/commands/relic.*.md  |  .github/prompts/relic.*.prompt.md  |  .codex/commands/relic.*.md
 ```
 
 `templates/engines/` is deleted. `packages/core`'s `TEMPLATES` map retains only the 5
@@ -61,14 +61,16 @@ Phase 3 (build scripts) must run before Phase 5 (engines tests need `ENGINE_TEMP
 2. Create `packages/engines/src/engines/claude/index.ts` — write logic ported from
    `add-engine.ts` `writeClaude()`. Adds: write `.claude/settings.json` with
    `{ "permissions": { "allow": ["Bash(relic *)"] } }` (JSON merge, idempotent).
-3. Create `packages/engines/src/engines/copilot/index.ts` — write logic ported from
-   `add-engine.ts` `writeCopilot()`. Updated: instead of reading a single template key,
-   compose the output at runtime by reading all 10 `prompts/*.md` keys from `ENGINE_TEMPLATES`
-   with section headers, then write `copilot-instructions.md`. No permission file (N/A).
-4. Create `packages/engines/src/engines/codex/index.ts` — write logic ported from
-   `add-engine.ts` `writeCodex()`. Updated: runtime composition same as Copilot. Adds:
-   write `.codex/config.toml` with `[rules] prefix_rules = [{ pattern = ["relic"], decision = "allow" }]`
-   (string-based idempotency check for `["relic"]`, no TOML parser).
+3. Create `packages/engines/src/engines/copilot/index.ts` — write logic that creates
+   `.github/prompts/` and writes one `.github/prompts/relic.<name>.prompt.md` per prompt
+   name. Each file has a YAML frontmatter block (`description: Relic <name> command`)
+   followed by the prompt body from `ENGINE_TEMPLATES[`prompts/<name>.md`]`. No permission
+   file (N/A — Copilot has no permission mechanism).
+4. Create `packages/engines/src/engines/codex/index.ts` — write logic that creates
+   `.codex/commands/` and writes one `.codex/commands/relic.<name>.md` per prompt name.
+   Prompt body written directly — no frontmatter. Adds: write `.codex/config.toml` with
+   `[rules] prefix_rules = [{ pattern = ["relic"], decision = "allow" }]` (string-based
+   idempotency check for `["relic"]`, no TOML parser).
 5. Create `packages/engines/src/index.ts` — exports `runAddEngine`, `SUPPORTED_ENGINES`,
    `Engine` type, each engine's write function.
 
@@ -122,9 +124,8 @@ Phase 3 (build scripts) must run before Phase 5 (engines tests need `ENGINE_TEMP
    - `runAddEngine` claude: `.claude/commands/` created with correct file count; `.claude/settings.json`
      written with `Bash(relic *)` allow rule.
    - `runAddEngine` claude idempotency: calling twice does not duplicate the `allow` entry.
-   - `runAddEngine` copilot: `.github/copilot-instructions.md` created; content contains prompt section headers.
-   - `runAddEngine` codex: `.codex/instructions.md` created; `.codex/config.toml` written
-     with `["relic"]` rule.
+   - `runAddEngine` copilot: `.github/prompts/` created with correct file count (one per prompt); each file contains YAML frontmatter and prompt body. `.github/copilot-instructions.md` is NOT written.
+   - `runAddEngine` codex: `.codex/commands/` created with correct file count (one per prompt); each file contains prompt body directly. `.codex/instructions.md` is NOT written. `.codex/config.toml` written with `["relic"]` rule.
    - `runAddEngine` codex idempotency: calling twice does not duplicate the config.toml rule.
    - `ENGINE_TEMPLATES` contains all 10 expected `prompts/*.md` keys (smoke test for build step).
 
@@ -151,8 +152,8 @@ Phase 3 (build scripts) must run before Phase 5 (engines tests need `ENGINE_TEMP
 | `packages/engines/package.json` | create | `@relic/engines`, dep on `@relic/utility` |
 | `packages/engines/src/index.ts` | create | exports `runAddEngine`, `SUPPORTED_ENGINES`, `Engine` |
 | `packages/engines/src/engines/claude/index.ts` | create | write logic + settings.json |
-| `packages/engines/src/engines/copilot/index.ts` | create | runtime composition + N/A note |
-| `packages/engines/src/engines/codex/index.ts` | create | runtime composition + config.toml |
+| `packages/engines/src/engines/copilot/index.ts` | create | per-command `.github/prompts/relic.*.prompt.md` + YAML frontmatter |
+| `packages/engines/src/engines/codex/index.ts` | create | per-command `.codex/commands/relic.*.md` + config.toml |
 | `packages/engines/src/__tests__/add-engine.test.ts` | create | per-engine output + idempotency |
 | `packages/engines/src/generated/engine-templates.ts` | create (generated, gitignored) | output of embed-engine-templates.ts — must NOT be committed |
 | `packages/engines/.gitignore` | create | package-level gitignore: `src/generated/` |
