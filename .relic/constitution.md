@@ -108,11 +108,25 @@ No section may be removed — only superseded by a dated amendment.
 If spec and constitution conflict, constitution wins.
 Run `/relic.constitution` again to update this document as the codebase evolves.
 
-**Version**: 1.0 | **Ratified**: 2026-04-12 | **Last Amended**: 2026-04-13
+**Version**: 1.0 | **Ratified**: 2026-04-12 | **Last Amended**: 2026-04-14 (v2)
 
 ---
 
 ## Amendments
+
+### [2026-04-14] Toon is the enforced default for all LLM-facing list commands
+
+**Supersedes Principle V in full for list-returning commands, and supersedes the earlier 2026-04-14 amendment.**
+
+JSON is dropped as the default output format for any CLI command that returns a flat list of entries consumed by the LLM. **Toon is the enforced default.** Writing toon index files and then returning JSON to the LLM defeats the entire purpose of the format. The LLM's input must be toon — compact, scannable, and token-efficient.
+
+**Toon-default commands:** `relic search`, `relic deep-search`. The `--json` flag enables JSON output for machine consumers.
+
+**JSON-default commands (return structured objects, not flat lists):** `relic context`, `relic validate`, `relic scaffold`, `relic spec-index`, `relic fix-index`, `relic toon-migrate`. These return rich structured objects — JSON remains appropriate. The `--text` flag convention for human-readable output is unchanged where applicable.
+
+Any future command that returns a flat list of entries for LLM consumption must default to toon output. Any future command that returns a structured object must default to JSON.
+
+Authorised by spec 005-toon-manifest-format.
 
 ### [2026-04-13] session.json replaces current-spec
 
