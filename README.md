@@ -124,8 +124,8 @@ relic add-engine copilot                # add to an existing project
 | Engine | Hook location | Format |
 |---|---|---|
 | Claude Code | `.claude/commands/relic.*.md` | 11 slash commands |
-| GitHub Copilot | `.github/copilot-instructions.md` | Consolidated workspace instructions |
-| Codex | `.codex/instructions.md` | Agent instructions |
+| GitHub Copilot | `.github/prompts/relic.*.prompt.md` | 11 slash commands (with YAML frontmatter) |
+| Codex | `.codex/commands/relic.*.md` | 11 slash commands |
 
 ---
 
