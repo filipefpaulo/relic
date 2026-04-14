@@ -53,25 +53,43 @@ describe("Claude engine", () => {
 });
 
 describe("Copilot engine", () => {
-  test("writes .github/copilot-instructions.md", async () => {
+  test("writes one .github/prompts/relic.*.prompt.md per prompt", async () => {
     await runAddEngine({ engine: "copilot", projectDir: dir });
-    expect(existsSync(join(dir, ".github", "copilot-instructions.md"))).toBe(true);
+    const promptsDir = join(dir, ".github", "prompts");
+    expect(existsSync(promptsDir)).toBe(true);
+    const files = (await import("fs")).readdirSync(promptsDir);
+    expect(files.length).toBe(11);
+    expect(files.every((f: string) => f.startsWith("relic.") && f.endsWith(".prompt.md"))).toBe(true);
   });
 
-  test("content includes at least one prompt section header", async () => {
+  test("each file contains YAML frontmatter and prompt body", async () => {
     await runAddEngine({ engine: "copilot", projectDir: dir });
     const content = readFileSync(
-      join(dir, ".github", "copilot-instructions.md"),
+      join(dir, ".github", "prompts", "relic.specify.prompt.md"),
       "utf8"
     );
-    expect(content).toMatch(/^## \w+/m);
+    expect(content).toMatch(/^---\ndescription: Relic specify command\n---/);
+  });
+
+  test("does NOT write .github/copilot-instructions.md", async () => {
+    await runAddEngine({ engine: "copilot", projectDir: dir });
+    expect(existsSync(join(dir, ".github", "copilot-instructions.md"))).toBe(false);
   });
 });
 
 describe("Codex engine", () => {
-  test("writes .codex/instructions.md", async () => {
+  test("writes one .codex/commands/relic.*.md per prompt", async () => {
     await runAddEngine({ engine: "codex", projectDir: dir });
-    expect(existsSync(join(dir, ".codex", "instructions.md"))).toBe(true);
+    const commandsDir = join(dir, ".codex", "commands");
+    expect(existsSync(commandsDir)).toBe(true);
+    const files = (await import("fs")).readdirSync(commandsDir);
+    expect(files.length).toBe(11);
+    expect(files.every((f: string) => f.startsWith("relic.") && f.endsWith(".md"))).toBe(true);
+  });
+
+  test("does NOT write .codex/instructions.md", async () => {
+    await runAddEngine({ engine: "codex", projectDir: dir });
+    expect(existsSync(join(dir, ".codex", "instructions.md"))).toBe(false);
   });
 
   test("writes .codex/config.toml with [\"relic\"] pattern", async () => {

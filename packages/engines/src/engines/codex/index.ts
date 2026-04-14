@@ -2,7 +2,7 @@ import { join } from "path";
 import { ensureDir, writeText, fileExists, readText } from "@relic/utility";
 import { ENGINE_TEMPLATES } from "../../generated/engine-templates.ts";
 
-const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "use", "scan", "constitution"];
+const PROMPT_NAMES = ["specify", "clarify", "plan", "analyse", "tasks", "implement", "fix", "solve", "use", "scan", "constitution"];
 
 const CODEX_CONFIG_BLOCK = `[rules]
 prefix_rules = [
@@ -11,21 +11,18 @@ prefix_rules = [
 `;
 
 export function writeCodex(projectDir: string): void {
-  const codexDir = join(projectDir, ".codex");
-  ensureDir(codexDir);
+  const commandsDir = join(projectDir, ".codex", "commands");
+  ensureDir(commandsDir);
 
-  const sections = PROMPT_NAMES
-    .map((name) => {
-      const content = ENGINE_TEMPLATES[`prompts/${name}.md`];
-      if (!content) return null;
-      const heading = name.charAt(0).toUpperCase() + name.slice(1);
-      return `## ${heading}\n\n${content}`;
-    })
-    .filter((s): s is string => s !== null);
+  const written: string[] = [];
+  for (const name of PROMPT_NAMES) {
+    const content = ENGINE_TEMPLATES[`prompts/${name}.md`];
+    if (!content) continue;
+    writeText(join(commandsDir, `relic.${name}.md`), content);
+    written.push(`.codex/commands/relic.${name}.md`);
+  }
 
-  writeText(join(codexDir, "instructions.md"), sections.join("\n\n---\n\n"));
-
-  const configPath = join(codexDir, "config.toml");
+  const configPath = join(projectDir, ".codex", "config.toml");
   const alreadyConfigured =
     fileExists(configPath) && readText(configPath).includes('["relic"]');
   if (!alreadyConfigured) {
@@ -33,6 +30,6 @@ export function writeCodex(projectDir: string): void {
   }
 
   console.log("Added Codex engine hooks:");
-  console.log("  .codex/instructions.md");
+  for (const f of written) console.log(`  ${f}`);
   console.log("  .codex/config.toml  (relic prefix_rules allow)");
 }

@@ -7,6 +7,21 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- `relic add-engine copilot` now writes individual `.github/prompts/relic.<name>.prompt.md`
+  files (one per command, with YAML frontmatter `description: Relic <name> command`) instead
+  of a single `.github/copilot-instructions.md`. These appear as native slash commands in
+  Copilot Chat (type `/` to pick from the list).
+- `relic add-engine codex` now writes individual `.codex/commands/relic.<name>.md` files
+  (one per command, prompt body written directly) instead of a single `.codex/instructions.md`.
+  These appear as native slash commands in Codex.
+- Both Copilot and Codex engines now include the `/relic.solve` command (11 commands total,
+  in parity with Claude Code).
+
+---
+
 ## [0.4.0] — 2026-04-13
 
 ### Added
@@ -23,9 +38,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
   Idempotent — skipped if `["relic"]` already present.
 
 ### Changed
-- Copilot and Codex single-file outputs are now assembled at runtime from `ENGINE_TEMPLATES`
-  (sourced from `templates/prompts/`). A prompt change in `templates/prompts/` now propagates
-  to all three engines automatically on the next build.
+- Copilot and Codex outputs are now generated at runtime from `ENGINE_TEMPLATES` (sourced
+  from `templates/prompts/`). A prompt change in `templates/prompts/` propagates to all
+  three engines automatically on the next build. (Note: the per-command file format shipped
+  in the Unreleased fix above; this release shipped the template pipeline that enables it.)
 - `build:templates` now runs `build:engine-templates` first (generates `ENGINE_TEMPLATES` in
   `packages/engines/src/generated/`) before the core scaffold template embed step.
 - `packages/core` imports `fs.ts` and `spec-id.ts` utilities from `@relic/utility`;

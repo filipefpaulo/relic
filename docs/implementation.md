@@ -32,13 +32,14 @@ agent the developer uses:
 
 | Engine | Files written | How AI picks them up |
 |---|---|---|
-| `claude` | `.claude/commands/relic.*.md` (9 slash commands) | Claude Code `/relic.*` |
-| `copilot` | `.github/copilot-instructions.md` | GitHub Copilot workspace context |
-| `codex` | `.codex/instructions.md` | OpenAI Codex agent context |
+| `claude` | `.claude/commands/relic.*.md` (11 slash commands) | Claude Code `/relic.*` |
+| `copilot` | `.github/prompts/relic.*.prompt.md` (11 files, YAML frontmatter) | Copilot Chat `/relic.*` |
+| `codex` | `.codex/commands/relic.*.md` (11 slash commands) | Codex `/relic.*` |
 
-**Design decision:** The Copilot and Codex files are single consolidated documents
-(one file, all workflow commands), while Claude gets individual per-command files
-(one file per slash command). This matches each engine's convention.
+**Design decision:** All three engines use the same per-command file pattern — one file per
+slash command. Claude writes to `.claude/commands/`, Copilot to `.github/prompts/` (with YAML
+frontmatter), and Codex to `.codex/commands/`. This was corrected post-0.4.0; the initial
+implementation incorrectly used single consolidated files for Copilot and Codex.
 
 `relic init` defaults to `--engine claude`. Multiple engines can be specified:
 `relic init --engine claude,copilot`.
@@ -189,8 +190,7 @@ All three default to JSON output (`--text` for human-readable), matching the old
 **`relic init` after Phase 8:** No longer writes `.relic/scripts/` or `.relic/templates/`.
 Projects that upgraded from an earlier version can safely delete those folders.
 
-**All AI prompt templates and engine instructions** (`copilot-instructions.md`, `instructions.md`)
-updated to invoke `relic <command>` directly.
+**All AI prompt templates and engine instruction files** updated to invoke `relic <command>` directly.
 
 ### Phase 10 — Monorepo restructure: `@relic/utility`, `@relic/engines`, permission configs
 
@@ -240,16 +240,16 @@ after `git pull` — no manual setup per developer.
 **Template flow after this phase:**
 
 ```
-templates/prompts/  (10 files — sole source of truth for all prompt content)
+templates/prompts/  (11 files — sole source of truth for all prompt content)
         ↓  scripts/embed-engine-templates.ts
 packages/engines/src/generated/engine-templates.ts  (ENGINE_TEMPLATES, gitignored)
         ↓  runtime, per-engine write function
-.claude/commands/*.md  |  .github/copilot-instructions.md  |  .codex/instructions.md
+.claude/commands/relic.*.md  |  .github/prompts/relic.*.prompt.md  |  .codex/commands/relic.*.md
 ```
 
-`templates/engines/` was deleted. Copilot and Codex outputs are assembled at runtime from
-`ENGINE_TEMPLATES` with section headers — a change to any prompt in `templates/prompts/`
-propagates to all three engines on the next `bun run build:engine-templates`.
+`templates/engines/` was deleted. All three engines write one file per prompt command at
+runtime from `ENGINE_TEMPLATES` — a change to any prompt in `templates/prompts/` propagates
+to all three engines on the next `bun run build:engine-templates`.
 
 `packages/core/src/generated/templates.ts` now contains only the 5 scaffold templates
 (`preamble.md`, `constitution.md`, `spec.md`, `plan.md`, `tasks.md`).
