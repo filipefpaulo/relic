@@ -1,0 +1,6 @@
+# specs index
+Agent Permission Config | 002-agent-permission-config/ |  | 
+Toon Manifest Format | 005-toon-manifest-format/ |  | 
+Fix Solve Workflow | 003-fix-solve-workflow/ |  | 
+Workflow Test Suite | 001-workflow-test-suite/ |  | 
+CLI Self Upgrade | 004-cli-self-upgrade/ |  | 

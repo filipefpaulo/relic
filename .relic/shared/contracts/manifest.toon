@@ -1,0 +1,11 @@
+# # contracts manifest
+ScanManifestContract | ScanManifestContract.md | scan manifest json key-files tech-stack file-tree | JSON output of `relic scan --json`: tech stack, key files, file tree, and existing artifacts.
+ContextResultContract | ContextResultContract.md | context json spec files artifacts resolution fix current-fix | JSON output of `relic context`: active spec, resolution source, file existence, shared artifact refs, and active fix ID.
+ArtifactsJsonContract | ArtifactsJsonContract.md | artifacts owns reads touches-files spec intersection | Per-spec artifacts.json declaring owns[], reads[], and touches_files[] relationships.
+ManifestJsonContract | ManifestJsonContract.md | manifest toon json index tags tldr search validate | Index of artifact files per shared/ subdirectory; toon format preferred over JSON fallback.
+ToonFormatContract | ToonFormatContract.md | toon format manifest compact token pipe encode decode | Compact pipe-delimited line format for Relic index files; replaces JSON manifests for token efficiency.
+SpecIndexContract | SpecIndexContract.md | spec index manifest toon spec-index status | specs/manifest.toon schema: one line per spec with id, title, status, and tldr.
+FixIndexContract | FixIndexContract.md | fix index manifest toon fix-index status owning-spec | fixes/manifest.toon schema: one line per fix document with id, owning-spec, status, and tldr.
+ScaffoldResultContract | ScaffoldResultContract.md | scaffold json spec new files-created | JSON output of `relic scaffold`: spec_id, spec_dir, was_new, and files_created.
+FixDocumentContract | FixDocumentContract.md | fix document schema classification status solve changelog | Schema for .relic/fixes/<fix-id>.md: classification, proposed changes, status, and changelog draft.
+SessionStateContract | SessionStateContract.md | session json session-spec session-fix spec fix gitignore state | Schema for .relic/session.json: unified gitignored session state holding active spec and fix IDs.

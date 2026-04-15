@@ -1,3 +1,3 @@
 # fixes index
-2026-04-13-copilot-codex-per-command-files | 2026-04-13-copilot-codex-per-command-files.md |  | Copilot and Codex engines write all commands to a single file; should write per-command files like Claude does
-2026-04-14-init-must-not-write-manifest-json | 2026-04-14-init-must-not-write-manifest-json.md |  | relic init writes manifest.json on fresh install; toon-only init should not create legacy JSON
+2026-04-13-copilot-codex-per-command-files | 2026-04-13-copilot-codex-per-command-files.md |  | 
+2026-04-14-init-must-not-write-manifest-json | 2026-04-14-init-must-not-write-manifest-json.md |  | 
