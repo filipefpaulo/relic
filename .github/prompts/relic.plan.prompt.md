@@ -36,9 +36,9 @@ You are creating an implementation plan for this spec.
 
    **Step B — full brain scan (fallback, only if Step A is insufficient):**
    ```bash
-   relic deep-search
+   relic search --deep
    ```
-   Read only `tldr` fields. Select and fully read only the artifacts with clear relevance to this plan.
+   Read only `tldr` fields from results. Select and fully read only the artifacts with clear relevance to this plan.
 
 4. Load ALL other specs' `artifacts.json` files from `specs/*/artifacts.json`.
 5. Run an intersection check:

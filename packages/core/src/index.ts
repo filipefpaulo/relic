@@ -19,10 +19,12 @@ export { runTasks } from "./commands/tasks.ts";
 export { runImplement } from "./commands/implement.ts";
 export { runUpgrade } from "./commands/upgrade.ts";
 export type { UpgradeOptions, UpgradeCheckResult, UpgradeResult } from "./commands/upgrade.ts";
+export { runWrite } from "./commands/write.ts";
+export type { WriteOptions, WriteResult, WriteTarget } from "./commands/write.ts";
 
 export { loadRegistry, buildOwnershipMap } from "./core/artifact-registry.ts";
 export { detectIntersections, formatIntersectionReport } from "./core/intersection.ts";
-export { appendChangelog, filterChangelog } from "./core/changelog.ts";
+export { appendChangelog, filterChangelog, appendChangelogEntry } from "./core/changelog.ts";
 export { buildContext, renderContext } from "./core/context-builder.ts";
 
 export { findRelicDir } from "@relic/utility";
@@ -35,6 +37,7 @@ export type {
   FileOverlapWarning,
   IntersectionReport,
   BuiltContext,
+  WritePayload,
 } from "./types.ts";
 
 export type { ChangelogEntry } from "./core/changelog.ts";

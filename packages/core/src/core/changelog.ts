@@ -1,5 +1,6 @@
 import { join } from "path";
 import { writeText, readText, fileExists } from "@relic/utility";
+import type { WritePayload } from "../types.ts";
 
 export interface ChangelogEntry {
   specId: string;
@@ -14,6 +15,19 @@ export function appendChangelog(relicDir: string, entry: ChangelogEntry): void {
   const block = `\n${heading}\n\n${entry.message}\n`;
   const existing = fileExists(path) ? readText(path) : "";
   writeText(path, existing + block);
+}
+
+export function appendChangelogEntry(relicDir: string, payload: WritePayload): void {
+  const filePath = join(relicDir, "changelog.md");
+  const timestamp = new Date().toISOString();
+  const slashCommand = payload.slash_command ?? "/relic.write";
+  const heading = `## [${timestamp}] ${slashCommand} — ${payload.name}`;
+  const body = payload.metadata
+    ? `${payload.description}\n\n${payload.metadata}`
+    : payload.description;
+  const block = `\n${heading}\n\n${body}\n`;
+  const existing = fileExists(filePath) ? readText(filePath) : "";
+  writeText(filePath, existing + block);
 }
 
 export function filterChangelog(relicDir: string, specId: string): string {

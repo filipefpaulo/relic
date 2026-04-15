@@ -170,23 +170,35 @@ How you would know this assumption is no longer valid.
 
 ---
 
-## Step 8 — Register artifacts in manifests
+## Step 8 — Register artifacts in toon manifests
 
-For every artifact you created, add an entry to the appropriate `manifest.json`:
+For every artifact you created, add an entry to the appropriate `manifest.toon`:
 
-- `shared/domains/manifest.json` for domain artifacts
-- `shared/contracts/manifest.json` for contract artifacts
-- `shared/rules/manifest.json` for rule artifacts
-- `shared/assumptions/manifest.json` for assumption artifacts
+- `shared/domains/manifest.toon` for domain artifacts
+- `shared/contracts/manifest.toon` for contract artifacts
+- `shared/rules/manifest.toon` for rule artifacts
+- `shared/assumptions/manifest.toon` for assumption artifacts
 
-If a manifest does not exist for a subdirectory, create it as an empty array `[]` first,
-then add your entries. Each entry must have:
+Each `manifest.toon` uses 4-field toon format: `<name> | <file> | <tags> | <tldr>`
+
+Read the existing file (or start from the header if new), then append one line per artifact:
+```
+<ArtifactName> | <ArtifactName>.md | <tag1> <tag2> <tag3> | One-sentence tldr.
+```
+
+If a `manifest.toon` does not exist yet, create it with just the header first:
+```
+# <subdir> manifest
+```
+Then append your entries.
+
+Each entry must have:
 - `name` — matches the `# Heading` in the artifact file
 - `file` — filename only (e.g. `UserAuth.md`)
+- `tags` — 4–8 space-separated lowercase keywords
 - `tldr` — one sentence summary of what the artifact covers
-- `tags` — 4–8 lowercase keywords
 
-Run `relic validate` after this step — it will fail if any `.md` files are unregistered.
+Run `relic validate` after this step — it will warn if any `.md` files are unregistered.
 
 ---
 

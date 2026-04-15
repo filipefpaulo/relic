@@ -1,0 +1,8 @@
+# # domains manifest
+SpecDomain | SpecDomain.md | spec feature plan tasks artifacts scaffold | Per-feature spec containers holding intent, plans, tasks, and artifact relationships.
+SharedArtifactDomain | SharedArtifactDomain.md | artifact shared manifest knowledge brain owns reads | The shared knowledge layer — domains, contracts, rules, assumptions indexed by manifest.json.
+SpecResolutionDomain | SpecResolutionDomain.md | spec resolution session-json session git branch env use | Priority chain for resolving the active spec: arg > env > session.json (session.spec) > git branch.
+DistributionDomain | DistributionDomain.md | distribution npm pypi publish version ci release | npm and PyPI packaging, version bumping, and CI publish workflows.
+TemplateDomain | TemplateDomain.md | template embed scaffold prompt engine init | Build-time template embedding; runtime template access via the TEMPLATES map.
+FixDomain | FixDomain.md | fix solve diagnosis session-fix session ownership cross-spec | Two-stage fix pipeline: /relic.fix diagnoses and proposes; /relic.solve applies after human review.
+UpgradeDomain | UpgradeDomain.md | upgrade install npm pypi channel engine hooks version refresh | Self-upgrade lifecycle: install channel detection, version check, binary upgrade, and engine hook refresh without touching project knowledge.

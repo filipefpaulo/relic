@@ -36,12 +36,18 @@ If yes, flag the intersection explicitly and do not proceed until resolved.
 
 Apply the user's clarification to `spec.md`:
 - Update requirements, user stories, scope, or decisions as needed.
-- If a shared artifact changes, update it and write a changelog entry.
+- If a shared artifact changes, update it.
 - Update `artifacts.json` if ownership or file touches change.
 
-## After changes
+## After changes — changelog (cross-artifact mutations only)
 
-Write a changelog entry to `.relic/changelog.md`:
+Only write a changelog entry if a shared artifact **owned by this spec** was amended in this
+clarify session. Do not write one for: spec.md edits, open question resolution, new artifact
+creation, or artifacts.json updates.
+
+If a cross-artifact mutation occurred, run:
+```bash
+relic write --changelog --payload '{"name":"<spec-id>: <what changed>","slash_command":"/relic.clarify","description":"<why it changed>"}'
 ```
-[clarify] {{SPEC_ID}}: [description of what changed and why]
-```
+
+Do not open or edit `changelog.md` directly.

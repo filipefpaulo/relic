@@ -1,0 +1,30 @@
+{
+  "owns": [
+    "shared/contracts/WriteCommandContract.md",
+    "shared/rules/ChangelogAppendOnlyRule.md"
+  ],
+  "reads": [
+    "shared/contracts/ToonFormatContract.md",
+    "shared/contracts/ManifestJsonContract.md",
+    "shared/contracts/SpecIndexContract.md",
+    "shared/contracts/FixIndexContract.md"
+  ],
+  "touches_files": [
+    "packages/core/src/commands/write.ts",
+    "packages/core/src/core/changelog.ts",
+    "packages/core/src/index.ts",
+    "packages/cli-node/src/bin.ts",
+    "packages/cli-node/src/bin.debug.ts",
+    "templates/prompts/specify.md",
+    "templates/prompts/clarify.md",
+    "templates/prompts/plan.md",
+    "templates/prompts/analyse.md",
+    "templates/prompts/tasks.md",
+    "templates/prompts/implement.md",
+    "templates/prompts/fix.md",
+    "templates/prompts/solve.md",
+    "templates/prompts/use.md",
+    "templates/prompts/scan.md",
+    "packages/core/src/__tests__/write.test.ts"
+  ]
+}

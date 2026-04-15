@@ -40,6 +40,15 @@ export interface SearchResult extends ManifestEntry {
   score: number;
 }
 
+export interface WritePayload {
+  name: string;
+  description: string;
+  file?: string;
+  slash_command?: string;
+  tags?: string[];
+  metadata?: string;
+}
+
 export interface BuiltContext {
   preamble: string;
   constitution: string;
