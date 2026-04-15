@@ -46,11 +46,10 @@ describe("runInit", () => {
     expect(session.fix).toBeNull();
   });
 
-  test("creates fixes/manifest.json as empty array", async () => {
+  test("creates fixes/manifest.toon as empty toon index", async () => {
     await runInit({ dir, force: false, engines: [] });
-    const manifest = JSON.parse(readFileSync(join(dir, ".relic", "fixes", "manifest.json"), "utf8"));
-    expect(Array.isArray(manifest)).toBe(true);
-    expect(manifest.length).toBe(0);
+    const content = readFileSync(join(dir, ".relic", "fixes", "manifest.toon"), "utf8");
+    expect(content).toContain("fixes index");
   });
 
   test("re-init with --force succeeds and files remain present", async () => {
