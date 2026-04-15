@@ -482,3 +482,7 @@ all 95 tests pass across 3 packages; `relic validate` reports `valid: true`.
   unchanged; import paths adjusted. Ownership of those files transfers to spec 002 at move
   time. Spec 001 retains ownership of shared/rules/TestingRules.md. Note added to spec
   001 Open Questions section for implementer awareness.
+
+## [2026-04-15T00:00:00.000Z] /relic.clarify — ChangelogAppendOnlyRule: tightened to cross-artifact-mutation-only
+
+Spec 006-structured-write-command clarify amended ChangelogAppendOnlyRule.md. The rule previously required a changelog entry for every plan mutation and fix event. It now requires entries only when a cross-artifact mutation occurs — when one command amends an artifact originally created by a different command (e.g. fix amending a spec, clarify changing a contract). Progress, completion, and new-entry creation events must not write changelog entries. Entry format also updated: `## [<ISO-date>] <slash-command> — <name>` with description body on following lines.

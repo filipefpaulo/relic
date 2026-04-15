@@ -4,3 +4,4 @@ Toon Manifest Format | 005-toon-manifest-format/ |  |
 Fix Solve Workflow | 003-fix-solve-workflow/ |  | 
 Workflow Test Suite | 001-workflow-test-suite/ |  | 
 CLI Self Upgrade | 004-cli-self-upgrade/ |  | 
+Structured Write Command | 006-structured-write-command/ | write changelog toon manifest index consistency multi-agent | Programmatic structured-write entry point so LLMs never hand-edit toon indexes or changelog files.

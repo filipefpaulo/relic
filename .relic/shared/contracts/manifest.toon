@@ -9,3 +9,4 @@ FixIndexContract | FixIndexContract.md | fix index manifest toon fix-index statu
 ScaffoldResultContract | ScaffoldResultContract.md | scaffold json spec new files-created | JSON output of `relic scaffold`: spec_id, spec_dir, was_new, and files_created.
 FixDocumentContract | FixDocumentContract.md | fix document schema classification status solve changelog | Schema for .relic/fixes/<fix-id>.md: classification, proposed changes, status, and changelog draft.
 SessionStateContract | SessionStateContract.md | session json session-spec session-fix spec fix gitignore state | Schema for .relic/session.json: unified gitignored session state holding active spec and fix IDs.
+WriteCommandContract | WriteCommandContract.md | write payload changelog toon index upsert structured llm multi-agent | relic write command: payload schema, target flags, and LLM rules for all structured file mutations.
