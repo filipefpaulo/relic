@@ -131,6 +131,39 @@ If you need to use an artifact already owned by another spec:
 
 ---
 
+## relic search — Mandatory Context Entry Point
+
+**Always run `relic search` before reading any artifact, spec, or fix file.**
+Never traverse the filesystem or list directories to find relevant context.
+
+**Command reference:**
+
+| Command | When to use |
+|---|---|
+| `relic search <keywords>` | Default — scored results from all three index spaces |
+| `relic search <keywords> --knowledge` | Shared artifacts only (domains, contracts, rules, assumptions) |
+| `relic search <keywords> --spec` | Specs only |
+| `relic search <keywords> --fix` | Fix documents only |
+| `relic search --deep` | All entries, unfiltered — full triage when you have no keywords |
+| `relic search --deep --knowledge` | All knowledge artifacts, unfiltered |
+| `relic search --deep --spec` | All specs, unfiltered |
+| `relic search --deep --fix` | All fix documents, unfiltered |
+| `relic search <keywords> --deep` | Keywords filter even with `--deep` |
+
+**Output format:** Each result is a 6-field toon line:
+`<source> | <name> | <path> | <tags> | <tldr> | <score>`
+Use `path` to open files directly. Use `score` to decide reading priority.
+
+**Enforcement rules (non-negotiable):**
+1. Never traverse the filesystem or list directories to find relevant context.
+2. Always run `relic search <topic keywords>` before reading any artifact, spec, or fix file.
+3. Use the `path` field from results to open files — never guess or derive paths manually.
+4. Use `--deep` only when you have no keywords or need the full index for triage.
+5. Use scope flags (`--knowledge`, `--spec`, `--fix`) to narrow when you know the type.
+6. `relic search` without keywords AND without `--deep` is an error — do not invoke it that way.
+
+---
+
 ## Relic Operational Rules
 
 These rules govern every AI-assisted interaction in every Relic project. They are not

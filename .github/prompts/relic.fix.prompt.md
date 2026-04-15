@@ -1,3 +1,7 @@
+---
+description: Relic fix command
+---
+
 # /relic.fix
 
 > **Before proceeding:** Read `.relic/preamble.md` and `.relic/constitution.md` in full.
@@ -108,23 +112,21 @@ and what changes. Identify all specs in reads[] that will be affected.>
 
 ---
 
-## Step 6 — Register the fix in `fixes/manifest.toon`
+## Step 6 — Register the fix in `fixes/manifest.json`
 
-Read `.relic/fixes/manifest.toon` (the authoritative fix index). It uses 4-field toon format:
-`<name> | <file> | <tags> | <tldr>`
+Read `.relic/fixes/manifest.json`. Append:
 
-Append a new line:
-```
-<fix-id> | <fix-id>.md | <classification> <owning-spec-id> | <one-sentence summary of the issue>
+```json
+{
+  "id": "<fix-id>",
+  "owning_spec": "<owning-spec-id>",
+  "classification": "<classification>",
+  "file": "<fix-id>.md",
+  "tldr": "<one-sentence summary of the issue>"
+}
 ```
 
-Write the updated content back to `.relic/fixes/manifest.toon`.
-
-If `manifest.toon` does not exist yet, create it with:
-```
-# fixes index
-<name> | <file> | <tags> | <tldr>
-```
+Write the updated array back to `.relic/fixes/manifest.json`.
 
 ---
 

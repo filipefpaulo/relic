@@ -1,3 +1,7 @@
+---
+description: Relic plan command
+---
+
 # /relic.plan
 
 > **Before proceeding:** Read `.relic/preamble.md`. It defines where artifacts belong.
@@ -32,9 +36,9 @@ You are creating an implementation plan for this spec.
 
    **Step B — full brain scan (fallback, only if Step A is insufficient):**
    ```bash
-   relic search --deep
+   relic deep-search
    ```
-   Read only `tldr` fields from results. Select and fully read only the artifacts with clear relevance to this plan.
+   Read only `tldr` fields. Select and fully read only the artifacts with clear relevance to this plan.
 
 4. Load ALL other specs' `artifacts.json` files from `specs/*/artifacts.json`.
 5. Run an intersection check:

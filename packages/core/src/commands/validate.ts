@@ -1,9 +1,8 @@
 import { join } from "path";
 import { readdirSync, statSync } from "fs";
-import { findRelicDir, fileExists, dirExists, readJson } from "@relic/utility";
+import { findRelicDir, fileExists, dirExists, readJson, readText, decodeToon } from "@relic/utility";
 import { loadRegistry } from "../core/artifact-registry.ts";
 import { SHARED_SUBDIRS } from "../types.ts";
-import type { ManifestEntry } from "../types.ts";
 
 export interface ValidateOptions {
   text?: boolean;
@@ -22,6 +21,7 @@ interface ValidateResult {
   missing_manifests: Array<{ subdir: string }>;
   invalid_manifests: Array<{ subdir: string }>;
   unregistered_files: Array<{ subdir: string; file: string }>;
+  warnings: string[];
 }
 
 export async function runValidate(options: ValidateOptions): Promise<void> {
@@ -41,6 +41,7 @@ export async function runValidate(options: ValidateOptions): Promise<void> {
   const missingManifests: ValidateResult["missing_manifests"] = [];
   const invalidManifests: ValidateResult["invalid_manifests"] = [];
   const unregisteredFiles: ValidateResult["unregistered_files"] = [];
+  const warnings: ValidateResult["warnings"] = [];
 
   // Build ownership map to detect conflicts
   const ownershipMap = new Map<string, string[]>();
@@ -93,26 +94,41 @@ export async function runValidate(options: ValidateOptions): Promise<void> {
     const mdFiles = readdirSync(subdirPath).filter((f) => f.endsWith(".md"));
     if (mdFiles.length === 0) continue;
 
-    const manifestPath = join(subdirPath, "manifest.json");
-    if (!fileExists(manifestPath)) {
+    const toonPath = join(subdirPath, "manifest.toon");
+    const jsonPath = join(subdirPath, "manifest.json");
+
+    let registered: Set<string>;
+
+    if (fileExists(toonPath)) {
+      // Prefer toon
+      try {
+        const rows = decodeToon(readText(toonPath));
+        registered = new Set(rows.map((r) => r[1] ?? ""));
+      } catch {
+        invalidManifests.push({ subdir });
+        continue;
+      }
+    } else if (fileExists(jsonPath)) {
+      // JSON fallback — warn but still validate
+      warnings.push(
+        `shared/${subdir}: manifest.json found without manifest.toon — run: relic toon-migrate`
+      );
+      try {
+        const parsed = readJson<unknown>(jsonPath);
+        if (!Array.isArray(parsed)) {
+          invalidManifests.push({ subdir });
+          continue;
+        }
+        registered = new Set((parsed as Array<{ file: string }>).map((e) => e.file));
+      } catch {
+        invalidManifests.push({ subdir });
+        continue;
+      }
+    } else {
       missingManifests.push({ subdir });
       continue;
     }
 
-    let manifest: ManifestEntry[];
-    try {
-      const parsed = readJson<unknown>(manifestPath);
-      if (!Array.isArray(parsed)) {
-        invalidManifests.push({ subdir });
-        continue;
-      }
-      manifest = parsed as ManifestEntry[];
-    } catch {
-      invalidManifests.push({ subdir });
-      continue;
-    }
-
-    const registered = new Set(manifest.map((e) => e.file));
     for (const mdFile of mdFiles) {
       if (!registered.has(mdFile)) {
         unregisteredFiles.push({ subdir, file: mdFile });
@@ -130,6 +146,7 @@ export async function runValidate(options: ValidateOptions): Promise<void> {
     missing_manifests: missingManifests,
     invalid_manifests: invalidManifests,
     unregistered_files: unregisteredFiles,
+    warnings,
   };
 
   if (options.text) {
@@ -163,8 +180,12 @@ export async function runValidate(options: ValidateOptions): Promise<void> {
       for (const m of invalidManifests) console.log(`  shared/${m.subdir}/manifest.json`);
     }
     if (unregisteredFiles.length > 0) {
-      console.log("\nUnregistered files (add to manifest.json):");
+      console.log("\nUnregistered files (add to manifest.toon or manifest.json):");
       for (const u of unregisteredFiles) console.log(`  shared/${u.subdir}/${u.file}`);
+    }
+    if (warnings.length > 0) {
+      console.log("\nWarnings:");
+      for (const w of warnings) console.log(`  ${w}`);
     }
   } else {
     console.log(JSON.stringify(result, null, 2));

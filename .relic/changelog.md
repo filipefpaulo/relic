@@ -2,6 +2,169 @@
 
 *All plan mutations and fix events are recorded here.*
 
+## [2026-04-14] fix — 005-toon-manifest-format / 2026-04-14-init-must-not-write-manifest-json
+
+Remove `fixes/manifest.json` write from `init.ts`. Fresh installs are toon-only; JSON coexistence applies only to upgrade paths where JSON already exists. Classification: misspecification — spec FR-10 and T-07 incorrectly preserved the JSON write for fresh init, conflating "coexistence for existing projects" with "coexistence from first init". Code changes: removed `writeText(…"manifest.json"…)` and its console log line. Knowledge layer: spec FR-10, plan Phase 6 step 2, and tasks T-07 updated to reflect toon-only init. Contract changes: none.
+
+## [2026-04-14] implement — 005-toon-manifest-format
+
+Implementation complete. All 19 tasks done (T-01 through T-19). 154 tests pass (16 new).
+
+**New files:**
+- `packages/utility/src/toon.ts` — generic toon codec; exports `ToonField`, `encodeToon<T>`, `decodeToon`
+- `packages/core/src/commands/toon-migrate.ts` — defines `ManifestEntry`; exports `readManifestToon`, `buildSpecIndex`, `buildFixIndex`, `runToonMigrate`
+- `packages/utility/src/__tests__/toon.test.ts` — 16 codec tests
+- `packages/core/src/__tests__/toon-migrate.test.ts` — 10 migration tests
+- (rewritten) `packages/core/src/__tests__/search.test.ts` — 11 search tests for new interface
+
+**Modified files:**
+- `packages/utility/src/index.ts` — exports `ToonField`, `encodeToon`, `decodeToon`
+- `packages/core/src/commands/search.ts` — full rewrite; `SearchResultEntry` defined here; `--deep`/`--knowledge`/`--spec`/`--fix`/`--json` flags; 6-field toon output; `runDeepSearch` deleted
+- `packages/core/src/commands/validate.ts` — prefers `manifest.toon`; JSON fallback warns; `warnings[]` in result
+- `packages/core/src/commands/init.ts` — writes 6 empty `.toon` index files on init
+- `packages/core/src/commands/upgrade.ts` — calls `runToonMigrate` after hooks refresh; `toon_migrated`/`toon_warnings` in result
+- `packages/core/src/index.ts` — exports new types and functions; removes `runDeepSearch`/`SearchResult`/`ManifestEntry` from types.ts
+- `packages/cli-node/src/bin.ts` + `bin.debug.ts` — `search` rewritten with all flags; `deep-search` deleted; `toon-migrate` command added
+- `templates/preamble.md` — `relic search` mandatory entry point section added
+- `templates/prompts/plan.md`, `specify.md`, `fix.md`, `scan.md` — `deep-search` → `search --deep`; manifest writes updated to toon
+- `.relic/preamble.md` — synced from updated template
+
+**One architectural decision during implementation:** `runToonMigrate` does not call `console.log` internally — the CLI bin command prints its own output. This allows upgrade.ts to call the function without polluting its own JSON output.
+
+## [2026-04-14] clarify — 005-toon-manifest-format (9)
+
+**Generic encoder signature; `ToonField` type exported from `@relic/utility`.**
+
+`encodeToon` signature changed from `encodeToon(rows: string[][], ...)` to
+`encodeToon<T extends ToonField[]>(rows: T[], header?: string): string` where
+`type ToonField = string | number | boolean | string[]`.
+
+Callers now pass typed tuples directly — e.g. `[source, name, path, tags, tldr, score]`
+where `tags` is `string[]` and `score` is `number` — without pre-converting every field to
+a string. The encoder handles serialisation per type: strings verbatim, numbers/booleans
+via `.toString()`, string arrays via `.join(" ")`. All string values (including joined arrays)
+are sanitised against ` | `.
+
+`ToonField` is exported from `@relic/utility` as a format infrastructure type — it is the
+codec's primitive constraint, analogous to a CSV library's `CsvCell` type. It is NOT a domain
+type. Domain types (`ManifestEntry`, `SearchResultEntry`) remain in `@relic/core`.
+
+`decodeToon` is unchanged — it returns `string[][]`; callers map to domain types.
+
+Files updated: `spec.md` (FR-1, NFR-7, Decisions), `ToonFormatContract.md` (new ToonField
+section, encoder contract), `plan.md` (Phase 1 impl + Phase 2 tests), `tasks.md` (T-01, T-02, T-03).
+
+## [2026-04-14] clarify — 005-toon-manifest-format (8)
+
+**`ManifestEntry` moved to `@relic/core`; toon codec becomes fully generic.**
+
+`@relic/utility/toon.ts` now exports ONLY `encodeToon(rows: string[][], header?: string): string`
+and `decodeToon(content: string): string[][]`. No types at all. The codec is a pure string-row
+serialiser — it has no knowledge of domains, manifests, or entries.
+
+`ManifestEntry` is defined and exported from `@relic/core/commands/toon-migrate.ts`. It is
+re-exported from `@relic/core/index.ts`. Callers in `toon-migrate.ts` are responsible for
+mapping `string[][]` ↔ `ManifestEntry[]`; callers in `search.ts` for mapping to `SearchResultEntry`.
+
+This makes `toon.ts` reusable for any future pipe-delimited output — not just manifests.
+
+Files updated: `spec.md` (FR-1, NFR-7, Decisions), `ToonFormatContract.md` (Types, Consumers,
+encoder/decoder contracts), `plan.md` (Phase 1, 2, 3, 10, architecture overview), `tasks.md`
+(T-01, T-02, T-03, T-04, T-11).
+
+## [2026-04-14] clarify — 005-toon-manifest-format (7)
+
+Two changes applied after plan review:
+
+1. **`SearchResultEntry` moved from `@relic/utility` to `@relic/core`.** The toon codec
+   (`toon.ts`) exports only what it needs to encode and decode: `ManifestEntry`, `encodeToon`,
+   `decodeToon`. `SearchResultEntry` is a search business type — it belongs in `@relic/core`
+   (`commands/search.ts`), exported from `@relic/core/index.ts`. Putting it in utility would
+   force utility to grow with unrelated business types every time a new toon consumer emerges.
+   The rule: `@relic/utility/toon.ts` = format infrastructure only.
+
+2. **Score restored to CLI output.** FR-14 updated from 5-field to 6-field format:
+   `source | name | path | tags | tldr | score`. Score is the tag-overlap or substring match
+   count for scored results; `0` for `--deep` with no keywords (unscored mode). `SearchResultEntry`
+   gains a `score: number` field. NFR-4 updated. `ToonFormatContract.md` updated. Plan phases
+   1, 4, 9, 10 updated accordingly.
+
+## [2026-04-14] plan — 005-toon-manifest-format
+
+Plan created. 13 implementation phases across 4 layers.
+
+**Touches:** `packages/utility/src/toon.ts` (new), `packages/core/src/commands/toon-migrate.ts` (new), `packages/core/src/commands/search.ts` (rewrite), `packages/core/src/commands/validate.ts` (modify), `packages/core/src/commands/init.ts` (modify), `packages/core/src/commands/upgrade.ts` (modify), `packages/cli-node/src/bin.ts`+`bin.debug.ts` (rewrite search cmd, add toon-migrate, remove deep-search), `templates/preamble.md` (add search reference section), all 11 `templates/prompts/*.md` (audit and update).
+
+**Intersections:** Source file overlaps only — no ownership conflicts. `upgrade.ts` overlaps with spec 004 (additive call only, coordinate at implementation). `init.ts`, `utility/index.ts`, `core/index.ts`, `bin.ts`, `fix.md`, `solve.md`, `use.md` overlap with specs 002/003 (all additive, different sections).
+
+## [2026-04-14] clarify — 005-toon-manifest-format (6)
+
+Single change: **`relic init` also writes empty `manifest.toon` in each `shared/*/` subdirectory.**
+
+FR-10 extended. `relic init` now creates six empty toon files: `specs/manifest.toon`,
+`fixes/manifest.toon`, `shared/domains/manifest.toon`, `shared/contracts/manifest.toon`,
+`shared/rules/manifest.toon`, and `shared/assumptions/manifest.toon` — all header-only,
+zero entries. Every location that will eventually hold toon index data starts with a
+valid (if empty) file from day one. No migration logic involved.
+
+## [2026-04-14] clarify — 005-toon-manifest-format (5)
+
+Single change: **`relic init` writes empty toon files from scratch; no migration dependency.**
+
+FR-10 rewritten. `relic init` writes `specs/manifest.toon` (header `# specs index`) and
+`fixes/manifest.toon` (header `# fixes index`) as empty files — comment header only, zero entries.
+It does not call `buildSpecIndex`, `buildFixIndex`, or `runToonMigrate`. Init bootstraps structure;
+upgrade populates it. The two concerns are now cleanly separated. `SpecIndexContract.md` and
+`FixIndexContract.md` updated to reflect this split. OQ-3 resolution and Decisions updated.
+
+## [2026-04-14] clarify — 005-toon-manifest-format (4)
+
+Six changes applied:
+
+1. **OQ-1 resolved (blank):** Tags and tldr are left empty on generation. No parsing of spec Overview. Index builders (`buildSpecIndex`, `buildFixIndex`) write name+file only.
+
+2. **OQ-2 resolved (auto-convert):** `relic validate` warns when `manifest.json` exists without `manifest.toon`. The toon read helper goes further: if `manifest.toon` is absent it reads `manifest.json`, converts, writes the `.toon` file, emits a warning, and continues — the LLM always receives toon output, never a missing-manifest error. FR-6 and FR-4 updated.
+
+3. **OQ-3 resolved (auto-migration in init + upgrade):** `relic init` (re-init) and `relic upgrade` automatically detect and migrate unconverted manifests. FR-10 updated; FR-15 added. `packages/core/src/commands/upgrade.ts` added to `touches_files` with intersection note (004 also touches it — additive call only).
+
+4. **`relic spec-index` and `relic fix-index` dropped as CLI commands:** Index generation moves entirely into `toon-migrate.ts` as internal `buildSpecIndex`/`buildFixIndex` functions. FR-7, FR-8, FR-9 rewritten. Removed from `touches_files`: `spec-index.ts`, `fix-index.ts`, `spec-index.test.ts`, `fix-index.test.ts`. `SpecIndexContract.md` and `FixIndexContract.md` updated.
+
+5. **`relic deep-search` removed; merged into `relic search --deep`:** FR-5 dropped. FR-4 rewritten as the single search entry point. `--deep` flag returns all entries unfiltered; keywords still filter when combined with `--deep`. Error when no keywords and no `--deep`. FR-13 updated to use `--deep` flag throughout. `ToonFormatContract.md` updated.
+
+6. **`specify.md` populates toon entry; preamble gets full search reference:** FR-11 expanded to a full `relic search` command reference table + 6 enforcement rules. FR-13 adds `specify.md`-specific instruction: LLM appends its own spec entry (with populated tags/tldr) to `specs/manifest.toon` after spec creation.
+
+## [2026-04-14] clarify — 005-toon-manifest-format (3)
+
+Four changes applied:
+
+1. **Unified 4-field schema for all three index spaces** — `specs/manifest.toon` and `fixes/manifest.toon` now use the same `name | file | tags | tldr` schema as `shared/*/manifest.toon`. The `file` field convention differs by space: spec entries use the folder name with trailing slash (`001-auth/`); fix entries use the filename. `SpecIndexContract.md` and `FixIndexContract.md` rewritten to reflect the unified schema. `SpecIndexEntry` and `FixIndexEntry` types dropped — `ManifestEntry` covers all three spaces.
+
+2. **Migration creates name+file only; tags and tldr left empty** — `relic spec-index` and `relic fix-index` on first run generate entries with only `name` and `file` populated (empty strings for tags and tldr). A console warning is emitted directing the user to ask the LLM to populate the missing fields. This mirrors the knowledge index migration strategy: usable immediately, improved iteratively. FR-7, FR-8, `SpecIndexContract.md`, and `FixIndexContract.md` updated.
+
+3. **CLI output upgraded to 5-field format** — `relic search` and `relic deep-search` now output `source | name | path | tags | tldr` (5 fields). The `path` field is computed at query time from the stored `file` field and provides the full relative path (e.g. `shared/domains/UserAuth.md`, `specs/001-auth/`, `fixes/2026-04-13-crash.md`). The LLM can open the file directly without a secondary lookup. FR-14, NFR-4, NFR-7, `ToonFormatContract.md` updated. `SearchResultEntry` type updated to `{ source, name, path, tags, tldr }`.
+
+4. **Broader constitution amendment** — the 2026-04-14 amendment (search/deep-search only) superseded by a full amendment: toon is the enforced default for ALL list-returning commands. JSON-default applies only to commands that return structured objects. Constitution updated.
+
+## [2026-04-14] clarify — 005-toon-manifest-format (2)
+
+Two changes applied:
+
+1. **`relic search` redesigned to mirror `relic deep-search`** — both commands now share identical scope flags: no flag = all three spaces (knowledge + specs + fixes); `--knowledge` = shared artifacts only; `--spec` = specs index only; `--fix` = fixes index only. `relic search` requires keywords and returns scored results; `relic deep-search` requires no keywords and returns everything in the selected scope. FR-4 and FR-5 rewritten accordingly.
+
+2. **CLI output is toon by default for search and deep-search** — both commands output toon format by default; `--json` flag available for machine consumers. The unified 4-field CLI output line is `source | id | detail | tldr` (same format regardless of scope flag). `SearchResultEntry` type added to `@relic/utility`. This is the core concept: reading toon files and returning JSON to the LLM would negate the entire token savings. `ToonFormatContract.md` updated with the CLI output line format and the new type. Constitution amendment written and appended (2026-04-14) carving `relic search` and `relic deep-search` out of Principle V's JSON-default rule. OQ-5 resolved.
+
+## [2026-04-14] clarify — 005-toon-manifest-format
+
+Four changes applied:
+
+1. **NFR-2 removed** — no line-length limit in toon. Truncating `tldr` at 300 chars was an imposed constraint with no benefit; token savings come from eliminating JSON structure, not from cutting content. NFRs renumbered; NFR-5 toon test updated to assert long tldr is preserved, not truncated. `ToonFormatContract.md` updated accordingly.
+
+2. **`relic search` extended with `--spec` / `--fix` flags** — `--spec <keywords>` searches `specs/manifest.toon` by substring match against title+tldr; `--fix <keywords>` searches `fixes/manifest.toon` by match against fix-id+owning-spec+tldr. Both return typed arrays sorted by score. Tag-overlap scoring kept for the no-flag (shared artifact) mode. Three new types added: `SpecIndexEntry`, `FixIndexEntry` exported from `@relic/utility`.
+
+3. **`relic deep-search` extended with `--spec` / `--fix` / `--knowledge` flags** — no flag = all three indexes merged with a `source` field; `--knowledge` = current behaviour (shared artifacts only); `--spec` = specs index only; `--fix` = fixes index only.
+
+4. **Toon enforcement broadened** — FR-12 expanded to FR-12+FR-13: every LLM-facing list read routes through toon helpers. Prompt updates (FR-13) now explicitly reference `relic search --spec` and `relic search --fix` for cross-spec and fix lookups. `packages/core/src/__tests__/search.test.ts` added to `artifacts.json` touches_files.
+
 ## [2026-04-13] fix — 002-agent-permission-config / 2026-04-13-copilot-codex-per-command-files
 
 Corrected Copilot engine to write individual `.github/prompts/relic.<name>.prompt.md` files (one per command, with YAML frontmatter) instead of a single `.github/copilot-instructions.md`. Corrected Codex engine to write individual `.codex/commands/relic.<name>.md` files instead of a single `.codex/instructions.md`. Also fixed both engines' PROMPT_NAMES to include "solve" (11 commands, matching Claude). Classification: misspecification — the implementation wrote single-file output despite FR-6 specifying per-file output; Decisions section incorrectly described "concatenation". No contract changes.

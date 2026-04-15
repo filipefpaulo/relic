@@ -10,7 +10,7 @@ import {
   runScaffold,
   runValidate,
   runSearch,
-  runDeepSearch,
+  runToonMigrate,
   runUpgrade,
   findRelicDir,
   SUPPORTED_ENGINES,
@@ -114,31 +114,33 @@ program
   });
 
 program
-  .command("search <keywords...>")
-  .description("Search shared artifact manifests by keyword tags")
-  .action(async (keywords: string[]) => {
-    if (keywords.length === 0) {
-      console.error("Error: at least one keyword is required.");
-      process.exit(1);
-    }
+  .command("search [keywords...]")
+  .description("Search manifest indexes by keyword; use --deep for all entries")
+  .option("--deep", "Return all entries without filtering", false)
+  .option("--knowledge", "Scope to shared knowledge artifacts only", false)
+  .option("--spec", "Scope to spec index only", false)
+  .option("--fix", "Scope to fix index only", false)
+  .option("--json", "Output as JSON array instead of toon lines", false)
+  .action(async (keywords: string[], opts: { deep: boolean; knowledge: boolean; spec: boolean; fix: boolean; json: boolean }) => {
     const relicDir = findRelicDir(process.cwd());
     if (!relicDir) {
       console.error("Not in a Relic project. Run: relic init");
       process.exit(1);
     }
-    await runSearch({ keywords, relicDir });
+    await runSearch({ keywords, deep: opts.deep, knowledge: opts.knowledge, spec: opts.spec, fix: opts.fix, json: opts.json, relicDir });
   });
 
 program
-  .command("deep-search")
-  .description("Return all shared artifact manifest entries consolidated")
+  .command("toon-migrate")
+  .description("Convert shared/*/manifest.json → manifest.toon; rebuild spec and fix indexes")
   .action(async () => {
     const relicDir = findRelicDir(process.cwd());
     if (!relicDir) {
       console.error("Not in a Relic project. Run: relic init");
       process.exit(1);
     }
-    await runDeepSearch({ relicDir });
+    const result = await runToonMigrate({ relicDir });
+    console.log(JSON.stringify(result, null, 2));
   });
 
 program

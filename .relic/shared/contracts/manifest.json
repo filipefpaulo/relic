@@ -20,8 +20,26 @@
   {
     "name": "ManifestJsonContract",
     "file": "ManifestJsonContract.md",
-    "tldr": "shared/<subdir>/manifest.json index of artifact files with name, file, tldr, and tags.",
-    "tags": ["manifest", "json", "index", "tags", "tldr", "search", "validate"]
+    "tldr": "Index of artifact files per shared/ subdirectory; toon format preferred over JSON fallback.",
+    "tags": ["manifest", "toon", "json", "index", "tags", "tldr", "search", "validate"]
+  },
+  {
+    "name": "ToonFormatContract",
+    "file": "ToonFormatContract.md",
+    "tldr": "Compact pipe-delimited line format for Relic index files; replaces JSON manifests for token efficiency.",
+    "tags": ["toon", "format", "manifest", "compact", "token", "pipe", "encode", "decode"]
+  },
+  {
+    "name": "SpecIndexContract",
+    "file": "SpecIndexContract.md",
+    "tldr": "specs/manifest.toon schema: one line per spec with id, title, status, and tldr.",
+    "tags": ["spec", "index", "manifest", "toon", "spec-index", "status"]
+  },
+  {
+    "name": "FixIndexContract",
+    "file": "FixIndexContract.md",
+    "tldr": "fixes/manifest.toon schema: one line per fix document with id, owning-spec, status, and tldr.",
+    "tags": ["fix", "index", "manifest", "toon", "fix-index", "status", "owning-spec"]
   },
   {
     "name": "ScaffoldResultContract",

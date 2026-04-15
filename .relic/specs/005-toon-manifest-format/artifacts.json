@@ -1,0 +1,40 @@
+{
+  "owns": [
+    "shared/contracts/ToonFormatContract.md",
+    "shared/contracts/ManifestJsonContract.md",
+    "shared/contracts/SpecIndexContract.md",
+    "shared/contracts/FixIndexContract.md"
+  ],
+  "reads": [
+    "shared/domains/SpecDomain.md",
+    "shared/domains/FixDomain.md",
+    "shared/domains/TemplateDomain.md"
+  ],
+  "touches_files": [
+    "packages/utility/src/toon.ts",
+    "packages/utility/src/index.ts",
+    "packages/utility/src/__tests__/toon.test.ts",
+    "packages/core/src/commands/toon-migrate.ts",
+    "packages/core/src/commands/search.ts",
+    "packages/core/src/commands/validate.ts",
+    "packages/core/src/commands/init.ts",
+    "packages/core/src/commands/upgrade.ts",
+    "packages/core/src/index.ts",
+    "packages/cli-node/src/bin.ts",
+    "packages/cli-node/src/bin.debug.ts",
+    "packages/core/src/__tests__/toon-migrate.test.ts",
+    "packages/core/src/__tests__/search.test.ts",
+    "templates/preamble.md",
+    "templates/prompts/specify.md",
+    "templates/prompts/clarify.md",
+    "templates/prompts/plan.md",
+    "templates/prompts/analyse.md",
+    "templates/prompts/tasks.md",
+    "templates/prompts/implement.md",
+    "templates/prompts/fix.md",
+    "templates/prompts/solve.md",
+    "templates/prompts/use.md",
+    "templates/prompts/scan.md",
+    "templates/prompts/constitution.md"
+  ]
+}

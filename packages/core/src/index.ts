@@ -2,7 +2,10 @@ export { runInit } from "./commands/init.ts";
 export { runContext } from "./commands/context.ts";
 export { runScaffold } from "./commands/scaffold.ts";
 export { runValidate } from "./commands/validate.ts";
-export { runSearch, runDeepSearch } from "./commands/search.ts";
+export { runSearch } from "./commands/search.ts";
+export type { SearchResultEntry } from "./commands/search.ts";
+export { runToonMigrate, buildSpecIndex, buildFixIndex, readManifestToon } from "./commands/toon-migrate.ts";
+export type { MigrateResult, ManifestEntry } from "./commands/toon-migrate.ts";
 export { runAddEngine, SUPPORTED_ENGINES } from "@relic/engines";
 export type { Engine } from "@relic/engines";
 export { runUse } from "./commands/use.ts";
@@ -32,8 +35,6 @@ export type {
   FileOverlapWarning,
   IntersectionReport,
   BuiltContext,
-  ManifestEntry,
-  SearchResult,
 } from "./types.ts";
 
 export type { ChangelogEntry } from "./core/changelog.ts";
