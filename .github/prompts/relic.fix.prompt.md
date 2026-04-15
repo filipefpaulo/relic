@@ -114,21 +114,11 @@ and what changes. Identify all specs in reads[] that will be affected.>
 
 ## Step 6 — Register the fix in `fixes/manifest.toon`
 
-Read `.relic/fixes/manifest.toon` (the authoritative fix index). It uses 4-field toon format:
-`<name> | <file> | <tags> | <tldr>`
-
-Append a new line:
-```
-<fix-id> | <fix-id>.md | <classification> <owning-spec-id> | <one-sentence summary of the issue>
+```bash
+relic write --fixes --payload '{"name":"<fix-title>","file":"<fix-id>.md","description":"<one-sentence summary of the issue>","tags":["<classification>","<owning-spec-id>"]}'
 ```
 
-Write the updated content back to `.relic/fixes/manifest.toon`.
-
-If `manifest.toon` does not exist yet, create it with:
-```
-# fixes index
-<name> | <file> | <tags> | <tldr>
-```
+Do not open or edit `fixes/manifest.toon` directly.
 
 ---
 

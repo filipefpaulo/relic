@@ -176,43 +176,37 @@ How you would know this assumption is no longer valid.
 
 ## Step 8 — Register artifacts in toon manifests
 
-For every artifact you created, add an entry to the appropriate `manifest.toon`:
+For every artifact you created, register it in the appropriate manifest using `relic write`:
 
-- `shared/domains/manifest.toon` for domain artifacts
-- `shared/contracts/manifest.toon` for contract artifacts
-- `shared/rules/manifest.toon` for rule artifacts
-- `shared/assumptions/manifest.toon` for assumption artifacts
+```bash
+# For a domain artifact:
+relic write --knowledge-domains --payload '{"name":"<ArtifactName>","file":"<ArtifactName>.md","description":"<one-sentence tldr>","tags":["<tag1>","<tag2>","<tag3>"]}'
 
-Each `manifest.toon` uses 4-field toon format: `<name> | <file> | <tags> | <tldr>`
+# For a contract artifact:
+relic write --knowledge-contracts --payload '{"name":"<ArtifactName>","file":"<ArtifactName>.md","description":"<one-sentence tldr>","tags":["<tag1>","<tag2>","<tag3>"]}'
 
-Read the existing file (or start from the header if new), then append one line per artifact:
+# For a rule artifact:
+relic write --knowledge-rules --payload '{"name":"<ArtifactName>","file":"<ArtifactName>.md","description":"<one-sentence tldr>","tags":["<tag1>","<tag2>","<tag3>"]}'
+
+# For an assumption artifact:
+relic write --knowledge-assumptions --payload '{"name":"<ArtifactName>","file":"<ArtifactName>.md","description":"<one-sentence tldr>","tags":["<tag1>","<tag2>","<tag3>"]}'
 ```
-<ArtifactName> | <ArtifactName>.md | <tag1> <tag2> <tag3> | One-sentence tldr.
-```
 
-If a `manifest.toon` does not exist yet, create it with just the header first:
-```
-# <subdir> manifest
-```
-Then append your entries.
+Do not open or edit any `manifest.toon` file directly.
 
-Each entry must have:
+Each payload must have:
 - `name` — matches the `# Heading` in the artifact file
 - `file` — filename only (e.g. `UserAuth.md`)
-- `tags` — 4–8 space-separated lowercase keywords
-- `tldr` — one sentence summary of what the artifact covers
+- `tags` — 4–8 lowercase keywords
+- `description` — one sentence summary (becomes `tldr` in the index)
 
 Run `relic validate` after this step — it will warn if any `.md` files are unregistered.
 
 ---
 
-## Step 9 — Write changelog entry
+## Step 9 — Changelog
 
-```
-[scan] Initial artifact scan: generated <N> artifacts from existing codebase.
-  Domains: <list>. Contracts: <list>. Rules: <list>. Assumptions: <list>.
-  Review and assign ownership via artifacts.json when creating your first spec.
-```
+`scan` creates new artifacts — it does not amend existing ones. Do not write a changelog entry.
 
 ---
 

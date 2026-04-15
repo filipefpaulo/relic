@@ -73,17 +73,18 @@ the fix document's **Proposed changes** section before proceeding.
 
 ---
 
-## Step 6 — Write changelog entry
+## Step 6 — Write changelog entry (cross-artifact mutations only)
 
-Append to `.relic/changelog.md`:
+Only write a changelog entry if the fix **amended a spec, contract, domain, or rule** (i.e. a
+cross-artifact mutation occurred). Do not write one when the fix touched only source code.
 
+If a cross-artifact mutation occurred, run:
+```bash
+relic write --changelog --payload '{"name":"<owning-spec> / <fix-id>: <what was changed>","slash_command":"/relic.solve","description":"<brief description of what was fixed and what artifact was amended>"}'
 ```
-[fix] <owning-spec> / <fix-id>: <brief description of what was fixed>.
-Classification: <classification>. Contract changes: <"none" or list>.
-```
 
-Use the **Changelog draft** from the fix document as a starting point; update it to reflect what
-was actually changed.
+Use the **Changelog draft** from the fix document as the basis for the `description` field.
+Do not open or edit `changelog.md` directly.
 
 ---
 
@@ -102,5 +103,5 @@ relic use --clear-fix
 Output:
 1. **Files changed** — list of code files modified
 2. **Knowledge layer updates** — spec/plan/shared artifact changes made (or "none")
-3. **Changelog entry** — the entry written to `changelog.md`
+3. **Changelog entry** — the entry written to `changelog.md` (or "none — no cross-artifact mutation")
 4. **Follow-up required** — list of specs needing `/relic.clarify` (or "none")
