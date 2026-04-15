@@ -1,3 +1,4 @@
 # fixes index
 2026-04-13-copilot-codex-per-command-files | 2026-04-13-copilot-codex-per-command-files.md |  | 
 2026-04-14-init-must-not-write-manifest-json | 2026-04-14-init-must-not-write-manifest-json.md |  | 
+Missing Tests: Write Command | 2026-04-15-missing-tests-write-command.md | misspecification 006-structured-write-command tests write | Spec 006 plan and tasks had no test phase; write.ts and appendChangelogEntry are untested.

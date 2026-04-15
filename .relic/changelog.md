@@ -486,3 +486,11 @@ all 95 tests pass across 3 packages; `relic validate` reports `valid: true`.
 ## [2026-04-15T00:00:00.000Z] /relic.clarify — ChangelogAppendOnlyRule: tightened to cross-artifact-mutation-only
 
 Spec 006-structured-write-command clarify amended ChangelogAppendOnlyRule.md. The rule previously required a changelog entry for every plan mutation and fix event. It now requires entries only when a cross-artifact mutation occurs — when one command amends an artifact originally created by a different command (e.g. fix amending a spec, clarify changing a contract). Progress, completion, and new-entry creation events must not write changelog entries. Entry format also updated: `## [<ISO-date>] <slash-command> — <name>` with description body on following lines.
+
+## [2026-04-15T16:48:07.851Z] /relic.implement — 006-structured-write-command: implementation complete
+
+relic write command implemented; all prompts updated to use structured writes.
+
+## [2026-04-15T18:00:06.060Z] /relic.solve — 006-structured-write-command / 2026-04-15-missing-tests-write-command: added write.test.ts
+
+Spec 006 plan and tasks did not include a test phase. Created write.test.ts with 20 tests covering runWrite (changelog and toon paths), appendChangelogEntry, validateWritePayload, upsertToonEntry, toon target routing, and metadata merging. Amended spec.md scope, plan.md Phase 7, tasks.md T-19, and artifacts.json. Classification: misspecification — code was correct, spec omitted test requirement.

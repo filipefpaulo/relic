@@ -180,6 +180,16 @@ For each prompt, the change is the same pattern: find any instruction that tells
 - Audit for any file-write instructions; update to `relic write` if present.
 - These prompts are mostly read-only or non-manifest-writing; changes may be minimal.
 
+### Phase 7 — Tests
+
+1. Create `packages/core/src/__tests__/write.test.ts` covering:
+   - `appendChangelogEntry`: creates file on first call, appends without overwrite, `slash_command` in heading, `metadata` as second paragraph.
+   - `runWrite --changelog`: correct format, `action: appended`, second call appends.
+   - `runWrite --specs`: append (new entry), upsert (existing entry, file preserved on upsert), missing-file error.
+   - Toon target routing: `--fixes`, `--knowledge-domains`, `--knowledge-contracts`, `--knowledge-rules`, `--knowledge-assumptions` each write to the correct `manifest.toon` path.
+   - `metadata` field: joined to description with ` — ` separator in toon `tldr`.
+   - Validation error paths: invalid JSON, missing `name`, missing `description`.
+
 ---
 
 ## File Changes

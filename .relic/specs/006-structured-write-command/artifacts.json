@@ -24,6 +24,7 @@
     "templates/prompts/fix.md",
     "templates/prompts/solve.md",
     "templates/prompts/use.md",
-    "templates/prompts/scan.md"
+    "templates/prompts/scan.md",
+    "packages/core/src/__tests__/write.test.ts"
   ]
 }

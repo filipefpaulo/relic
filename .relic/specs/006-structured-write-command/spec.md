@@ -52,6 +52,7 @@ As a secondary goal, the spec tightens the **changelog enforcement rule**: the c
 ### In Scope
 
 - New `relic write` CLI command in `packages/core/src/commands/write.ts`, registered in `bin.ts` and `bin.debug.ts`.
+- Test coverage in `packages/core/src/__tests__/write.test.ts` for `runWrite`, `appendChangelogEntry`, validation errors, toon upsert paths, and all target routing.
 - `WritePayload` schema definition and validation exported from `@relic/core`.
 - Upsert logic for all five toon target spaces.
 - Append-only logic for `--changelog` (extending the existing `changelog.ts`).

@@ -52,12 +52,18 @@ Fill in `specs/{{SPEC_ID}}/plan.md`:
 - **Shared Artifact Changes** — new artifacts to create, existing ones to update.
 - **Intersection Notes** — any intersections detected and how they are resolved.
 
-## After the plan is written
+## After the plan is written — changelog (cross-artifact mutations only)
 
-Write a changelog entry to `.relic/changelog.md`:
+Only write a changelog entry if this plan **amends an existing shared artifact** owned by this
+spec. Do not write one when the plan is first created, when only spec.md or plan.md change, or
+when only new artifacts are being defined.
+
+If a cross-artifact mutation occurred, run:
+```bash
+relic write --changelog --payload '{"name":"<spec-id>: Plan updated — <what changed>","slash_command":"/relic.plan","description":"<what changed and why>"}'
 ```
-[plan] {{SPEC_ID}}: Plan created. Touches: [list key files]. Intersections: [none | describe].
-```
+
+Do not open or edit `changelog.md` directly.
 
 ## What NOT to do
 

@@ -12,6 +12,7 @@ import {
   runSearch,
   runToonMigrate,
   runUpgrade,
+  runWrite,
   findRelicDir,
   SUPPORTED_ENGINES,
   type Engine,
@@ -128,6 +129,43 @@ program
       process.exit(1);
     }
     await runSearch({ keywords, deep: opts.deep, knowledge: opts.knowledge, spec: opts.spec, fix: opts.fix, json: opts.json, relicDir });
+  });
+
+program
+  .command("write")
+  .description("Write a structured entry to a toon index or changelog")
+  .option("--changelog", "Target: .relic/changelog.md", false)
+  .option("--specs", "Target: specs/manifest.toon", false)
+  .option("--fixes", "Target: fixes/manifest.toon", false)
+  .option("--knowledge-domains", "Target: shared/domains/manifest.toon", false)
+  .option("--knowledge-contracts", "Target: shared/contracts/manifest.toon", false)
+  .option("--knowledge-rules", "Target: shared/rules/manifest.toon", false)
+  .option("--knowledge-assumptions", "Target: shared/assumptions/manifest.toon", false)
+  .requiredOption("--payload <json>", "Compact JSON payload (WritePayload schema)")
+  .action(async (opts: {
+    changelog: boolean;
+    specs: boolean;
+    fixes: boolean;
+    knowledgeDomains: boolean;
+    knowledgeContracts: boolean;
+    knowledgeRules: boolean;
+    knowledgeAssumptions: boolean;
+    payload: string;
+  }) => {
+    const targets = [
+      opts.changelog && "changelog",
+      opts.specs && "specs",
+      opts.fixes && "fixes",
+      opts.knowledgeDomains && "knowledge-domains",
+      opts.knowledgeContracts && "knowledge-contracts",
+      opts.knowledgeRules && "knowledge-rules",
+      opts.knowledgeAssumptions && "knowledge-assumptions",
+    ].filter(Boolean) as string[];
+    if (targets.length !== 1) {
+      console.error("Error: exactly one target flag must be provided (e.g. --changelog, --specs).");
+      process.exit(1);
+    }
+    await runWrite({ target: targets[0] as import("@relic/core").WriteTarget, payload: opts.payload });
   });
 
 program
