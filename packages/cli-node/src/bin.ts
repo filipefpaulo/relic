@@ -27,7 +27,7 @@ import {
   SUPPORTED_ENGINES,
   type Engine,
 } from "@relic/core";
-import { readEnginesRegistry, writeEnginesRegistry, fileExists, readJson, writeJson, resolveSpec } from "@relic/utility";
+import { readEnginesRegistry, writeEnginesRegistry, fileExists, writeJson, resolveSpec } from "@relic/utility";
 
 const VERSION = "0.8.0";
 const program = new Command();
