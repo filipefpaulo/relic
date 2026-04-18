@@ -1,0 +1,199 @@
+name: Doc Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions: {}
+
+jobs:
+  doc-guard:
+    name: Changelog & README enforcement
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect version bump
+        id: version
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          # Extract version from cli-node package.json
+          base_npm=$(git show "$BASE:packages/cli-node/package.json" 2>/dev/null | grep '"version"' | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+          head_npm=$(git show "$HEAD:packages/cli-node/package.json" 2>/dev/null | grep '"version"' | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+
+          # Extract version from pyproject.toml
+          base_pypi=$(git show "$BASE:packages/cli-python/pyproject.toml" 2>/dev/null | grep '^version' | sed 's/version *= *"\([^"]*\)".*/\1/')
+          head_pypi=$(git show "$HEAD:packages/cli-python/pyproject.toml" 2>/dev/null | grep '^version' | sed 's/version *= *"\([^"]*\)".*/\1/')
+
+          echo "base_npm=$base_npm" >> "$GITHUB_OUTPUT"
+          echo "head_npm=$head_npm" >> "$GITHUB_OUTPUT"
+          echo "base_pypi=$base_pypi" >> "$GITHUB_OUTPUT"
+          echo "head_pypi=$head_pypi" >> "$GITHUB_OUTPUT"
+
+          bumped=false
+          new_version=""
+
+          if [ -n "$base_npm" ] && [ -n "$head_npm" ] && [ "$base_npm" != "$head_npm" ]; then
+            bumped=true
+            new_version="$head_npm"
+          elif [ -n "$base_pypi" ] && [ -n "$head_pypi" ] && [ "$base_pypi" != "$head_pypi" ]; then
+            bumped=true
+            new_version="$head_pypi"
+          fi
+
+          echo "bumped=$bumped" >> "$GITHUB_OUTPUT"
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
+
+      - name: Check version sync
+        id: sync
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          npm_ver=${{ steps.version.outputs.head_npm }}
+          pypi_ver=${{ steps.version.outputs.head_pypi }}
+          new_ver=${{ steps.version.outputs.new_version }}
+
+          root_ver=$(grep '"version"' package.json | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+
+          in_sync=true
+          if [ "$npm_ver" != "$pypi_ver" ] || [ "$npm_ver" != "$root_ver" ]; then
+            in_sync=false
+          fi
+
+          echo "in_sync=$in_sync" >> "$GITHUB_OUTPUT"
+          echo "root_ver=$root_ver" >> "$GITHUB_OUTPUT"
+
+      - name: Check CHANGELOG entry
+        id: changelog
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          new_ver=${{ steps.version.outputs.new_version }}
+
+          # Look for ## [X.Y.Z] header (with or without trailing date)
+          if grep -qE "^## \[$new_ver\]" CHANGELOG.md; then
+            echo "has_entry=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_entry=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check README touched
+        id: readme
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          changed=$(git diff --name-only "$BASE" "$HEAD")
+
+          readme_touched=false
+          if echo "$changed" | grep -qE '(^|/)README\.md$'; then
+            readme_touched=true
+          fi
+
+          echo "readme_touched=$readme_touched" >> "$GITHUB_OUTPUT"
+
+      - name: Post review comment
+        if: steps.version.outputs.bumped == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const newVersion  = '${{ steps.version.outputs.new_version }}';
+            const inSync      = '${{ steps.sync.outputs.in_sync }}' === 'true';
+            const hasChangelog = '${{ steps.changelog.outputs.has_entry }}' === 'true';
+            const readmeTouched = '${{ steps.readme.outputs.readme_touched }}' === 'true';
+
+            const npmVer   = '${{ steps.version.outputs.head_npm }}';
+            const pypiVer  = '${{ steps.version.outputs.head_pypi }}';
+            const rootVer  = '${{ steps.sync.outputs.root_ver }}';
+
+            const pass = '✅';
+            const fail = '❌';
+            const warn = '⚠️';
+
+            let body = `## Doc Guard — v${newVersion} detected\n\n`;
+            body += `| Check | Result |\n|---|---|\n`;
+
+            // Version sync
+            body += `| Version sync (npm / pypi / root) | ${inSync ? pass : fail} `;
+            if (!inSync) {
+              body += `\`${npmVer}\` / \`${pypiVer}\` / \`${rootVer}\` — must all match`;
+            } else {
+              body += `\`${newVersion}\` across all three`;
+            }
+            body += ` |\n`;
+
+            // Changelog
+            body += `| \`CHANGELOG.md\` has \`## [${newVersion}]\` entry | ${hasChangelog ? pass : fail} `;
+            if (!hasChangelog) {
+              body += `Missing — add a \`## [${newVersion}]\` section before merging`;
+            }
+            body += ` |\n`;
+
+            // README
+            body += `| \`README.md\` updated | ${readmeTouched ? pass : warn} `;
+            if (!readmeTouched) {
+              body += `Not touched — if this release adds or changes user-facing commands, update the README`;
+            }
+            body += ` |\n`;
+
+            body += `\n---\n`;
+            if (!inSync || !hasChangelog) {
+              body += `**Blocking issues found.** Resolve the ${fail} items above before merging.\n`;
+            } else if (!readmeTouched) {
+              body += `**No blocking issues.** Review the ${warn} warning above if this release has user-facing changes.\n`;
+            } else {
+              body += `**All checks passed.**\n`;
+            }
+
+            // Find and update existing bot comment, or create new one
+            const marker = '<!-- doc-guard -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' && c.body.includes(marker)
+            );
+
+            const fullBody = `${marker}\n${body}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: fullBody,
+              });
+            }
+
+      - name: Fail on blocking issues
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          in_sync=${{ steps.sync.outputs.in_sync }}
+          has_entry=${{ steps.changelog.outputs.has_entry }}
+
+          if [ "$in_sync" = "false" ] || [ "$has_entry" = "false" ]; then
+            echo ""
+            echo "Doc Guard found blocking issues:"
+            [ "$in_sync" = "false" ] && echo "  - Version mismatch: npm=${{ steps.version.outputs.head_npm }} pypi=${{ steps.version.outputs.head_pypi }} root=${{ steps.sync.outputs.root_ver }}"
+            [ "$has_entry" = "false" ] && echo "  - CHANGELOG.md missing ## [${{ steps.version.outputs.new_version }}] entry"
+            exit 1
+          fi
+
+          echo "Doc Guard: all checks passed for v${{ steps.version.outputs.new_version }}"

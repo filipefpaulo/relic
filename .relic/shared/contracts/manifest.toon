@@ -1,4 +1,4 @@
-# # contracts manifest
+# contracts manifest
 ScanManifestContract | ScanManifestContract.md | scan manifest json key-files tech-stack file-tree | JSON output of `relic scan --json`: tech stack, key files, file tree, and existing artifacts.
 ContextResultContract | ContextResultContract.md | context json spec files artifacts resolution fix current-fix | JSON output of `relic context`: active spec, resolution source, file existence, shared artifact refs, and active fix ID.
 ArtifactsJsonContract | ArtifactsJsonContract.md | artifacts owns reads touches-files spec intersection | Per-spec artifacts.json declaring owns[], reads[], and touches_files[] relationships.
@@ -10,3 +10,4 @@ ScaffoldResultContract | ScaffoldResultContract.md | scaffold json spec new file
 FixDocumentContract | FixDocumentContract.md | fix document schema classification status solve changelog | Schema for .relic/fixes/<fix-id>.md: classification, proposed changes, status, and changelog draft.
 SessionStateContract | SessionStateContract.md | session json session-spec session-fix spec fix gitignore state | Schema for .relic/session.json: unified gitignored session state holding active spec and fix IDs.
 WriteCommandContract | WriteCommandContract.md | write payload changelog toon index upsert structured llm multi-agent | relic write command: payload schema, target flags, and LLM rules for all structured file mutations.
+ModelConfigContract | ModelConfigContract.md | model config models-json baseurl api-key env history compression timeout recentfull | Schema for .relic/models.json: baseUrl, model, apiKey, maxHistoryMessages, recentFullMessages, timeoutMs, and env var overrides.

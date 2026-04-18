@@ -1,8 +1,43 @@
+import { join } from "path";
+import { buildContext, renderContext } from "../core/context-builder.ts";
+import { availableSpecs, dirExists, resolveSpec } from "@relic/utility";
+import { runModel } from "../core/model-runner.ts";
+
 export interface TasksOptions {
   relicDir: string;
+  spec?: string;
+  noStream?: boolean;
+  resetContext?: boolean;
 }
 
-export async function runTasks(_options: TasksOptions): Promise<void> {
-  console.log("relic tasks — not yet implemented.");
-  console.log("Use the /relic.tasks prompt in your AI agent (.relic/prompts/tasks.md).");
+export async function runTasks(options: TasksOptions): Promise<void> {
+  const { relicDir } = options;
+  const specsDir = join(relicDir, "specs");
+
+  const specId = resolveSpec(options.spec, relicDir);
+
+  if (!specId) {
+    const available = availableSpecs(specsDir);
+    console.error("Could not infer spec. Available specs:");
+    for (const s of available) console.error(`  ${s}`);
+    console.error("\nUse: relic tasks --spec <spec-id>");
+    process.exit(1);
+  }
+
+  if (!dirExists(join(specsDir, specId))) {
+    console.error(`Spec not found: ${specId}`);
+    process.exit(1);
+  }
+
+  const ctx = buildContext(relicDir, specId);
+  const renderedContext = renderContext(ctx);
+
+  await runModel({
+    command: "tasks",
+    userMessage: renderedContext,
+    relicDir,
+    specId,
+    noStream: options.noStream,
+    resetContext: options.resetContext,
+  });
 }

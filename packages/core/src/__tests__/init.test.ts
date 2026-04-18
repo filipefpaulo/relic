@@ -33,10 +33,12 @@ describe("runInit", () => {
     expect(existsSync(join(relic, ".gitignore"))).toBe(true);
   });
 
-  test(".gitignore contains session.json entry", async () => {
+  test(".gitignore contains all required entries", async () => {
     await runInit({ dir, force: false, engines: [] });
     const gitignore = readFileSync(join(dir, ".relic", ".gitignore"), "utf8");
     expect(gitignore).toContain("session.json");
+    expect(gitignore).toContain("models.json");
+    expect(gitignore).toContain("specs/**/history.json");
   });
 
   test("creates session.json with null spec and fix", async () => {

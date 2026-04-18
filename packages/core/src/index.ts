@@ -21,6 +21,14 @@ export { runUpgrade } from "./commands/upgrade.ts";
 export type { UpgradeOptions, UpgradeCheckResult, UpgradeResult } from "./commands/upgrade.ts";
 export { runWrite } from "./commands/write.ts";
 export type { WriteOptions, WriteResult, WriteTarget } from "./commands/write.ts";
+export { runSolve } from "./commands/solve.ts";
+export type { RunSolveOptions } from "./commands/solve.ts";
+export { runConstitution } from "./commands/constitution.ts";
+export type { RunConstitutionOptions } from "./commands/constitution.ts";
+export { runModel, loadModelConfig } from "./core/model-runner.ts";
+export type { RunModelOptions } from "./core/model-runner.ts";
+export type { ModelConfig } from "@relic/utility";
+export type { ModelCallOptions } from "./core/model-client.ts";
 
 export { loadRegistry, buildOwnershipMap } from "./core/artifact-registry.ts";
 export { detectIntersections, formatIntersectionReport } from "./core/intersection.ts";

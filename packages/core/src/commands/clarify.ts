@@ -1,8 +1,43 @@
+import { join } from "path";
+import { buildContext, renderContext } from "../core/context-builder.ts";
+import { availableSpecs, dirExists, resolveSpec } from "@relic/utility";
+import { runModel } from "../core/model-runner.ts";
+
 export interface ClarifyOptions {
   relicDir: string;
+  spec?: string;
+  noStream?: boolean;
+  resetContext?: boolean;
 }
 
-export async function runClarify(_options: ClarifyOptions): Promise<void> {
-  console.log("relic clarify — not yet implemented.");
-  console.log("Use the /relic.clarify prompt in your AI agent (.relic/prompts/clarify.md).");
+export async function runClarify(options: ClarifyOptions): Promise<void> {
+  const { relicDir } = options;
+  const specsDir = join(relicDir, "specs");
+
+  const specId = resolveSpec(options.spec, relicDir);
+
+  if (!specId) {
+    const available = availableSpecs(specsDir);
+    console.error("Could not infer spec. Available specs:");
+    for (const s of available) console.error(`  ${s}`);
+    console.error("\nUse: relic clarify --spec <spec-id>");
+    process.exit(1);
+  }
+
+  if (!dirExists(join(specsDir, specId))) {
+    console.error(`Spec not found: ${specId}`);
+    process.exit(1);
+  }
+
+  const ctx = buildContext(relicDir, specId);
+  const renderedContext = renderContext(ctx);
+
+  await runModel({
+    command: "clarify",
+    userMessage: renderedContext,
+    relicDir,
+    specId,
+    noStream: options.noStream,
+    resetContext: options.resetContext,
+  });
 }

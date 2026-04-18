@@ -79,15 +79,15 @@ Run:
 relic search --deep --spec
 ```
 
-This returns the current `specs/manifest.toon` content. Append the new spec's entry to
-`specs/manifest.toon` using the toon format:
+Then register the new spec entry by running:
 
-```
-<spec title> | <spec-id>/ | <tags from Overview> | <one-sentence tldr from Overview>
+```bash
+relic write --specs --payload '{"name":"<spec title>","file":"<spec-id>/","description":"<one-sentence tldr from Overview>","tags":["<tag1>","<tag2>","..."]}'
 ```
 
-Populate `tags` (4–8 lowercase keywords from the spec domain) and `tldr` (one sentence from
+Populate `tags` (4–8 lowercase keywords from the spec domain) and `description` (one sentence from
 the Overview). You do not need to read other specs — only add your own entry.
+Do not open or edit `specs/manifest.toon` directly.
 
 ## What NOT to do
 
@@ -99,5 +99,5 @@ the Overview). You do not need to read other specs — only add your own entry.
 
 - `spec.md` is complete and clear.
 - `artifacts.json` is populated with correct `owns`, `reads`, `touches_files`.
-- New spec entry has been appended to `specs/manifest.toon`.
+- New spec entry written via `relic write --specs` (confirmed by JSON output).
 - Any intersection concerns are flagged in Open Questions.

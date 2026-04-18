@@ -161,11 +161,10 @@ bun run publish <version> [--repository npm|pypi]
 
 What it does:
 1. Validates semver format (`x.y.z`)
-2. Bumps version in all 6 files:
+2. Bumps version in all 5 files:
    - `package.json` (root)
    - `packages/cli-node/package.json`
    - `packages/cli-node/src/bin.ts`
-   - `packages/cli-node/src/bin.debug.ts`
    - `packages/cli-python/pyproject.toml`
    - `packages/cli-python/relic/__init__.py`
 3. Commits with `chore: bump version to X.Y.Z`
