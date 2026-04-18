@@ -24,12 +24,12 @@ The direct model invocation domain. Covers promoting Relic workflow commands to 
 | Command | Context type | History persisted? | `--reset-context`? |
 |---|---|---|---|
 | specify, clarify, plan, analyse, tasks, implement | spec (`specId`) | yes | yes |
-| fix | fix (`fixId`) → owning spec history | yes | yes |
+| fix | spec (`specId`) | yes | yes |
 | solve | fix (`fixId`) | no — one-shot | no |
 | constitution | none | no | no |
 | scan | none | no | no |
 
-`runModel` accepts optional `specId?` and `fixId?`. Neither is required — commands that do not need context simply omit both.
+`runModel` accepts optional `specId?` and `fixId?`. Neither is required — commands that do not need context simply omit both. At present, `fix` is invoked with `specId` and uses spec history directly, because there is not yet a fix document available at invocation time.
 
 ## Context Window Strategy
 
