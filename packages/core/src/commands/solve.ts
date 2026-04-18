@@ -27,12 +27,11 @@ export async function runSolve(options: RunSolveOptions): Promise<void> {
 
   const fixDocContent = readText(fixPath);
 
-  // solve is a one-shot apply — no history (fixId passed but runner suppresses for solve)
+  // solve is one-shot — do not pass specId or fixId so the runner skips history entirely
   await runModel({
     command: "solve",
     userMessage: fixDocContent,
     relicDir,
-    fixId,
     noStream,
   });
 }
