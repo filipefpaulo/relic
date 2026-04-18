@@ -57,13 +57,14 @@ Declared assumptions about the environment, external systems, or user behaviour.
 Example: `shared/assumptions/third-party-auth.md`
 
 ### `specs/<spec-id>/`
-Exactly four files. No others.
+Exactly five files. No others.
 - `spec.md` — feature intent, requirements, user stories
 - `plan.md` — implementation decisions
 - `tasks.md` — atomic task checklist
 - `artifacts.json` — ownership and dependency declarations (pointers, not containers)
+- `history.json` — session-local conversation history (gitignored; never read by cross-spec tooling)
 
-**If you are about to create a fifth file inside a spec folder, stop.**
+**If you are about to create a sixth file inside a spec folder, stop.**
 Whatever you are creating belongs in `shared/` instead.
 
 ---
@@ -105,7 +106,7 @@ When you are about to create or place a file, ask:
 **If NO** → it is a source file. It goes in the project source tree.
             Declare it in `touches_files`.
 
-The only exception: `spec.md`, `plan.md`, `tasks.md`, `artifacts.json` go in the spec folder.
+The only exceptions: `spec.md`, `plan.md`, `tasks.md`, `artifacts.json`, and `history.json` go in the spec folder. `history.json` is session-local runtime state and is gitignored — it is never read by cross-spec tooling.
 
 ---
 
@@ -113,7 +114,7 @@ The only exception: `spec.md`, `plan.md`, `tasks.md`, `artifacts.json` go in the
 
 - Creating a contract, domain, rule, or assumption file inside a spec folder
 - Listing a `specs/` path in `owns` or `reads` in any `artifacts.json`
-- Creating any file inside `specs/<spec-id>/` other than the four listed above
+- Creating any file inside `specs/<spec-id>/` other than the five listed above
 - Modifying a shared artifact whose path is not listed in your spec's `owns` array
 - Claiming ownership of an artifact already listed in another spec's `owns` array
 

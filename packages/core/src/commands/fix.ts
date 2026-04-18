@@ -1,13 +1,16 @@
 import { join } from "path";
 import { execSync } from "child_process";
 import { buildContext, renderContext } from "../core/context-builder.ts";
-import { inferSpecFromBranch, availableSpecs } from "@relic/utility";
+import { inferSpecFromBranch, availableSpecs, fileExists } from "@relic/utility";
 import { dirExists, readSession } from "@relic/utility";
+import { runModel } from "../core/model-runner.ts";
 
 export interface FixOptions {
   spec?: string;
   issue?: string;
   relicDir: string;
+  noStream?: boolean;
+  resetContext?: boolean;
 }
 
 export async function runFix(options: FixOptions): Promise<void> {
@@ -47,9 +50,25 @@ export async function runFix(options: FixOptions): Promise<void> {
   const ctx = buildContext(options.relicDir, specId);
   const rendered = renderContext(ctx);
 
-  console.log(rendered);
+  const userMessage = options.issue
+    ? rendered + "\n\n---\n\n# Issue\n\n" + options.issue
+    : rendered;
 
-  if (options.issue) {
-    console.log("\n---\n\n# Issue\n\n" + options.issue);
+  // If models.json exists, call the model; otherwise print context (legacy behaviour)
+  const modelsJsonPath = join(options.relicDir, "models.json");
+  if (fileExists(modelsJsonPath)) {
+    await runModel({
+      command: "fix",
+      userMessage,
+      relicDir: options.relicDir,
+      specId,
+      noStream: options.noStream,
+      resetContext: options.resetContext,
+    });
+  } else {
+    console.log(rendered);
+    if (options.issue) {
+      console.log("\n---\n\n# Issue\n\n" + options.issue);
+    }
   }
 }

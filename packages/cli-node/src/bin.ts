@@ -6,6 +6,15 @@ import {
   runAddEngine,
   runUse,
   runScan,
+  runSpecify,
+  runFix,
+  runClarify,
+  runPlan,
+  runAnalyse,
+  runTasks,
+  runImplement,
+  runSolve,
+  runConstitution,
   runContext,
   runScaffold,
   runValidate,
@@ -13,13 +22,14 @@ import {
   runToonMigrate,
   runUpgrade,
   runWrite,
+  loadModelConfig,
   findRelicDir,
   SUPPORTED_ENGINES,
   type Engine,
 } from "@relic/core";
-import { readEnginesRegistry, writeEnginesRegistry } from "@relic/utility";
+import { readEnginesRegistry, writeEnginesRegistry, fileExists, readJson, writeJson } from "@relic/utility";
 
-const VERSION = "0.5.1";
+const VERSION = "0.8.0";
 const program = new Command();
 
 program
@@ -76,16 +86,203 @@ program
 
 program
   .command("scan")
-  .description("Scan existing codebase and output a project manifest for AI artifact generation")
-  .option("--json", "Output manifest as JSON (for AI consumption)", false)
-  .action(async (opts: { json: boolean }) => {
+  .description("Run the AI scan workflow (default) or output the project manifest with --manifest")
+  .option("--manifest", "Output raw project manifest instead of running AI workflow", false)
+  .option("--json", "Output manifest as JSON; implies --manifest", false)
+  .option("--no-stream", "Disable streaming output")
+  .action(async (opts: { manifest: boolean; json: boolean; stream: boolean }) => {
     const relicDir = findRelicDir(process.cwd());
     if (!relicDir) {
       console.error("Not in a Relic project. Run: relic init");
       process.exit(1);
     }
     const projectDir = join(relicDir, "..");
-    await runScan({ projectDir, relicDir, json: opts.json });
+    await runScan({
+      projectDir,
+      relicDir,
+      json: opts.json,
+      manifest: opts.manifest || opts.json,
+      noStream: !opts.stream,
+    });
+  });
+
+program
+  .command("specify")
+  .description("Create a new spec and run the AI specify workflow")
+  .option("--title <title>", "Spec title")
+  .option("--spec <id>", "Spec ID (for referencing existing spec context)")
+  .option("--no-stream", "Disable streaming output")
+  .option("--reset-context", "Clear conversation history before running", false)
+  .action(async (opts: { title?: string; stream: boolean; resetContext: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runSpecify({
+      title: opts.title,
+      relicDir,
+      noStream: !opts.stream,
+      resetContext: opts.resetContext,
+    });
+  });
+
+program
+  .command("clarify")
+  .description("Append details or change contracts for a spec")
+  .option("--spec <id>", "Spec ID")
+  .option("--no-stream", "Disable streaming output")
+  .option("--reset-context", "Clear conversation history before running", false)
+  .action(async (opts: { spec?: string; stream: boolean; resetContext: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runClarify({ relicDir, spec: opts.spec, noStream: !opts.stream, resetContext: opts.resetContext });
+  });
+
+program
+  .command("plan")
+  .description("Create an implementation plan")
+  .option("--spec <id>", "Spec ID")
+  .option("--no-stream", "Disable streaming output")
+  .option("--reset-context", "Clear conversation history before running", false)
+  .action(async (opts: { spec?: string; stream: boolean; resetContext: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runPlan({ relicDir, spec: opts.spec, noStream: !opts.stream, resetContext: opts.resetContext });
+  });
+
+program
+  .command("analyse")
+  .description("Non-destructive consistency check")
+  .option("--spec <id>", "Spec ID")
+  .option("--no-stream", "Disable streaming output")
+  .option("--reset-context", "Clear conversation history before running", false)
+  .action(async (opts: { spec?: string; stream: boolean; resetContext: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runAnalyse({ relicDir, spec: opts.spec, noStream: !opts.stream, resetContext: opts.resetContext });
+  });
+
+program
+  .command("tasks")
+  .description("Generate tasks from the current plan")
+  .option("--spec <id>", "Spec ID")
+  .option("--no-stream", "Disable streaming output")
+  .option("--reset-context", "Clear conversation history before running", false)
+  .action(async (opts: { spec?: string; stream: boolean; resetContext: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runTasks({ relicDir, spec: opts.spec, noStream: !opts.stream, resetContext: opts.resetContext });
+  });
+
+program
+  .command("implement")
+  .description("Build the plan")
+  .option("--spec <id>", "Spec ID")
+  .option("--no-stream", "Disable streaming output")
+  .option("--reset-context", "Clear conversation history before running", false)
+  .action(async (opts: { spec?: string; stream: boolean; resetContext: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runImplement({ relicDir, spec: opts.spec, noStream: !opts.stream, resetContext: opts.resetContext });
+  });
+
+program
+  .command("fix")
+  .description("Fix a bug using the spec as context")
+  .option("--spec <id>", "Spec ID (overrides branch inference and RELIC_SPEC env)")
+  .option("--issue <description>", "Issue description to append to the assembled context")
+  .option("--no-stream", "Disable streaming output")
+  .option("--reset-context", "Clear conversation history before running", false)
+  .action(async (opts: { spec?: string; issue?: string; stream: boolean; resetContext: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runFix({ spec: opts.spec, issue: opts.issue, relicDir, noStream: !opts.stream, resetContext: opts.resetContext });
+  });
+
+program
+  .command("solve")
+  .description("Apply a fix document to the codebase")
+  .option("--fix <id>", "Fix ID (overrides active fix from session)")
+  .option("--no-stream", "Disable streaming output")
+  .action(async (opts: { fix?: string; stream: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runSolve({ relicDir, fix: opts.fix, noStream: !opts.stream });
+  });
+
+program
+  .command("constitution")
+  .description("Regenerate .relic/constitution.md from the codebase")
+  .option("--no-stream", "Disable streaming output")
+  .action(async (opts: { stream: boolean }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+    await runConstitution({ relicDir, noStream: !opts.stream });
+  });
+
+program
+  .command("model")
+  .description("Model management (e.g. reset conversation history)")
+  .option("--reset-context", "Clear conversation history for the active spec", false)
+  .option("--spec <id>", "Spec ID (overrides branch inference)")
+  .action(async (opts: { resetContext: boolean; spec?: string }) => {
+    const relicDir = findRelicDir(process.cwd());
+    if (!relicDir) {
+      console.error("Not in a Relic project. Run: relic init");
+      process.exit(1);
+    }
+
+    if (!opts.resetContext) {
+      console.error("Error: specify an operation (e.g. --reset-context)");
+      process.exit(1);
+    }
+
+    // Validate config exists
+    loadModelConfig(relicDir);
+
+    // Resolve spec
+    let specId = opts.spec;
+    if (!specId) {
+      const { readSession } = await import("@relic/utility");
+      specId = readSession(relicDir).spec ?? undefined;
+    }
+    if (!specId) {
+      console.error("Error: no active spec. Use --spec <id> or relic use <spec-id>");
+      process.exit(1);
+    }
+
+    const historyPath = join(relicDir, "specs", specId, "history.json");
+    if (fileExists(historyPath)) {
+      writeJson(historyPath, []);
+      console.log(`History cleared: .relic/specs/${specId}/history.json`);
+    } else {
+      console.log(`No history found for spec: ${specId}`);
+    }
   });
 
 program

@@ -7,12 +7,12 @@
 
 ## Phase 1 — Infrastructure: utility + engines extensions
 
-- [ ] **T-01** Extend `packages/utility/src/fetch.ts` — add optional `init?: RequestInit` parameter to `fetchWithTimeout`
+- [x] **T-01** Extend `packages/utility/src/fetch.ts` — add optional `init?: RequestInit` parameter to `fetchWithTimeout`
   - Signature: `fetchWithTimeout(url: string, timeoutMs?: number, init?: RequestInit): Promise<Response>`
   - Merge `init` fields into the fetch call; AbortController `signal` always takes precedence over any `signal` in `init`
   - Default `timeoutMs` remains 10,000ms — unchanged for all existing callers
 
-- [ ] **T-02** Add `getPromptTemplate(name: string): string | undefined` export to `packages/engines/src/index.ts`
+- [x] **T-02** Add `getPromptTemplate(name: string): string | undefined` export to `packages/engines/src/index.ts`
   - Implementation: `` return ENGINE_TEMPLATES[`prompts/${name}.md`] ``
   - Import `ENGINE_TEMPLATES` from `./generated/engine-templates.ts`
   - **Prerequisite:** `bun run build:engine-templates` must have been run so `ENGINE_TEMPLATES` exists
@@ -21,7 +21,7 @@
 
 ## Phase 2 — Model invocation core
 
-- [ ] **T-03** Create `packages/core/src/core/history-compressor.ts`
+- [x] **T-03** Create `packages/core/src/core/history-compressor.ts`
   - Export `compressMessage(content: string): string`
   - Rules:
     - Keep lines starting with `#` (headings)
@@ -30,7 +30,7 @@
     - Drop fenced code blocks (opening ` ``` ` to closing ` ``` `) and all content between them
   - Pure function: no I/O, no imports outside TypeScript builtins
 
-- [ ] **T-04** Create `packages/core/src/core/model-client.ts`
+- [x] **T-04** Create `packages/core/src/core/model-client.ts`
   - Export interface `ModelCallOptions`: `{ baseUrl: string; model: string; apiKey?: string; messages: Array<{ role: string; content: string }>; stream?: boolean; timeoutMs?: number }`
   - Export `callModel(options: ModelCallOptions): AsyncGenerator<string>` — yields response content chunks
   - When `stream: true` (default): POST to `{baseUrl}/v1/chat/completions`; read SSE response line-by-line; parse `data: {...}` JSON; yield `delta.content` (skip `[DONE]`)
@@ -40,7 +40,7 @@
   - Must NOT import from `@relic/engines`
   - Depends on: T-01
 
-- [ ] **T-05** Create `packages/core/src/core/model-runner.ts`
+- [x] **T-05** Create `packages/core/src/core/model-runner.ts`
   - Export interface `ModelConfig`: `{ baseUrl: string; model: string; apiKey: string; maxHistoryMessages: number; recentFullMessages: number; timeoutMs: number }`
   - Export `loadModelConfig(relicDir: string): ModelConfig` — reads `.relic/models.json`; applies env var overrides (`RELIC_MODEL_BASE_URL`, `RELIC_MODEL_MODEL`, `RELIC_MODEL_API_KEY`); validates `baseUrl` and `model` are present and non-empty; on failure: `console.error(...)` with field name + `models.json` path + minimum valid schema; `process.exit(1)`
   - Export interface `RunModelOptions`: `{ command: string; userMessage: string; relicDir: string; specId?: string; fixId?: string; noStream?: boolean; resetContext?: boolean }`
@@ -62,47 +62,47 @@
 
 All T-06 through T-15 depend on T-05. They are independent of each other.
 
-- [ ] **T-06** Create `packages/core/src/commands/solve.ts`
+- [x] **T-06** Create `packages/core/src/commands/solve.ts`
   - Export interface `RunSolveOptions`: `{ relicDir: string; fix?: string; noStream?: boolean }`
   - Resolve fix ID: `options.fix` → `readSession(relicDir).fix` → error and exit if neither set
   - Read `.relic/fixes/<fixId>.md`; error and exit if file does not exist
   - Pass fix document content as `userMessage`
   - Call `runModel({ command: "solve", userMessage: fixDocContent, relicDir, fixId, noStream })` — no `specId`, no `resetContext` (runner suppresses history for solve since `fixId`-based history only applies to fix, not solve)
 
-- [ ] **T-07** Create `packages/core/src/commands/constitution.ts`
+- [x] **T-07** Create `packages/core/src/commands/constitution.ts`
   - Export interface `RunConstitutionOptions`: `{ relicDir: string; noStream?: boolean }`
   - Call `runModel({ command: "constitution", userMessage: "", relicDir, noStream })` — no `specId`, no `fixId`, no `resetContext`
 
-- [ ] **T-08** Replace stub in `packages/core/src/commands/clarify.ts`
+- [x] **T-08** Replace stub in `packages/core/src/commands/clarify.ts`
   - Update `ClarifyOptions` to include `spec?: string; noStream?: boolean; resetContext?: boolean`
   - Assemble spec context: resolve spec via resolution chain → `buildContext()` + `renderContext()` from `context-builder.ts`
   - Call `runModel({ command: "clarify", userMessage: renderedContext, relicDir, specId, noStream, resetContext })`
 
-- [ ] **T-09** Replace stub in `packages/core/src/commands/plan.ts`
+- [x] **T-09** Replace stub in `packages/core/src/commands/plan.ts`
   - Same pattern as T-08; `command: "plan"`
 
-- [ ] **T-10** Replace stub in `packages/core/src/commands/analyse.ts`
+- [x] **T-10** Replace stub in `packages/core/src/commands/analyse.ts`
   - Same pattern as T-08; `command: "analyse"`
 
-- [ ] **T-11** Replace stub in `packages/core/src/commands/tasks.ts`
+- [x] **T-11** Replace stub in `packages/core/src/commands/tasks.ts`
   - Same pattern as T-08; `command: "tasks"`
 
-- [ ] **T-12** Replace stub in `packages/core/src/commands/implement.ts`
+- [x] **T-12** Replace stub in `packages/core/src/commands/implement.ts`
   - Same pattern as T-08; `command: "implement"`
 
-- [ ] **T-13** Update `packages/core/src/commands/fix.ts`
+- [x] **T-13** Update `packages/core/src/commands/fix.ts`
   - Add `noStream?: boolean; resetContext?: boolean` to `FixOptions`
   - Preserve existing spec-resolution and context-assembly logic
   - After context is assembled: call `runModel({ command: "fix", userMessage: renderedContext + (issue ? "\n\n## Issue\n" + issue : ""), relicDir, specId, noStream, resetContext })`
   - Note: `specId` is used (not `fixId`) — the fix document doesn't exist yet at this point; history goes into the owning spec's `history.json`
 
-- [ ] **T-14** Update `packages/core/src/commands/specify.ts`
+- [x] **T-14** Update `packages/core/src/commands/specify.ts`
   - Add `noStream?: boolean; resetContext?: boolean` to `SpecifyOptions`
   - After scaffolding: check `fileExists(join(relicDir, "models.json"))`
     - If yes: assemble context for the new spec; call `runModel({ command: "specify", userMessage: renderedContext + (title ? "\n\n## Title\n" + title : ""), relicDir, specId, noStream, resetContext })`
     - If no: existing behaviour — print "In your AI agent: /relic.specify"
 
-- [ ] **T-15** Update `packages/core/src/commands/scan.ts`
+- [x] **T-15** Update `packages/core/src/commands/scan.ts`
   - Add `manifest?: boolean` to `ScanOptions` (default `false` — AI workflow is the new default)
   - When `manifest: false`: run existing manifest-build logic internally; serialise to human-readable string; call `runModel({ command: "scan", userMessage: manifestString, relicDir, noStream })`; no `specId` or `fixId`
   - When `manifest: true, json: true`: existing JSON output
@@ -113,7 +113,7 @@ All T-06 through T-15 depend on T-05. They are independent of each other.
 
 ## Phase 4 — Validation update
 
-- [ ] **T-16** Update `packages/core/src/commands/validate.ts`
+- [x] **T-16** Update `packages/core/src/commands/validate.ts`
   - Find the `ALLOWED_SPEC_FILES` constant (or equivalent set/array)
   - Add `"history.json"` to the allowed set
   - `history.json` exempt from content checks — presence in the set is sufficient
@@ -122,7 +122,7 @@ All T-06 through T-15 depend on T-05. They are independent of each other.
 
 ## Phase 5 — Core exports
 
-- [ ] **T-17** Update `packages/core/src/index.ts`
+- [x] **T-17** Update `packages/core/src/index.ts`
   - Add: `export { runSolve } from "./commands/solve.ts"`
   - Add: `export { runConstitution } from "./commands/constitution.ts"`
   - Add: `export { runModel, loadModelConfig } from "./core/model-runner.ts"`
@@ -134,7 +134,7 @@ All T-06 through T-15 depend on T-05. They are independent of each other.
 
 ## Phase 6 — Binary consolidation
 
-- [ ] **T-18** Update `packages/cli-node/src/bin.ts`
+- [x] **T-18** Update `packages/cli-node/src/bin.ts`
   - Add imports: `runSpecify`, `runClarify`, `runPlan`, `runAnalyse`, `runTasks`, `runImplement`, `runFix`, `runSolve`, `runConstitution`, `loadModelConfig` from `@relic/core`
   - **`relic specify`**: `[--title <t>] [--spec <id>] [--no-stream] [--reset-context]`
   - **`relic clarify`**: `[--spec <id>] [--no-stream] [--reset-context]`
@@ -149,14 +149,14 @@ All T-06 through T-15 depend on T-05. They are independent of each other.
   - **`relic model`**: new command; `--reset-context [--spec <id>]`; resolves spec from resolution chain; calls `loadModelConfig` to validate config exists; reads and clears `specs/<specId>/history.json`; exits cleanly with confirmation message
   - Depends on: T-17
 
-- [ ] **T-19** Delete `packages/cli-node/src/bin.debug.ts`
+- [x] **T-19** Delete `packages/cli-node/src/bin.debug.ts`
   - Depends on: T-18
 
 ---
 
 ## Phase 7 — Tests
 
-- [ ] **T-20** Create `packages/core/src/__tests__/history-compressor.test.ts`
+- [x] **T-20** Create `packages/core/src/__tests__/history-compressor.test.ts`
   - `compressMessage`: heading line (`# Heading`) is preserved verbatim
   - `compressMessage`: bullet line (`- item`) is preserved verbatim
   - `compressMessage`: prose paragraph — only first sentence retained (up to first `.`)
@@ -170,23 +170,23 @@ All T-06 through T-15 depend on T-05. They are independent of each other.
 
 ## Phase 8 — Configuration and preamble
 
-- [ ] **T-21** Update `.relic/.gitignore` — add two lines: `models.json` and `specs/**/history.json`
+- [x] **T-21** Update `.relic/.gitignore` — add two lines: `models.json` and `specs/**/history.json`
 
-- [ ] **T-22** Update `templates/preamble.md`
+- [x] **T-22** Update `templates/preamble.md`
   - In the `specs/<spec-id>/` section: update file list from 4 to 5; add `history.json` as session-local (gitignored)
   - Update "If you are about to create a fifth file" → "sixth file"
   - Update Prohibited Actions to say "other than the five listed above"
 
-- [ ] **T-23** Update `.relic/preamble.md` — apply the same changes as T-22 to the installed copy
+- [x] **T-23** Update `.relic/preamble.md` — apply the same changes as T-22 to the installed copy
 
 ---
 
 ## Phase 9 — Verify
 
-- [ ] **T-24** Run `bun run build:templates` — confirm both embed steps complete without error
-- [ ] **T-25** Run `bun run test` — all packages pass
-- [ ] **T-26** Run `relic validate` — `valid: true`, no warnings
-- [ ] **T-27** Smoke test: create `.relic/models.json` pointing to a local server; run `relic plan`; confirm streaming output to stdout; run `relic model --reset-context`; confirm `history.json` is cleared
+- [x] **T-24** Run `bun run build:templates` — confirm both embed steps complete without error
+- [x] **T-25** Run `bun run test` — all packages pass
+- [x] **T-26** Run `relic validate` — `valid: true`, no warnings
+- [x] **T-27** Smoke test: create `.relic/models.json` pointing to a local server; run `relic plan`; confirm streaming output to stdout; run `relic model --reset-context`; confirm `history.json` is cleared
 
 ---
 
