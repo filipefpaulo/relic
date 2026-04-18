@@ -64,8 +64,8 @@ change to a template file, expect a corresponding generated file change — flag
 all three. Flag any PR where versions diverge.
 
 **Spec resolution order** — Commands resolve the active spec from: `--spec` flag → `RELIC_SPEC` env
-→ `.relic/current-spec` file → git branch name inference → error. This chain must remain intact.
-
+→ active-fix owning spec via `resolveSpec` → `.relic/session.json` → git branch name inference
+→ error. This chain must remain intact.
 ---
 
 ## Code review checklist
