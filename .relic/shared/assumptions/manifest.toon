@@ -3,4 +3,4 @@ BunRuntimeAvailability | BunRuntimeAvailability.md | bun runtime build ci node |
 SingleSpecPerBranch | SingleSpecPerBranch.md | branch spec inference git naming | Branch inference assumes branches are named NNN-slug and contain a single spec.
 GitAvailability | GitAvailability.md | git branch inference availability | Branch-based spec inference assumes git is installed; silently fails if not available.
 ClaudeAsDefaultEngine | ClaudeAsDefaultEngine.md | claude engine default init copilot codex | relic init defaults to claude engine; assumes Claude Code is the primary AI agent.
-OllamaOpenAICompat | OllamaOpenAICompat.md | ollama openai compat api ssh remote invoke | Ollama exposes an OpenAI-compatible /v1/chat/completions endpoint; relic invoke targets this protocol.
+OllamaOpenAICompat | OllamaOpenAICompat.md | ollama openai compat api ssh remote invoke | Ollama exposes an OpenAI-compatible /v1/chat/completions endpoint; relic <command> and direct model invocation target this protocol.
