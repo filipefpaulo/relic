@@ -510,3 +510,11 @@ Six clarifications applied: (1) NFR-2 revised — getPromptTemplate() export add
 ## [2026-04-18T01:57:08.802Z] /relic.clarify — 007: SpecFilesAllowlistRule amended + history colocation
 
 Claimed ownership of SpecFilesAllowlistRule (unowned). Amended to allow history.json as a permitted fifth file in spec directories — session-local runtime state, gitignored via specs/**/history.json glob, never read by cross-spec tooling. History path changed from .relic/history/<spec-id>.json to .relic/specs/<spec-id>/history.json. validate.ts ALLOWED_SPEC_FILES and preamble.md updated in scope. Rationale: colocation is intuitive and does not weaken the shared artifact layer.
+
+## [2026-04-18T02:44:03.209Z] /relic.clarify — 007-remote-ollama-engine: Clarify RunSolveOptions, RunConstitutionOptions, RunModelOptions scoping, and history format
+
+RunSolveOptions is fix-scoped (not spec-scoped): receives fix ID, derives owning spec at runtime. RunConstitutionOptions is {relicDir, noStream} only — no spec/fix/resetContext. RunModelOptions has optional specId and fixId; neither is required; history is suppressed when both are absent. relic solve does not persist history (one-shot). history.json format confirmed as JSON array (OpenAI messages shape). ModelInvocationDomain updated to reflect command context scoping table.
+
+## [2026-04-18T02:54:01.913Z] /relic.clarify — 007-remote-ollama-engine: Fix stale references in OllamaOpenAICompat
+
+Replaced relic invoke references with relic <command> (direct workflow commands are the entry points; no invoke subcommand). Replaced invoke.json with models.json (the decided config file name). Caught by relic analyse.

@@ -6,7 +6,7 @@
 
 ## Description
 
-Ollama exposes an OpenAI-compatible REST API at `/v1/chat/completions`. The `relic invoke` implementation targets this endpoint format rather than Ollama's native API. This means `relic invoke` works with any server that speaks the OpenAI completions protocol (LM Studio, vLLM, LocalAI, OpenAI itself, etc.) — Ollama is the primary use case but not the only one.
+Ollama exposes an OpenAI-compatible REST API at `/v1/chat/completions`. Relic's workflow commands (`relic plan`, `relic specify`, etc.) target this endpoint format rather than Ollama's native API. This means any workflow command works with any server that speaks the OpenAI completions protocol (LM Studio, vLLM, LocalAI, OpenAI itself, etc.) — Ollama is the primary use case but not the only one.
 
 ## Risk if wrong
 
@@ -26,4 +26,4 @@ Users running Ollama on a remote machine are expected to set up SSH port forward
 ssh -L 11434:localhost:11434 user@remote-host
 ```
 
-After this, `baseUrl: "http://localhost:11434"` in `invoke.json` reaches the remote Ollama instance. Relic does not manage SSH connections.
+After this, `baseUrl: "http://localhost:11434"` in `.relic/models.json` reaches the remote Ollama instance. Relic does not manage SSH connections.
