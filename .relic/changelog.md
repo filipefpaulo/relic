@@ -494,3 +494,19 @@ relic write command implemented; all prompts updated to use structured writes.
 ## [2026-04-15T18:00:06.060Z] /relic.solve — 006-structured-write-command / 2026-04-15-missing-tests-write-command: added write.test.ts
 
 Spec 006 plan and tasks did not include a test phase. Created write.test.ts with 20 tests covering runWrite (changelog and toon paths), appendChangelogEntry, validateWritePayload, upsertToonEntry, toon target routing, and metadata merging. Amended spec.md scope, plan.md Phase 7, tasks.md T-19, and artifacts.json. Classification: misspecification — code was correct, spec omitted test requirement.
+
+## [2026-04-18T01:10:43.386Z] /relic.clarify — 007: ModelInvocationDomain + ModelConfigContract amended
+
+Dropped invoke subcommand — workflow commands (relic specify, clarify, plan, etc.) are now top-level production binary commands. Renamed invoke.json to models.json for multi-agent growth path. Added conversation history requirement (FR-7/FR-8) and maxHistoryMessages config field. Env var prefix changed from RELIC_INVOKE_* to RELIC_MODEL_*. Intersection questions resolved (prior PRs merged). Changelog rules confirmed unchanged.
+
+## [2026-04-18T01:23:58.024Z] /relic.clarify — 007: history compression + model-history.json + error UX
+
+Resolved all open questions. Confirmed model-history.json as per-spec history store (not session.json). Added recentFullMessages config field and tiered structural compression strategy in ModelInvocationDomain and ModelConfigContract: last N messages full, older entries deterministically compressed via history-compressor.ts (headings+bullets+first sentence, no LLM). Clarified FR-2 error UX: actionable stderr message on missing config, no fallback stdout dump.
+
+## [2026-04-18T01:47:05.149Z] /relic.clarify — 007: ModelInvocationDomain + ModelConfigContract amended (round 3)
+
+Six clarifications applied: (1) NFR-2 revised — getPromptTemplate() export added to @relic/engines; ENGINE_TEMPLATES already contains prompts, just needs surfacing. (2) NFR-1 revised — use fetchWithTimeout from @relic/utility extended with RequestInit; timeoutMs added to models.json (default 300000ms). (3) NFR-4 revised — history is per-spec at .relic/history/<spec-id>.json, entire directory gitignored. (4) FR-1 expanded — relic solve, relic constitution, relic scan --model added; relic use confirmed already in prod. (5) FR-10 revised — relic model-reset replaced with relic model --reset-context for extensibility. (6) Scope updated — bin.debug.ts deleted, single bin.ts.
+
+## [2026-04-18T01:57:08.802Z] /relic.clarify — 007: SpecFilesAllowlistRule amended + history colocation
+
+Claimed ownership of SpecFilesAllowlistRule (unowned). Amended to allow history.json as a permitted fifth file in spec directories — session-local runtime state, gitignored via specs/**/history.json glob, never read by cross-spec tooling. History path changed from .relic/history/<spec-id>.json to .relic/specs/<spec-id>/history.json. validate.ts ALLOWED_SPEC_FILES and preamble.md updated in scope. Rationale: colocation is intuitive and does not weaken the shared artifact layer.
