@@ -1,6 +1,6 @@
 import { join } from "path";
 import { createInterface } from "readline";
-import { ensureDir, writeText, writeJson, fileExists } from "@relic/utility";
+import { ensureDir, writeText, writeJson } from "@relic/utility";
 import { nextSpecId, slugify } from "@relic/utility";
 import { TEMPLATES } from "../generated/templates.ts";
 import { buildContext, renderContext } from "../core/context-builder.ts";
@@ -65,23 +65,17 @@ export async function runSpecify(options: SpecifyOptions): Promise<void> {
   console.log("  artifacts.json — declare owned and read artifacts");
   console.log("");
 
-  // If models.json present, call the model with the new spec context
-  const modelsJsonPath = join(options.relicDir, "models.json");
-  if (fileExists(modelsJsonPath)) {
-    const ctx = buildContext(options.relicDir, specId);
-    const renderedContext = renderContext(ctx);
-    const userMessage = title
-      ? renderedContext + `\n\n## Title\n\n${title}`
-      : renderedContext;
-    await runModel({
-      command: "specify",
-      userMessage,
-      relicDir: options.relicDir,
-      specId,
-      noStream: options.noStream,
-      resetContext: options.resetContext,
-    });
-  } else {
-    console.log(`In your AI agent: /relic.specify`);
-  }
+  const ctx = buildContext(options.relicDir, specId);
+  const renderedContext = renderContext(ctx);
+  const userMessage = title
+    ? renderedContext + `\n\n## Title\n\n${title}`
+    : renderedContext;
+  await runModel({
+    command: "specify",
+    userMessage,
+    relicDir: options.relicDir,
+    specId,
+    noStream: options.noStream,
+    resetContext: options.resetContext,
+  });
 }

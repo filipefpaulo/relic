@@ -34,6 +34,9 @@
     "packages/cli-node/src/bin.debug.ts",
     "templates/preamble.md",
     ".relic/preamble.md",
-    ".relic/.gitignore"
+    ".relic/.gitignore",
+    "scripts/publish.ts",
+    "README.md",
+    "package.json"
   ]
 }

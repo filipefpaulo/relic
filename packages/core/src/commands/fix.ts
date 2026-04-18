@@ -1,6 +1,6 @@
 import { join } from "path";
 import { buildContext, renderContext } from "../core/context-builder.ts";
-import { availableSpecs, dirExists, fileExists, resolveSpec } from "@relic/utility";
+import { availableSpecs, dirExists, resolveSpec } from "@relic/utility";
 import { runModel } from "../core/model-runner.ts";
 
 export interface FixOptions {
@@ -40,21 +40,12 @@ export async function runFix(options: FixOptions): Promise<void> {
     ? rendered + "\n\n---\n\n# Issue\n\n" + options.issue
     : rendered;
 
-  // If models.json exists, call the model; otherwise print context (legacy behaviour)
-  const modelsJsonPath = join(relicDir, "models.json");
-  if (fileExists(modelsJsonPath)) {
-    await runModel({
-      command: "fix",
-      userMessage,
-      relicDir,
-      specId,
-      noStream: options.noStream,
-      resetContext: options.resetContext,
-    });
-  } else {
-    console.log(rendered);
-    if (options.issue) {
-      console.log("\n---\n\n# Issue\n\n" + options.issue);
-    }
-  }
+  await runModel({
+    command: "fix",
+    userMessage,
+    relicDir,
+    specId,
+    noStream: options.noStream,
+    resetContext: options.resetContext,
+  });
 }
