@@ -110,7 +110,6 @@ program
   .command("specify")
   .description("Create a new spec and run the AI specify workflow")
   .option("--title <title>", "Spec title")
-  .option("--spec <id>", "Spec ID (for referencing existing spec context)")
   .option("--no-stream", "Disable streaming output")
   .option("--reset-context", "Clear conversation history before running", false)
   .action(async (opts: { title?: string; stream: boolean; resetContext: boolean }) => {
