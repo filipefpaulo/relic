@@ -1,6 +1,6 @@
 import { join } from "path";
 import { createInterface } from "readline";
-import { ensureDir, writeText, writeJson } from "@relic/utility";
+import { ensureDir, writeText, writeJson, fileExists } from "@relic/utility";
 import { nextSpecId, slugify } from "@relic/utility";
 import { TEMPLATES } from "../generated/templates.ts";
 import { buildContext, renderContext } from "../core/context-builder.ts";
