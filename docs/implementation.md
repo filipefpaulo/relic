@@ -294,6 +294,145 @@ a new spec — coverage grows monotonically.
 
 **New `@relic/utility` exports:** `SessionState`, `readSession`, `writeSession`.
 
+### Phase 12 — Toon manifest format (spec 005)
+
+**Problem:** `manifest.json` is verbose. An LLM scanning all manifests before loading any
+artifact paid significant token overhead just to read entry metadata.
+
+**Solution:** A new pipe-delimited line format called **toon** replaces JSON manifests.
+
+**Toon format** (`shared/<subdir>/manifest.toon`):
+```
+# domains manifest
+source | name | file | tags | tldr | score
+knowledge | UserAuth | UserAuth.md | auth,session,token | Handles user auth and session tokens. | 0
+```
+
+Each entry is one line. Fields are pipe-delimited. The format is scannable without a JSON
+parser, and token cost scales linearly with the number of entries rather than exponentially
+with JSON nesting.
+
+**`relic toon-migrate`** — one-time migration command:
+- Converts all `shared/*/manifest.json` files to `manifest.toon`
+- Rebuilds the spec and fix indexes (`.relic/specs/manifest.toon`, `.relic/fixes/manifest.toon`)
+- Safe to run on an already-migrated project (idempotent)
+
+**`relic search` / `relic deep-search`** output updated:
+- Default output is now toon lines (Constitution amendment: toon is the enforced default
+  for all list-returning LLM-facing commands)
+- `--json` flag available for machine consumers
+
+**`relic validate`** now prefers `manifest.toon`; warns and falls back when only `manifest.json`
+is present (prints: *"run: relic toon-migrate"*).
+
+**`@relic/utility`** gains `encodeToon`, `decodeToon`, and `ToonField` exports.
+
+---
+
+### Phase 13 — Structured write command (`relic write`) (spec 006)
+
+**Problem:** AI agents writing to `.relic/changelog.md`, `manifest.toon` files, and fix/spec
+indexes had to open files directly, parse existing content, and append correctly formatted
+entries. This created divergence risk and made it easy to corrupt the toon line format.
+
+**Solution:** A single structured write command that is the only blessed way to mutate
+any Relic index or append to the changelog.
+
+**`relic write <target> --payload <json>`** — write one entry to a specific target:
+
+| Flag | Target file |
+|---|---|
+| `--changelog` | `.relic/changelog.md` |
+| `--specs` | `.relic/specs/manifest.toon` |
+| `--fixes` | `.relic/fixes/manifest.toon` |
+| `--knowledge-domains` | `.relic/shared/domains/manifest.toon` |
+| `--knowledge-contracts` | `.relic/shared/contracts/manifest.toon` |
+| `--knowledge-rules` | `.relic/shared/rules/manifest.toon` |
+| `--knowledge-assumptions` | `.relic/shared/assumptions/manifest.toon` |
+
+Exactly one target flag must be provided. The `--payload` is a compact JSON string matching
+the `WritePayload` schema. The command validates, formats, and appends the entry atomically.
+
+All AI prompt templates updated: agents no longer open index files directly — they call
+`relic write` for every mutation to a Relic-managed file.
+
+---
+
+### Phase 14 — Direct model invocation (spec 007)
+
+**Problem:** Running Relic workflows required an IDE (Claude Code, Copilot, Codex). Developers
+using local or remote Ollama models, headless CI pipelines, or non-supported IDEs had no way
+to drive the full Relic workflow from the terminal.
+
+**Solution:** Promote all workflow commands to first-class production CLI commands that call
+any OpenAI-compatible API endpoint directly. The IDE slash commands remain intact — terminal
+and IDE workflows are now symmetric.
+
+**`models.json`** — gitignored config file at `.relic/models.json`:
+```json
+{
+  "baseUrl": "http://localhost:11434",
+  "model": "llama3",
+  "apiKey": "",
+  "maxHistoryMessages": 20,
+  "recentFullMessages": 2,
+  "timeoutMs": 300000
+}
+```
+Env var overrides: `RELIC_MODEL_BASE_URL`, `RELIC_MODEL_MODEL`, `RELIC_MODEL_API_KEY`.
+
+**New production binary commands** (all accept `--spec <id>`, `--no-stream`, `--reset-context`
+where applicable):
+- `relic specify / clarify / plan / analyse / tasks / implement / fix`
+- `relic solve [--fix <id>]` — one-shot fix application (no history)
+- `relic constitution` — regenerate `.relic/constitution.md`
+- `relic scan` — default inverted to AI workflow; `--manifest` flag preserves old manifest output
+- `relic model --reset-context [--spec <id>]` — clear per-spec conversation history
+
+**`bin.debug.ts` deleted.** All commands now live in the single production `bin.ts`.
+
+**Pipeline per command invocation:**
+```
+bin.ts handler
+  → assemble spec context (buildContext + renderContext)
+  → model-runner.ts
+      → load + validate models.json (+ env overrides)
+      → getPromptTemplate(commandName) from @relic/engines
+      → load history.json for spec
+      → apply structural compression to older entries
+      → build messages: [system: template, ...history, user: context]
+      → model-client.ts → POST /v1/chat/completions → stream stdout
+      → append exchange to history.json
+```
+
+**Conversation history** — persisted per-spec at `.relic/specs/<spec-id>/history.json`
+(gitignored via `specs/**/history.json`). Subsequent calls within a spec retain reasoning
+continuity across `specify → clarify → plan → …`.
+
+**History compression** — entries older than `recentFullMessages` (default: 2) are compressed
+deterministically before each call:
+- Heading lines (`#`) kept verbatim
+- Bullet lines (`- `, `* `) kept verbatim
+- Fenced code blocks dropped entirely
+- Prose lines: only the first sentence retained
+
+No model calls, no extra cost — compression is a pure synchronous function in
+`packages/core/src/core/history-compressor.ts`.
+
+**New core modules:**
+- `packages/core/src/core/model-client.ts` — streaming POST client; no engine imports
+- `packages/core/src/core/model-runner.ts` — pipeline orchestrator; owns `models.json` loading
+- `packages/core/src/core/history-compressor.ts` — deterministic structural extract; pure function
+
+**`@relic/engines`** gains `getPromptTemplate(name)` — surfaces `ENGINE_TEMPLATES` for the
+model runner without creating a coupling from `model-client.ts` to the engines package.
+
+**`@relic/utility`** `fetchWithTimeout` gains an optional `RequestInit` parameter, enabling
+POST requests with headers and body for model calls.
+
+**`relic init` fix:** was only writing `session.json` to `.relic/.gitignore`. Now writes all
+three entries: `session.json`, `models.json`, `specs/**/history.json`.
+
 ---
 
 ## What Changed from the Original Design
@@ -348,6 +487,10 @@ with OIDC trusted publisher.
 
 ### Phase 9 — Manifest-based knowledge indexing (`relic search` + `relic deep-search`)
 
+> **Updated in Phase 12.** The manifest format was migrated from JSON to toon in Phase 12.
+> `relic search` and `relic deep-search` now read `manifest.toon` by default.
+> The details below describe the original design; the current file format is toon.
+
 **Problem:** When an LLM needs to find relevant shared artifacts it reads every file under
 `.relic/shared/` — expensive in tokens, especially on cold starts where none of the brain
 is in context yet.
@@ -396,11 +539,9 @@ before the changelog step.
 
 ## Implementation Gaps / Known Limitations
 
-- **`plan.ts`, `specify.ts` etc.** are stub commands in the debug binary.
-  They print context or a placeholder message. The actual workflow lives in the AI prompts.
-  Full TypeScript implementations are not planned — the AI prompt approach is the intended design.
-  `fix.ts` now handles session-state plumbing (spec resolution via `session.json`); the diagnosis
-  and apply logic remains in `fix.md` and `solve.md` per Constitution Principle II.
+- **Workflow commands are thin orchestrators** — `clarify.ts`, `plan.ts`, etc. assemble context
+  and call the model. They do not duplicate or replace the business logic in the prompt templates.
+  Per Constitution Principle II, the authoritative reasoning lives in `templates/prompts/`.
 
 - **`scan` confidence calibration** — the `Confidence: medium` default for all inferred artifacts
   is a safe starting point but could be smarter. Entry points with explicit type exports probably
@@ -409,7 +550,10 @@ before the changelog step.
 - **Ownership transfer flow** — still unresolved (from original open questions). When two specs
   want to own the same artifact, there is no formal transfer mechanism yet.
 
-- **PyPI package** — now implemented. See `docs/distribution.md`. Homebrew formula not yet written.
+- **`model-client.ts` is not unit-tested** — streaming SSE requires a live server; covered
+  by manual smoke test against a real Ollama or OpenAI-compatible endpoint.
+
+- **PyPI package** — implemented. See `docs/distribution.md`. Homebrew formula not yet written.
 
 ---
 
@@ -420,7 +564,7 @@ before the changelog step.
 bun run build:engine-templates
 
 # Embed scaffold templates into core/generated/templates.ts
-# (also runs build:engine-templates first)
+# (also runs build:engine-templates first — required before any other build step)
 bun run build:templates
 
 # Build cross-platform npm bundle (what gets published)
@@ -432,16 +576,20 @@ bun run build:binary
 # Run production CLI from source (no build step)
 bun run dev <command>
 
-# Run debug CLI from source (all commands)
-bun run dev:debug <command>
+# Run all tests
+bun run test
 
 # Type check
 bun run typecheck
 ```
+
+Note: `dev:debug` was removed in Phase 14 — there is no longer a separate debug binary.
+All commands are in the production `bin.ts`.
 
 ---
 
 *Document created: April 10, 2026.*
 *Updated: April 13, 2026 — Phase 10: @relic/utility, @relic/engines, permission configs.*
 *Updated: April 13, 2026 — Phase 11: session.json, two-stage fix pipeline, /relic.solve.*
-*Covers: Phase 1–11.*
+*Updated: April 18, 2026 — Phase 12: toon manifest format. Phase 13: relic write. Phase 14: direct model invocation.*
+*Covers: Phase 1–14.*
