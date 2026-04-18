@@ -10,7 +10,7 @@ Ollama exposes an OpenAI-compatible REST API at `/v1/chat/completions`. Relic's 
 
 ## Risk if wrong
 
-- If Ollama drops or breaks their OpenAI compatibility layer, `relic invoke` would fail silently or produce malformed responses.
+- If Ollama drops or breaks their OpenAI compatibility layer, direct-invocation workflow commands such as `relic plan` and `relic specify` would fail silently or produce malformed responses.
 - Some Ollama models do not reliably respect the `system` message role — prompt framing may need adjustment per model.
 
 ## Staleness signal
