@@ -1,9 +1,0 @@
-[
-  {
-    "id": "2026-04-13-copilot-codex-per-command-files",
-    "owning_spec": "002-agent-permission-config",
-    "classification": "misspecification",
-    "file": "2026-04-13-copilot-codex-per-command-files.md",
-    "tldr": "Copilot and Codex engines write all commands to a single file; they should write individual per-command files like Claude does."
-  }
-]
