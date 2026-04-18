@@ -26,7 +26,8 @@ export type { RunSolveOptions } from "./commands/solve.ts";
 export { runConstitution } from "./commands/constitution.ts";
 export type { RunConstitutionOptions } from "./commands/constitution.ts";
 export { runModel, loadModelConfig } from "./core/model-runner.ts";
-export type { ModelConfig, RunModelOptions } from "./core/model-runner.ts";
+export type { RunModelOptions } from "./core/model-runner.ts";
+export type { ModelConfig } from "@relic/utility";
 export type { ModelCallOptions } from "./core/model-client.ts";
 
 export { loadRegistry, buildOwnershipMap } from "./core/artifact-registry.ts";

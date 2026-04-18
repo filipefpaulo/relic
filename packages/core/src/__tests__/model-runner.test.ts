@@ -187,6 +187,105 @@ describe("loadModelConfig — env var overrides", () => {
 });
 
 // ---------------------------------------------------------------------------
+// loadModelConfig — numeric field validation
+// ---------------------------------------------------------------------------
+
+describe("loadModelConfig — numeric field validation", () => {
+  test("maxHistoryMessages: 0 exits with error naming the field and constraint", () => {
+    writeModelsJson(relicDir, { baseUrl: "http://localhost:11434", model: "llama3", maxHistoryMessages: 0 });
+    const exit = mockExitThrows();
+    const errors: string[] = [];
+    const err = spyOn(console, "error").mockImplementation((msg: string) => errors.push(String(msg)));
+    try {
+      expect(() => loadModelConfig(relicDir)).toThrow("process.exit(1)");
+      const combined = errors.join(" ");
+      expect(combined).toContain("maxHistoryMessages");
+      expect(combined).toContain("0");
+    } finally {
+      exit.mockRestore();
+      err.mockRestore();
+    }
+  });
+
+  test("maxHistoryMessages: -5 exits with error", () => {
+    writeModelsJson(relicDir, { baseUrl: "http://localhost:11434", model: "llama3", maxHistoryMessages: -5 });
+    const exit = mockExitThrows();
+    const err = silenceStderr();
+    try {
+      expect(() => loadModelConfig(relicDir)).toThrow("process.exit(1)");
+    } finally {
+      exit.mockRestore();
+      err.mockRestore();
+    }
+  });
+
+  test("maxHistoryMessages: 1.5 (non-integer) exits with error", () => {
+    writeModelsJson(relicDir, { baseUrl: "http://localhost:11434", model: "llama3", maxHistoryMessages: 1.5 });
+    const exit = mockExitThrows();
+    const err = silenceStderr();
+    try {
+      expect(() => loadModelConfig(relicDir)).toThrow("process.exit(1)");
+    } finally {
+      exit.mockRestore();
+      err.mockRestore();
+    }
+  });
+
+  test("recentFullMessages: -1 exits with error", () => {
+    writeModelsJson(relicDir, { baseUrl: "http://localhost:11434", model: "llama3", recentFullMessages: -1 });
+    const exit = mockExitThrows();
+    const err = silenceStderr();
+    try {
+      expect(() => loadModelConfig(relicDir)).toThrow("process.exit(1)");
+    } finally {
+      exit.mockRestore();
+      err.mockRestore();
+    }
+  });
+
+  test("recentFullMessages > maxHistoryMessages exits with error", () => {
+    writeModelsJson(relicDir, {
+      baseUrl: "http://localhost:11434", model: "llama3",
+      maxHistoryMessages: 5, recentFullMessages: 10,
+    });
+    const exit = mockExitThrows();
+    const errors: string[] = [];
+    const err = spyOn(console, "error").mockImplementation((msg: string) => errors.push(String(msg)));
+    try {
+      expect(() => loadModelConfig(relicDir)).toThrow("process.exit(1)");
+      expect(errors.join(" ")).toContain("recentFullMessages");
+    } finally {
+      exit.mockRestore();
+      err.mockRestore();
+    }
+  });
+
+  test("timeoutMs: 0 exits with error", () => {
+    writeModelsJson(relicDir, { baseUrl: "http://localhost:11434", model: "llama3", timeoutMs: 0 });
+    const exit = mockExitThrows();
+    const err = silenceStderr();
+    try {
+      expect(() => loadModelConfig(relicDir)).toThrow("process.exit(1)");
+    } finally {
+      exit.mockRestore();
+      err.mockRestore();
+    }
+  });
+
+  test("timeoutMs: -1000 exits with error", () => {
+    writeModelsJson(relicDir, { baseUrl: "http://localhost:11434", model: "llama3", timeoutMs: -1000 });
+    const exit = mockExitThrows();
+    const err = silenceStderr();
+    try {
+      expect(() => loadModelConfig(relicDir)).toThrow("process.exit(1)");
+    } finally {
+      exit.mockRestore();
+      err.mockRestore();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // loadModelConfig — defaults
 // ---------------------------------------------------------------------------
 

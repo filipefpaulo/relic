@@ -27,5 +27,8 @@ export { readEnginesRegistry, writeEnginesRegistry } from "./engines-registry.ts
 
 export { fetchWithTimeout } from "./fetch.ts";
 
+export type { ModelConfig } from "./model-config.ts";
+export { parseModelConfig } from "./model-config.ts";
+
 export type { ToonField } from "./toon.ts";
 export { encodeToon, decodeToon } from "./toon.ts";

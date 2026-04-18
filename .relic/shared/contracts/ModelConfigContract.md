@@ -65,4 +65,8 @@ Env vars take precedence over `models.json` values. Enables CI usage without com
 
 - `baseUrl` must be present and non-empty — error if missing.
 - `model` must be present and non-empty — error if missing.
-- Validation errors must be actionable: include the field name and the path to `models.json`.
+- `maxHistoryMessages` must be a positive integer (> 0) — error if zero, negative, or non-integer.
+- `recentFullMessages` must be a non-negative integer (≥ 0) and must not exceed `maxHistoryMessages` — error if negative, non-integer, or greater than `maxHistoryMessages`.
+- `timeoutMs` must be a positive finite number (> 0) — error if zero, negative, or non-finite.
+- All validation errors are actionable: include the field name, the invalid value, the constraint violated, the path to `models.json`, and the minimum valid schema. Exit non-zero.
+- Parsing and validation is implemented in `parseModelConfig()` in `@relic/utility` — the single source of truth for all consumers (current: `model-runner.ts`; future: multi-agent configurations).

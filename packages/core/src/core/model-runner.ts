@@ -1,26 +1,11 @@
 import { join } from "path";
-import { fileExists, readJson, writeJson, readText } from "@relic/utility";
+import { fileExists, readJson, writeJson, readText, parseModelConfig } from "@relic/utility";
+import type { ModelConfig } from "@relic/utility";
 import { getPromptTemplate } from "@relic/engines";
 import { compressMessage } from "./history-compressor.ts";
 import { callModel } from "./model-client.ts";
 
-export interface ModelConfig {
-  baseUrl: string;
-  model: string;
-  apiKey: string;
-  maxHistoryMessages: number;
-  recentFullMessages: number;
-  timeoutMs: number;
-}
-
-interface RawModelConfig {
-  baseUrl?: string;
-  model?: string;
-  apiKey?: string;
-  maxHistoryMessages?: number;
-  recentFullMessages?: number;
-  timeoutMs?: number;
-}
+export type { ModelConfig };
 
 const MINIMUM_SCHEMA = JSON.stringify(
   { baseUrl: "http://localhost:11434", model: "llama3" },
@@ -31,10 +16,10 @@ const MINIMUM_SCHEMA = JSON.stringify(
 export function loadModelConfig(relicDir: string): ModelConfig {
   const configPath = join(relicDir, "models.json");
 
-  let raw: RawModelConfig = {};
+  let raw: Record<string, unknown> = {};
   if (fileExists(configPath)) {
     try {
-      raw = readJson<RawModelConfig>(configPath);
+      raw = readJson<Record<string, unknown>>(configPath);
     } catch {
       console.error(`Error: could not parse .relic/models.json`);
       console.error(`Path: ${configPath}`);
@@ -43,33 +28,7 @@ export function loadModelConfig(relicDir: string): ModelConfig {
     }
   }
 
-  // Apply env var overrides
-  const baseUrl = process.env["RELIC_MODEL_BASE_URL"] ?? raw.baseUrl ?? "";
-  const model = process.env["RELIC_MODEL_MODEL"] ?? raw.model ?? "";
-  const apiKey = process.env["RELIC_MODEL_API_KEY"] ?? raw.apiKey ?? "";
-
-  if (!baseUrl) {
-    console.error(`Error: missing required field "baseUrl" in .relic/models.json`);
-    console.error(`Path: ${configPath}`);
-    console.error(`Minimum valid schema:\n${MINIMUM_SCHEMA}`);
-    process.exit(1);
-  }
-
-  if (!model) {
-    console.error(`Error: missing required field "model" in .relic/models.json`);
-    console.error(`Path: ${configPath}`);
-    console.error(`Minimum valid schema:\n${MINIMUM_SCHEMA}`);
-    process.exit(1);
-  }
-
-  return {
-    baseUrl,
-    model,
-    apiKey,
-    maxHistoryMessages: raw.maxHistoryMessages ?? 20,
-    recentFullMessages: raw.recentFullMessages ?? 2,
-    timeoutMs: raw.timeoutMs ?? 300_000,
-  };
+  return parseModelConfig(raw, configPath);
 }
 
 export interface RunModelOptions {
