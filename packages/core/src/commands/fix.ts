@@ -1,8 +1,6 @@
 import { join } from "path";
-import { execSync } from "child_process";
 import { buildContext, renderContext } from "../core/context-builder.ts";
-import { inferSpecFromBranch, availableSpecs, fileExists } from "@relic/utility";
-import { dirExists, readSession } from "@relic/utility";
+import { availableSpecs, dirExists, fileExists, resolveSpec } from "@relic/utility";
 import { runModel } from "../core/model-runner.ts";
 
 export interface FixOptions {
@@ -14,22 +12,10 @@ export interface FixOptions {
 }
 
 export async function runFix(options: FixOptions): Promise<void> {
-  let specId = options.spec ?? process.env["RELIC_SPEC"];
+  const { relicDir } = options;
+  const specsDir = join(relicDir, "specs");
 
-  if (!specId) {
-    specId = readSession(options.relicDir).spec ?? undefined;
-  }
-
-  if (!specId) {
-    try {
-      const branch = execSync("git branch --show-current", { encoding: "utf8" }).trim();
-      specId = inferSpecFromBranch(branch) ?? undefined;
-    } catch {
-      // not in a git repo or git not available
-    }
-  }
-
-  const specsDir = join(options.relicDir, "specs");
+  const specId = resolveSpec(options.spec, relicDir);
 
   if (!specId) {
     const available = availableSpecs(specsDir);
@@ -47,7 +33,7 @@ export async function runFix(options: FixOptions): Promise<void> {
     process.exit(1);
   }
 
-  const ctx = buildContext(options.relicDir, specId);
+  const ctx = buildContext(relicDir, specId);
   const rendered = renderContext(ctx);
 
   const userMessage = options.issue
@@ -55,12 +41,12 @@ export async function runFix(options: FixOptions): Promise<void> {
     : rendered;
 
   // If models.json exists, call the model; otherwise print context (legacy behaviour)
-  const modelsJsonPath = join(options.relicDir, "models.json");
+  const modelsJsonPath = join(relicDir, "models.json");
   if (fileExists(modelsJsonPath)) {
     await runModel({
       command: "fix",
       userMessage,
-      relicDir: options.relicDir,
+      relicDir,
       specId,
       noStream: options.noStream,
       resetContext: options.resetContext,

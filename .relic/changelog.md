@@ -518,3 +518,7 @@ RunSolveOptions is fix-scoped (not spec-scoped): receives fix ID, derives owning
 ## [2026-04-18T02:54:01.913Z] /relic.clarify — 007-remote-ollama-engine: Fix stale references in OllamaOpenAICompat
 
 Replaced relic invoke references with relic <command> (direct workflow commands are the entry points; no invoke subcommand). Replaced invoke.json with models.json (the decided config file name). Caught by relic analyse.
+
+## [2026-04-18T18:37:57.588Z] /relic.solve — 007 / 2026-04-18-centralize-spec-fix-resolution: resolveSpec and resolveFix added to @relic/utility
+
+Centralized spec and fix resolution into resolveSpec() and resolveFix() utilities in @relic/utility. All workflow commands now use the same four-step chain: --spec arg > RELIC_SPEC env > session.json > git branch inference. Previously the chain was copy-pasted across 8+ command files with no shared implementation. relic model --reset-context now correctly uses the full resolution chain — previously it skipped the RELIC_SPEC env var and git branch inference steps. SpecResolutionDomain.md updated to document the canonical utilities. (Fix: 2026-04-18-centralize-spec-fix-resolution)

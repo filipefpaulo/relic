@@ -27,7 +27,7 @@ import {
   SUPPORTED_ENGINES,
   type Engine,
 } from "@relic/core";
-import { readEnginesRegistry, writeEnginesRegistry, fileExists, readJson, writeJson } from "@relic/utility";
+import { readEnginesRegistry, writeEnginesRegistry, fileExists, readJson, writeJson, resolveSpec } from "@relic/utility";
 
 const VERSION = "0.8.0";
 const program = new Command();
@@ -265,12 +265,8 @@ program
     // Validate config exists
     loadModelConfig(relicDir);
 
-    // Resolve spec
-    let specId = opts.spec;
-    if (!specId) {
-      const { readSession } = await import("@relic/utility");
-      specId = readSession(relicDir).spec ?? undefined;
-    }
+    // Resolve spec using the canonical four-step chain
+    const specId = resolveSpec(opts.spec, relicDir);
     if (!specId) {
       console.error("Error: no active spec. Use --spec <id> or relic use <spec-id>");
       process.exit(1);

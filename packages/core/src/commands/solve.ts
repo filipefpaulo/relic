@@ -1,5 +1,5 @@
 import { join } from "path";
-import { fileExists, readText, readSession } from "@relic/utility";
+import { fileExists, readText, resolveFix } from "@relic/utility";
 import { runModel } from "../core/model-runner.ts";
 
 export interface RunSolveOptions {
@@ -12,7 +12,7 @@ export async function runSolve(options: RunSolveOptions): Promise<void> {
   const { relicDir, noStream } = options;
 
   // Resolve fix ID: arg → session.fix → error
-  const fixId = options.fix ?? readSession(relicDir).fix ?? undefined;
+  const fixId = resolveFix(options.fix, relicDir);
   if (!fixId) {
     console.error("Error: no active fix. Set one with: relic use --fix <fix-id>");
     console.error("Or pass: relic solve --fix <fix-id>");

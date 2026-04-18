@@ -16,6 +16,8 @@ export {
   inferSpecFromBranch,
   slugify,
   availableSpecs,
+  resolveSpec,
+  resolveFix,
 } from "./spec-id.ts";
 
 export type { SessionState } from "./session.ts";

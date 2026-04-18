@@ -1,7 +1,6 @@
 import { join } from "path";
-import { execSync } from "child_process";
 import { buildContext, renderContext } from "../core/context-builder.ts";
-import { inferSpecFromBranch, availableSpecs, dirExists, readSession } from "@relic/utility";
+import { availableSpecs, dirExists, resolveSpec } from "@relic/utility";
 import { runModel } from "../core/model-runner.ts";
 
 export interface PlanOptions {
@@ -13,23 +12,9 @@ export interface PlanOptions {
 
 export async function runPlan(options: PlanOptions): Promise<void> {
   const { relicDir } = options;
-
-  let specId = options.spec ?? process.env["RELIC_SPEC"];
-
-  if (!specId) {
-    specId = readSession(relicDir).spec ?? undefined;
-  }
-
-  if (!specId) {
-    try {
-      const branch = execSync("git branch --show-current", { encoding: "utf8" }).trim();
-      specId = inferSpecFromBranch(branch) ?? undefined;
-    } catch {
-      // not in a git repo or git not available
-    }
-  }
-
   const specsDir = join(relicDir, "specs");
+
+  const specId = resolveSpec(options.spec, relicDir);
 
   if (!specId) {
     const available = availableSpecs(specsDir);
