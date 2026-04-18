@@ -61,12 +61,14 @@ relic init
       plan.md
       tasks.md
       artifacts.json   ← declares owns/reads/touches — never stores artifacts
+      history.json     ← gitignored — per-spec conversation history for direct model calls
   fixes/               ← fix documents (committed — team audit trail)
-    manifest.json      ← index of all fix documents
+    manifest.toon      ← toon index of all fix documents
     2026-04-13-null-session-crash.md
   preamble.md          ← Relic's immutable structural rules
   constitution.md      ← project-specific governance, extracted from your codebase
   changelog.md         ← full audit trail of every plan mutation
+  models.json          ← gitignored — model config for direct invocation (baseUrl, model, apiKey)
   session.json         ← gitignored — your active spec and fix session state
 ```
 
@@ -76,6 +78,8 @@ relic init
 
 ## CLI commands
 
+### Setup and navigation
+
 | Command | Purpose |
 |---|---|
 | `relic init [--engine claude\|copilot\|codex]` | Scaffold `.relic/` in your project |
@@ -83,12 +87,36 @@ relic init
 | `relic use <spec-id>` | Set the active spec for this session |
 | `relic use --fix <fix-id>` | Set the active fix (validates fix doc exists) |
 | `relic use --clear-fix` | Clear the active fix from session state |
-| `relic scan [--json]` | Output a project manifest for `/relic.scan` |
 | `relic context [--spec id] [--text]` | Resolve active spec; report file/artifact status and `current_fix` |
 | `relic scaffold [--title t\|--spec id]` | Ensure spec folder exists; create from templates if new |
 | `relic validate [--text]` | Check artifact integrity and ownership conflicts |
 | `relic search <keywords...>` | Search shared artifact manifests by keyword tags |
 | `relic deep-search` | Return all manifest entries consolidated (tldr-first triage) |
+| `relic upgrade [--check] [--prompts]` | Upgrade relic-cli and refresh engine hook files |
+
+### Workflow commands (direct model invocation)
+
+These commands require `.relic/models.json` with a `baseUrl` and `model`. They assemble spec context and call your configured model directly — no IDE required.
+
+| Command | Purpose |
+|---|---|
+| `relic scan [--manifest] [--no-stream]` | Run AI scan workflow (default) or output raw manifest with `--manifest` |
+| `relic specify [--title t] [--no-stream] [--reset-context]` | Create a new spec and start the specify workflow |
+| `relic clarify [--spec id] [--no-stream] [--reset-context]` | Append details or change contracts |
+| `relic plan [--spec id] [--no-stream] [--reset-context]` | Create an implementation plan |
+| `relic analyse [--spec id] [--no-stream] [--reset-context]` | Non-destructive consistency check |
+| `relic tasks [--spec id] [--no-stream] [--reset-context]` | Generate tasks from the current plan |
+| `relic implement [--spec id] [--no-stream] [--reset-context]` | Build the plan |
+| `relic fix [--spec id] [--issue desc] [--no-stream] [--reset-context]` | Fix a bug using the spec as context |
+| `relic solve [--fix id] [--no-stream]` | Apply the active fix document |
+| `relic constitution [--no-stream]` | Regenerate `.relic/constitution.md` from the codebase |
+| `relic model --reset-context [--spec id]` | Clear per-spec conversation history |
+
+**`models.json` minimum config:**
+```json
+{ "baseUrl": "http://localhost:11434", "model": "llama3" }
+```
+Env var overrides: `RELIC_MODEL_BASE_URL`, `RELIC_MODEL_MODEL`, `RELIC_MODEL_API_KEY`.
 
 ---
 

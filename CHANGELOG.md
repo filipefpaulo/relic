@@ -9,6 +9,74 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [0.8.0] — 2026-04-18
+
+### Added
+- **Direct model invocation** — workflow commands (`specify`, `clarify`, `plan`, `analyse`,
+  `tasks`, `implement`, `fix`, `solve`, `constitution`) are now first-class production CLI
+  commands. When `.relic/models.json` is present, each command assembles spec context, loads
+  its prompt template, and calls any OpenAI-compatible API endpoint directly — no IDE required.
+  Primary target: Ollama running locally or on a remote machine via SSH port forwarding.
+- `relic specify / clarify / plan / analyse / tasks / implement / fix` — all workflow commands
+  added to the production binary. Each accepts `--spec <id>`, `--no-stream`, and `--reset-context`.
+- `relic solve [--fix <id>] [--no-stream]` — apply the active fix document via model call.
+- `relic constitution [--no-stream]` — regenerate `.relic/constitution.md` from the codebase.
+- `relic model --reset-context [--spec <id>]` — clear per-spec conversation history.
+- `relic scan` default inverted — `relic scan` now runs the AI workflow by default, matching
+  `/relic.scan` in the IDE. `--manifest` flag (and `--manifest --json`) preserve the previous
+  manifest-only output. `--json` alone treated as `--manifest --json` for backward compatibility.
+- **Conversation history** — persisted per-spec at `.relic/specs/<spec-id>/history.json`
+  (gitignored). Subsequent commands within a spec retain reasoning continuity.
+- **Structural history compression** — messages older than `recentFullMessages` (default: 2)
+  are compressed deterministically: headings and bullets kept, prose truncated to first sentence,
+  code blocks dropped. No model calls, no cost.
+- `models.json` config: `baseUrl`, `model`, `apiKey?`, `maxHistoryMessages?` (default 20),
+  `recentFullMessages?` (default 2), `timeoutMs?` (default 300,000ms / 5 min).
+- Env var overrides: `RELIC_MODEL_BASE_URL`, `RELIC_MODEL_MODEL`, `RELIC_MODEL_API_KEY` — enable
+  CI usage without committed credentials.
+- `getPromptTemplate(name)` export added to `@relic/engines` — surfaces `ENGINE_TEMPLATES` for
+  use by the model runner.
+- `relic init` now writes all three gitignore entries: `session.json`, `models.json`,
+  `specs/**/history.json`.
+
+### Changed
+- Single production binary — `bin.debug.ts` deleted; all commands live in `bin.ts`. One system
+  to understand and maintain.
+- `fetchWithTimeout` in `@relic/utility` now accepts an optional `RequestInit` parameter,
+  enabling POST requests with headers and body.
+- `preamble.md` (template and installed copy) updated: spec directories now officially allow
+  five files (`spec.md`, `plan.md`, `tasks.md`, `artifacts.json`, `history.json`).
+- `relic validate` allows `history.json` in spec directories (session-local, not a content check).
+
+### Fixed
+- `relic init` was writing only `session.json` to `.relic/.gitignore`, omitting `models.json`
+  and `specs/**/history.json`. New projects now receive all three entries on init.
+
+---
+
+## [0.7.0] — 2026-04-15
+
+### Added
+- **Toon manifest format** — `shared/*/manifest.toon` replaces `manifest.json` as the default
+  index format. Toon is a compact, pipe-delimited line format optimised for LLM consumption:
+  one entry per line, no JSON overhead, scannable without parsing.
+- `relic toon-migrate` — convert existing `shared/*/manifest.json` files to `manifest.toon`;
+  rebuild the spec and fix indexes in the new format.
+- `relic search` and `relic deep-search` now output toon lines by default (Constitution
+  amendment: toon is the enforced default for all list-returning LLM-facing commands).
+  `--json` flag available for machine consumers.
+
+### Changed
+- `relic validate` prefers `manifest.toon` over `manifest.json`; warns and falls back when
+  only `manifest.json` is present.
+- `relic search` `--knowledge`, `--spec`, `--fix` scope flags now work against the toon indexes.
+
+---
+
+## [0.6.4] — 2026-04-14
+
 ### Fixed
 - `relic add-engine copilot` now writes individual `.github/prompts/relic.<name>.prompt.md`
   files (one per command, with YAML frontmatter `description: Relic <name> command`) instead
@@ -19,6 +87,32 @@ Versions follow [Semantic Versioning](https://semver.org/).
   These appear as native slash commands in Codex.
 - Both Copilot and Codex engines now include the `/relic.solve` command (11 commands total,
   in parity with Claude Code).
+
+---
+
+## [0.6.0] — 2026-04-13
+
+### Added
+- `relic upgrade [--check] [--prompts] [--text]` — upgrade the `relic-cli` binary and refresh
+  AI engine hook files. `--check` reports available updates without installing. `--prompts`
+  refreshes hook files only (skips binary upgrade). `--text` for human-readable output.
+
+---
+
+## [0.5.0] — 2026-04-13
+
+### Added
+- **Two-stage fix pipeline** — `/relic.fix` (diagnosis) + `/relic.solve` (application).
+  `/relic.fix` identifies the owning spec, classifies the root cause, and writes a fix document
+  to `.relic/fixes/<fix-id>.md`. `/relic.solve` applies code changes, updates the knowledge
+  layer if contracts changed, and closes the fix.
+- `session.json` replaces `.relic/current-spec` as the session state file. Carries both
+  `session.spec` and `session.fix`, enabling the two-stage fix pipeline.
+- `relic use --fix <fix-id>` — set the active fix (validates the fix document exists).
+- `relic use --clear-fix` — clear the active fix from session state.
+- `relic context` now reports `current_fix` alongside the active spec.
+- `.relic/fixes/` directory and `fixes/manifest.toon` index created by `relic init`.
+- Fix ID format: `YYYY-MM-DD-<slug>` (e.g. `2026-04-13-null-session-read-on-missing-file`).
 
 ---
 
