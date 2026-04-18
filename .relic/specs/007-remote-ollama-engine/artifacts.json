@@ -21,6 +21,7 @@
     "packages/core/src/commands/analyse.ts",
     "packages/core/src/commands/tasks.ts",
     "packages/core/src/commands/implement.ts",
+    "packages/core/src/commands/init.ts",
     "packages/core/src/commands/fix.ts",
     "packages/core/src/commands/specify.ts",
     "packages/core/src/commands/scan.ts",
