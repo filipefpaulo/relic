@@ -58,7 +58,7 @@ bumpRegex("packages/cli-python/relic/__init__.py", /__version__ = "[^"]+"/, `__v
 
 console.log("");
 
-// --- commit, tag, push ---
+// --- commit and push branch (tag is created automatically after PR merges to main) ---
 const releaseBranch = `release/v${version}`;
 execSync(`git checkout -b ${releaseBranch}`, { stdio: "inherit" });
 execSync(
@@ -66,12 +66,13 @@ execSync(
   { stdio: "inherit" }
 );
 execSync(`git commit -m "chore: bump version to ${version}"`, { stdio: "inherit" });
-execSync(`git tag ${tag}`, { stdio: "inherit" });
 execSync(`git push -u origin ${releaseBranch}`, { stdio: "inherit" });
-execSync(`git push origin ${tag}`, { stdio: "inherit" });
 
 console.log("");
-console.log(`Done — CI publishing to: ${repository ?? "npm + pypi"}`);
+console.log(`Branch pushed: ${releaseBranch}`);
 console.log("");
-console.log(`Next: open a PR to merge ${releaseBranch} → main`);
+console.log(`Next:`);
+console.log(`  1. Open a PR and ensure doc-guard passes (CHANGELOG.md must have a ## [${version}] entry)`);
+console.log(`  2. Merge the PR — the ${tag} tag is created automatically on merge to main`);
+console.log(`  3. The tag push triggers CI to publish to: ${repository ?? "npm + pypi"}`);
 console.log(`  https://github.com/filipefpaulo/relic/pull/new/${releaseBranch}`);
