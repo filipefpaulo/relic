@@ -8,8 +8,28 @@ on:
 permissions: {}
 
 jobs:
-  publish:
+  validate:
     if: "!endsWith(github.ref_name, '-pypi')"
+    name: Changelog gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check CHANGELOG entry
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if grep -qE "^## \[$version\]" CHANGELOG.md; then
+            echo "CHANGELOG.md has ## [$version] entry — proceeding."
+          else
+            echo "Error: CHANGELOG.md is missing a ## [$version] entry."
+            echo "Add a changelog section before pushing a release tag."
+            exit 1
+          fi
+
+  publish:
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: read
