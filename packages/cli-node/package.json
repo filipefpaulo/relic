@@ -32,7 +32,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/filipefpaulo/relic"
+    "url": "git+https://github.com/filipefpaulo/relic.git"
   },
   "homepage": "https://github.com/filipefpaulo/relic#readme"
 }
