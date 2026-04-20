@@ -120,25 +120,37 @@ function upgradeBinary(targetVersion: string, resolvedChannel: string): void {
       throw new Error(`npm install failed. Run manually: npm install -g relic-cli@${targetVersion}`);
     }
   } else {
-    // pypi: try uv first, fall back to pip
-    const uvResult = spawnSync("uv", ["tool", "upgrade", "relic-cli"], { stdio: "inherit" });
+    // pypi: try uv first, fall back to pip.
+    // Use stdio:"pipe" so uv's error output doesn't leak to the terminal when the
+    // pip fallback succeeds — a successful upgrade shouldn't look like a failure.
+    const uvResult = spawnSync("uv", ["tool", "upgrade", "relic-cli"], { stdio: "pipe" });
     if (uvResult.error || uvResult.status !== 0) {
       const uvNotFound = !!uvResult.error;
+      const uvDiag = uvNotFound
+        ? "uv not found on PATH"
+        : "uv: relic-cli not in uv tool store";
+      const uvStderr = uvResult.stderr?.toString().trim() ?? "";
+
+      // Print a single explanatory line so the user knows why pip is running
+      process.stderr.write(`${uvDiag} — falling back to pip.\n`);
+
       const pipResult = spawnSync("pip", ["install", "--upgrade", "relic-cli"], {
         stdio: "inherit",
       });
       if (pipResult.error) {
         throw new Error(
-          (uvNotFound ? "uv not found on PATH. " : "uv upgrade failed. ") +
-            "pip not found on PATH either. Install one of them, then run:\n" +
-            "  uv tool upgrade relic-cli  OR  pip install --upgrade relic-cli"
+          `${uvDiag}; pip not found on PATH either.\n` +
+            (uvStderr ? `uv output:\n  ${uvStderr}\n` : "") +
+            "Install one of them, then run:\n" +
+            "  uv tool install relic-cli  OR  pip install --upgrade relic-cli"
         );
       }
       if (pipResult.status !== 0) {
         throw new Error(
-          (uvNotFound ? "uv not found on PATH. " : "uv upgrade failed. ") +
-            "pip install also failed. Run manually:\n" +
-            "  uv tool upgrade relic-cli  OR  pip install --upgrade relic-cli"
+          `${uvDiag}; pip install also failed.\n` +
+            (uvStderr ? `uv output:\n  ${uvStderr}\n` : "") +
+            "Run manually:\n" +
+            "  uv tool install relic-cli  OR  pip install --upgrade relic-cli"
         );
       }
     }
