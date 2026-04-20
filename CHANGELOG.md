@@ -11,6 +11,51 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.8.2] — 2026-04-20
+
+### Fixed
+- `models.json` numeric fields (`maxHistoryMessages`, `recentFullMessages`, `timeoutMs`) now
+  validated on load. Negative values, non-integers, zero timeouts, and incoherent combinations
+  (`recentFullMessages > maxHistoryMessages`) all produce actionable errors naming the field,
+  its invalid value, the constraint, and the config path — then exit non-zero. Previously these
+  were accepted silently and corrupted history trimming behaviour.
+- Config parsing extracted to `parseModelConfig()` in `@relic/utility`, paralleling
+  `resolveSpec()`. `ModelConfig` type moved to `@relic/utility` as the single source of truth
+  for all consumers.
+- `relic specify` and `relic fix` now error consistently when `.relic/models.json` is absent,
+  matching every other workflow command. Previously both had silent fallbacks (print guidance /
+  print context to stdout) that contradicted the documented behaviour.
+- `scripts/publish.ts` no longer references the deleted `bin.debug.ts`. Version bump now covers
+  exactly 5 files as documented.
+- Root `package.json` `dev:debug` and `build:binary:debug` scripts removed — both targeted the
+  deleted debug binary and would fail if invoked.
+- `relic specify --spec <id>` option removed — the flag was registered but silently ignored.
+
+### Changed
+- Spec and fix resolution centralised into `resolveSpec()` and `resolveFix()` in `@relic/utility`.
+  All workflow commands now use the same five-step chain:
+  `--spec arg → active fix owning spec → RELIC_SPEC env → session.json → git branch inference`.
+  Previously the chain was copy-pasted across 8+ command files with no shared implementation.
+- `relic model --reset-context` now uses the full five-step resolution chain. Previously it
+  skipped the `RELIC_SPEC` env var, active-fix, and git branch inference steps.
+- `relic clarify`, `relic analyse`, and other fix-aware commands now automatically use the fix's
+  owning spec when a fix is active (`session.fix` is set), without requiring the user to also
+  set `session.spec` separately.
+
+### Infrastructure
+- Release flow: `bun run publish` now pushes only the release branch. The `vX.Y.Z` tag is
+  created automatically after the PR merges to `main` via the new `tag-release.yml` workflow.
+  Publish CI can no longer fire before doc-guard has passed.
+- GitHub Copilot workspace instructions (`.github/copilot-instructions.md`) added — scopes
+  reviews to application code and enforces a 7-point checklist covering version sync, changelog
+  completeness, README drift, template/generated sync, intersection safety, self-hosting
+  coherence, and path security.
+- Doc Guard CI (`doc-guard.yml`) added — detects version bumps on PRs, verifies a matching
+  `## [X.Y.Z]` entry in `CHANGELOG.md`, warns on untouched `README.md`, and blocks merge on
+  missing changelog entries.
+
+---
+
 ## [0.8.0] — 2026-04-18
 
 ### Added
