@@ -8,3 +8,4 @@
 2026-04-18-stale-bin-debug-references | 2026-04-18-stale-bin-debug-references.md |  | 
 2026-04-14-init-must-not-write-manifest-json | 2026-04-14-init-must-not-write-manifest-json.md |  | 
 2026-04-18-centralize-spec-fix-resolution | 2026-04-18-centralize-spec-fix-resolution.md |  | 
+uv stderr leaks to terminal before pip fallback succeeds | 2026-04-20-uv-stderr-leaks-on-pip-fallback.md | code-bug 004-cli-self-upgrade upgrade uv pip stdio | uv tool upgrade prints its error to the terminal even when pip fallback succeeds, making a working upgrade appear broken.
