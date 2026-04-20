@@ -9,3 +9,4 @@
 2026-04-14-init-must-not-write-manifest-json | 2026-04-14-init-must-not-write-manifest-json.md |  | 
 2026-04-18-centralize-spec-fix-resolution | 2026-04-18-centralize-spec-fix-resolution.md |  | 
 uv stderr leaks to terminal before pip fallback succeeds | 2026-04-20-uv-stderr-leaks-on-pip-fallback.md | code-bug 004-cli-self-upgrade upgrade uv pip stdio | uv tool upgrade prints its error to the terminal even when pip fallback succeeds, making a working upgrade appear broken.
+tag-release workflow not triggering publish workflows | 2026-04-20-tag-release-not-triggering-publish.md | code-bug 004-cli-self-upgrade ci github-actions tag publish | GITHUB_TOKEN-pushed tags do not cascade to other workflow triggers; publish-npm and publish-pypi never fire after tag-release.yml creates the tag.
