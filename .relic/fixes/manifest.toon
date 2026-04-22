@@ -11,3 +11,4 @@
 2026-04-20-uv-stderr-leaks-on-pip-fallback | 2026-04-20-uv-stderr-leaks-on-pip-fallback.md |  | 
 2026-04-18-centralize-spec-fix-resolution | 2026-04-18-centralize-spec-fix-resolution.md |  | 
 2026-04-20-tag-release-not-triggering-publish | 2026-04-20-tag-release-not-triggering-publish.md |  | 
+upgrade-hooks-use-stale-templates | 2026-04-22-upgrade-hooks-use-stale-templates.md | code-bug 004-cli-self-upgrade | relic upgrade refreshes hooks with old templates because the running process still holds the old TEMPLATES map in memory

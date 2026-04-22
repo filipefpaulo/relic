@@ -296,8 +296,35 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
   result.binary_upgraded = true;
 
   if (relicDir) {
-    const projectDir = join(relicDir, "..");
-    await refreshHooks(relicDir, projectDir, result);
+    // Spawn the NEW binary with --prompts so it uses its own fresh TEMPLATES map.
+    // The current process still holds the old templates in memory — calling
+    // refreshHooks() here would write stale content.
+    const promptsResult = spawnSync(
+      process.argv[0]!,
+      [...(process.argv[1] ? [process.argv[1]] : []), "upgrade", "--prompts"],
+      { stdio: "pipe", cwd: join(relicDir, "..") }
+    );
+
+    if (promptsResult.status === 0 && promptsResult.stdout) {
+      try {
+        const parsed = JSON.parse(promptsResult.stdout.toString()) as UpgradeResult;
+        result.hooks_refreshed = parsed.hooks_refreshed;
+        result.preamble_updated = parsed.preamble_updated;
+        result.warnings.push(...parsed.warnings);
+      } catch {
+        // JSON parse failed — the new binary may have printed text instead.
+        // Hooks were still refreshed by the child process; we just can't parse details.
+        result.warnings.push("Hooks refreshed by new binary (output not parseable).");
+      }
+    } else {
+      const stderr = promptsResult.stderr?.toString().trim() ?? "";
+      result.warnings.push(
+        "Warning: failed to refresh hooks via new binary." +
+          (stderr ? ` ${stderr}` : "") +
+          " Run `relic upgrade --prompts` manually."
+      );
+    }
+
     await runToonMigrate({ relicDir });
     result.toon_migrated = true;
   } else {
