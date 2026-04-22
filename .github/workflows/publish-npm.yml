@@ -14,18 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Verify npm token is configured
-        run: |
-          if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "Error: NPM_TOKEN secret is not configured in this repository."
-            echo "Create an automation token at npmjs.com and add it as NPM_TOKEN in repo secrets."
-            exit 1
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -44,6 +35,4 @@ jobs:
 
       - name: Publish to npm
         working-directory: packages/cli-node
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
