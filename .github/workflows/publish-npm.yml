@@ -4,17 +4,15 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
+  id-token: write  # required for OIDC
 
 jobs:
   publish:
-    if: "!endsWith(github.ref_name, '-pypi')"
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -35,4 +33,4 @@ jobs:
 
       - name: Publish to npm
         working-directory: packages/cli-node
-        run: npm publish
+        run: npm publish --provenance
