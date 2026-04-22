@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,6 +12,7 @@ permissions:
 
 jobs:
   publish:
+    if: "!endsWith(github.ref_name, '-pypi')"
     runs-on: ubuntu-latest
 
     steps:
