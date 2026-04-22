@@ -4,10 +4,11 @@
 2026-04-18-init-missing-gitignore-entries | 2026-04-18-init-missing-gitignore-entries.md |  | 
 2026-04-13-copilot-codex-per-command-files | 2026-04-13-copilot-codex-per-command-files.md |  | 
 2026-04-15-missing-tests-write-command | 2026-04-15-missing-tests-write-command.md |  | 
+2026-04-20-npm-publish-404-missing-token | 2026-04-20-npm-publish-404-missing-token.md |  | 
 2026-04-18-specify-unused-spec-flag | 2026-04-18-specify-unused-spec-flag.md |  | 
 2026-04-18-stale-bin-debug-references | 2026-04-18-stale-bin-debug-references.md |  | 
 2026-04-14-init-must-not-write-manifest-json | 2026-04-14-init-must-not-write-manifest-json.md |  | 
 2026-04-20-uv-stderr-leaks-on-pip-fallback | 2026-04-20-uv-stderr-leaks-on-pip-fallback.md |  | 
 2026-04-18-centralize-spec-fix-resolution | 2026-04-18-centralize-spec-fix-resolution.md |  | 
 2026-04-20-tag-release-not-triggering-publish | 2026-04-20-tag-release-not-triggering-publish.md |  | 
-npm publish E404 — missing token and wrong repository.url format | 2026-04-20-npm-publish-404-missing-token.md | code-bug 004-cli-self-upgrade npm publish token package-json | npm publish fails with E404 because NPM_TOKEN secret is missing; workflow has no pre-check. Also fixes repository.url format in package.json.
+upgrade-hooks-use-stale-templates | 2026-04-22-upgrade-hooks-use-stale-templates.md | code-bug 004-cli-self-upgrade | relic upgrade refreshes hooks with old templates because the running process still holds the old TEMPLATES map in memory
