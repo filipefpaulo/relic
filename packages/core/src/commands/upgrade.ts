@@ -300,8 +300,8 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
     // The current process still holds the old templates in memory — calling
     // refreshHooks() here would write stale content.
     const promptsResult = spawnSync(
-      process.argv[0]!,
-      [...(process.argv[1] ? [process.argv[1]] : []), "upgrade", "--prompts"],
+      "relic",
+      ["upgrade", "--prompts"],
       { stdio: "pipe", cwd: join(relicDir, "..") }
     );
 
