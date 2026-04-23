@@ -296,13 +296,17 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
   result.binary_upgraded = true;
 
   if (relicDir) {
-    // Spawn the NEW binary with --prompts so it uses its own fresh TEMPLATES map.
-    // The current process still holds the old templates in memory — calling
-    // refreshHooks() here would write stale content.
+    const projectDir = join(relicDir, "..");
+
+    // Try spawning the NEW binary so it uses its own fresh TEMPLATES map.
+    // If the spawn fails (e.g. upgrading from a pre-fix version where
+    // process.argv contained Bun virtual FS paths), fall back to in-process
+    // refreshHooks() — templates may be one version behind but the upgrade
+    // still completes.
     const promptsResult = spawnSync(
       "relic",
       ["upgrade", "--prompts"],
-      { stdio: "pipe", cwd: join(relicDir, "..") }
+      { stdio: "pipe", cwd: projectDir }
     );
 
     if (promptsResult.status === 0 && promptsResult.stdout) {
@@ -312,16 +316,14 @@ export async function runUpgrade(options: UpgradeOptions): Promise<void> {
         result.preamble_updated = parsed.preamble_updated;
         result.warnings.push(...parsed.warnings);
       } catch {
-        // JSON parse failed — the new binary may have printed text instead.
-        // Hooks were still refreshed by the child process; we just can't parse details.
         result.warnings.push("Hooks refreshed by new binary (output not parseable).");
       }
     } else {
-      const stderr = promptsResult.stderr?.toString().trim() ?? "";
+      // Spawn failed — fall back to in-process refresh.
+      await refreshHooks(relicDir, projectDir, result);
       result.warnings.push(
-        "Warning: failed to refresh hooks via new binary." +
-          (stderr ? ` ${stderr}` : "") +
-          " Run `relic upgrade --prompts` manually."
+        "Hooks refreshed in-process (templates may be from the previous version). " +
+          "Run `relic upgrade --prompts` once more to ensure latest templates."
       );
     }
 

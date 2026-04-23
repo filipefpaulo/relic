@@ -6,10 +6,10 @@
 2026-04-15-missing-tests-write-command | 2026-04-15-missing-tests-write-command.md |  | 
 2026-04-20-npm-publish-404-missing-token | 2026-04-20-npm-publish-404-missing-token.md |  | 
 2026-04-18-specify-unused-spec-flag | 2026-04-18-specify-unused-spec-flag.md |  | 
+2026-04-22-upgrade-spawn-bunfs-path | 2026-04-22-upgrade-spawn-bunfs-path.md |  | 
 2026-04-18-stale-bin-debug-references | 2026-04-18-stale-bin-debug-references.md |  | 
 2026-04-14-init-must-not-write-manifest-json | 2026-04-14-init-must-not-write-manifest-json.md |  | 
 2026-04-20-uv-stderr-leaks-on-pip-fallback | 2026-04-20-uv-stderr-leaks-on-pip-fallback.md |  | 
+2026-04-22-upgrade-hooks-use-stale-templates | 2026-04-22-upgrade-hooks-use-stale-templates.md |  | 
 2026-04-18-centralize-spec-fix-resolution | 2026-04-18-centralize-spec-fix-resolution.md |  | 
 2026-04-20-tag-release-not-triggering-publish | 2026-04-20-tag-release-not-triggering-publish.md |  | 
-upgrade-hooks-use-stale-templates | 2026-04-22-upgrade-hooks-use-stale-templates.md | code-bug 004-cli-self-upgrade | relic upgrade refreshes hooks with old templates because the running process still holds the old TEMPLATES map in memory
-upgrade-spawn-bunfs-path | 2026-04-22-upgrade-spawn-bunfs-path.md | code-bug 004-cli-self-upgrade | upgrade spawn uses Bun virtual FS path (/$bunfs/root/relic) which the new binary cannot resolve
